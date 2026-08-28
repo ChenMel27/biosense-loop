@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { selectivePermeabilityPack } from "@/content/selective-permeability";
+import { cellularRespirationPack } from "@/content/cellular-respiration";
 import type { DashboardSnapshot, StudySession } from "@/lib/domain/types";
 
 const actionOptions = [
@@ -46,7 +46,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
     : 0;
   const ideaRows = useMemo(
     () =>
-      selectivePermeabilityPack.ideas.map((idea) => ({
+      cellularRespirationPack.ideas.map((idea) => ({
         ...idea,
         count: snapshot.ideaCounts[idea.id] ?? 0,
       })),
@@ -54,7 +54,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
   );
   const misconceptionRows = useMemo(
     () =>
-      selectivePermeabilityPack.alternativeConceptions.map((idea) => ({
+      cellularRespirationPack.alternativeConceptions.map((idea) => ({
         ...idea,
         count: snapshot.misconceptionCounts[idea.id] ?? 0,
       })),
@@ -205,7 +205,10 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           <div className="signal-list">
             {ideaRows.map((idea) => (
               <div key={idea.id}>
-                <span><strong>{idea.label}</strong><small>{idea.description}</small></span>
+                <span>
+                  <strong>{idea.label}</strong>
+                  <small>{idea.description}</small>
+                </span>
                 <b>{idea.count}</b>
               </div>
             ))}
@@ -222,7 +225,11 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           <div className="signal-list warning">
             {misconceptionRows.map((idea) => (
               <div key={idea.id}>
-                <span><strong>{idea.label}</strong><small>{idea.description}</small></span>
+                <span>
+                  <strong>{idea.label}</strong>
+                  <small>{idea.description}</small>
+                  {idea.count > 0 ? <small className="action-tip">{idea.teacherAction}</small> : null}
+                </span>
                 <b>{idea.count}</b>
               </div>
             ))}
@@ -282,7 +289,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
             maxLength={2000}
             value={actionNote}
             onChange={(event) => setActionNote(event.target.value)}
-            placeholder="For example: Most responses connected selectivity to proteins but not concentration…"
+            placeholder="For example: Several responses changed matter into energy, so I will color-code the two paths…"
           />
         </div>
         <button className="button primary" disabled={savingAction}>

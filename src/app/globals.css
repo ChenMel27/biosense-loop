@@ -235,6 +235,7 @@ code { padding: 2px 5px; border-radius: 5px; background: #eaf1ee; color: var(--t
 .signal-list > div > span { display: grid; }
 .signal-list strong { font-size: .85rem; }
 .signal-list small { color: var(--ink-soft); font-size: .69rem; }
+.signal-list small.action-tip { margin-top: 8px; color: #4a5f5d; font-weight: 600; line-height: 1.35; }
 .signal-list b { display: grid; place-items: center; min-width: 34px; height: 34px; border-radius: 9px; background: var(--mint); color: var(--teal); }
 .signal-list.warning b { background: #fff1d7; color: #86621c; }
 .research-boundary { grid-template-columns: auto 1fr auto; align-items: center; }

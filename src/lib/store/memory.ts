@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { selectivePermeabilityPack } from "@/content/selective-permeability";
+import { cellularRespirationPack } from "@/content/cellular-respiration";
 import {
   balancedConditions,
   generateJoinCode,
@@ -46,9 +46,9 @@ function participantPepper() {
 function buildDemoState(): MemoryState {
   const session: StudySession = {
     id: "demo-session",
-    title: "Period 3 · Cell membranes",
+    title: "Period 3 · Cellular respiration",
     joinCode: "BIO7",
-    contentVersionId: selectivePermeabilityPack.versionId,
+    contentVersionId: cellularRespirationPack.versionId,
     status: "active",
     assignmentSeed: "demo-balanced-v1",
     durationMinutes: 15,

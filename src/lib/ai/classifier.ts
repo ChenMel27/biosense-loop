@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 
-import { selectivePermeabilityPack } from "@/content/selective-permeability";
+import { cellularRespirationPack } from "@/content/cellular-respiration";
 import { deterministicClassify } from "@/lib/ai/deterministic";
 import {
   CLASSIFIER_SCHEMA_VERSION,
@@ -29,7 +29,7 @@ function normalizeResult(raw: {
     possibleAlternativeConceptionIds: raw.possible_alternative_conception_ids,
     classificationConfidence: raw.classification_confidence,
     recommendedPromptId: abstain
-      ? selectivePermeabilityPack.fallbackPrompt.id
+      ? cellularRespirationPack.fallbackPrompt.id
       : raw.recommended_prompt_id,
     abstain,
     reasonCodes: raw.reason_codes,
@@ -44,15 +44,15 @@ export function redactLikelyIdentifiers(value: string) {
 }
 
 function buildInstructions() {
-  const ideaList = selectivePermeabilityPack.ideas
+  const ideaList = cellularRespirationPack.ideas
     .map((idea) => `${idea.id}: ${idea.description}`)
     .join("\n");
-  const misconceptionList = selectivePermeabilityPack.alternativeConceptions
+  const misconceptionList = cellularRespirationPack.alternativeConceptions
     .map((idea) => `${idea.id}: ${idea.description}`)
     .join("\n");
   const promptList = [
-    ...selectivePermeabilityPack.followUps,
-    selectivePermeabilityPack.fallbackPrompt,
+    ...cellularRespirationPack.followUps,
+    cellularRespirationPack.fallbackPrompt,
   ]
     .map((prompt) => `${prompt.id}: targets ${prompt.targets.join(", ") || "clarification"}`)
     .join("\n");
@@ -80,8 +80,8 @@ export async function classifyForRouting(options: ClassifyOptions): Promise<AiDe
       missingIdeaIds: [],
       possibleAlternativeConceptionIds: [],
       classificationConfidence: 1,
-      recommendedPromptId: selectivePermeabilityPack.fixedReflectionPrompt.id,
-      displayedPromptId: selectivePermeabilityPack.fixedReflectionPrompt.id,
+      recommendedPromptId: cellularRespirationPack.fixedReflectionPrompt.id,
+      displayedPromptId: cellularRespirationPack.fixedReflectionPrompt.id,
       abstain: false,
       reasonCodes: ["fixed_control_prompt"],
       latencyMs: Date.now() - startedAt,
@@ -160,4 +160,3 @@ export async function classifyForRouting(options: ClassifyOptions): Promise<AiDe
     };
   }
 }
-

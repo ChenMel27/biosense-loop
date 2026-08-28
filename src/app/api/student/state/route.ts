@@ -1,4 +1,4 @@
-import { getFollowUpPrompt, getContentPack } from "@/content/selective-permeability";
+import { getFollowUpPrompt, getContentPack } from "@/content/cellular-respiration";
 import { getStudentIdentity } from "@/lib/auth/guards";
 import { apiError } from "@/lib/http";
 import { getStore } from "@/lib/store";

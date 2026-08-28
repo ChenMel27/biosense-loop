@@ -1,0 +1,17 @@
+# Draft ASEE Abstract
+
+## BioSense Loop: Constrained AI for Rapid Misconception Diagnosis in Seventh-Grade Biology
+
+Middle-school science teachers must cover required content while supporting diverse learners and making rapid instructional decisions. Conventional exit tickets can reveal an incorrect answer, but a single response may not identify the relationship driving the error and often arrives too late for the student to reconsider it during the lesson. Reviewing an entire class of open responses can also create additional work rather than a usable next step. These limitations are consequential in biology, where unresolved ideas about matter, energy, cells, and ecosystems can constrain later learning.
+
+This research-to-practice study presents BioSense Loop, a teacher-governed classroom tool that replaces a one-response exit ticket with a short explanation–probe–revision loop. The pilot focuses on cellular respiration within Georgia Standards of Excellence S7L4.b, which emphasizes modeling matter cycling and energy flow among biotic and abiotic ecosystem components rather than memorizing biochemical mechanisms. The content taxonomy is derived from biology-education research and targets four observable response patterns: treating respiration as breathing alone, converting matter into energy or allowing it to disappear, excluding plants from cellular respiration, and cycling energy in the same manner as matter.
+
+Students first explain a familiar ecosystem phenomenon. A schema-constrained AI maps evidence in the response to the frozen misconception taxonomy and selects exactly one teacher-authored follow-up probe; low-confidence cases receive a static clarification prompt. Students then reconstruct their explanation and complete an unseen, unaided near-transfer task. The AI neither generates scientific feedback nor produces the research score. The teacher dashboard aggregates response patterns and pairs each cluster with a teacher-reviewed two-minute instructional response.
+
+The planned pilot uses a single-session randomized parallel-group design with approximately 30 seventh-grade students. Half receive misconception-specific follow-up and half receive a time-matched general reflection prompt. Both groups complete the same initial, revision, near-transfer, and experience measures. The primary outcome is a blinded human-scored near-transfer rubric measuring matter tracing, energy flow, the conceptual role of cellular respiration, and ecosystem connection. Secondary outcomes include misconception repair, revision type, AI–human classification agreement, abstention, completion time, student-reported clarity and pressure, teacher dashboard-review time, and the teacher's recorded instructional action.
+
+This study evaluates whether constrained AI can close a formative-assessment loop and produce actionable evidence within ordinary classroom time. The one-class pilot is designed to establish feasibility, short-term learning evidence, classification validity, and teacher actionability rather than retention or broad generalizability.
+
+**Keywords:** formative assessment; artificial intelligence; misconception diagnosis; cellular respiration; matter and energy; middle-school biology; human-in-the-loop assessment
+
+**Submission note:** Replace planned-language statements with the final sample, effect estimate and uncertainty, AI–human agreement, completion evidence, and teacher-time finding before submission. Confirm the current ASEE division, word limit, and anonymization requirements.

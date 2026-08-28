@@ -29,21 +29,21 @@ async function runStudent(index) {
   await submit({
     action: "initial",
     responseText:
-      "The cell membrane is selective, so some substances cross while others need proteins. Movement of oxygen and waste helps conditions inside the cell.",
+      "The rabbit gets carbon matter and stored chemical energy from grass. During cellular respiration, carbon can leave in carbon dioxide while energy is made usable and eventually leaves the ecosystem as heat.",
     confidenceChoice: "somewhat_sure",
     clientTimestamp: new Date().toISOString(),
   });
   await submit({
     action: "revision",
     responseText:
-      "The membrane is a selective boundary. Substance properties, transport proteins, and concentration differences affect movement, which lets the cell gain oxygen and remove waste to support its internal conditions.",
+      "Carbon matter from food can become part of the rabbit and later return to the air as carbon dioxide. Cellular respiration releases usable energy in cells; matter can cycle, while energy flows and eventually leaves as heat.",
     confidenceChoice: "very_sure",
     clientTimestamp: new Date().toISOString(),
   });
   await submit({
     action: "transfer",
     responseText:
-      "An intestinal cell membrane is selective. Nutrient properties, transport proteins, and concentration differences make movement vary, and that transport changes the cell's internal supply of water, ions, and nutrients.",
+      "In the terrarium, carbon matter moves among the plant, insect, decomposers, air, and soil. Light energy enters, stored energy moves through food, cellular respiration releases usable energy, and some energy leaves as heat rather than cycling.",
     confidenceChoice: "somewhat_sure",
     clientTimestamp: new Date().toISOString(),
   });

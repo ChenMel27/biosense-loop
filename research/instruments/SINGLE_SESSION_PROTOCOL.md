@@ -12,7 +12,7 @@ The condition-specific loop has a maximum target of eight minutes. The full sess
 
 ## Before class
 
-1. Confirm the class has completed the relevant selective-permeability instruction.
+1. Confirm the class has completed relevant instruction on matter cycling, energy flow, and the conceptual role of cellular respiration under Georgia GSE S7L4.b.
 2. Confirm approvals and eligibility using the separate school-controlled list.
 3. Freeze the commit, deployment, content pack, classifier schema, prompt bank, model configuration, rubric, and analysis plan.
 4. Create the session and download the participant manifest.
@@ -36,6 +36,7 @@ The condition-specific loop has a maximum target of eight minutes. The full sess
 8. Students complete the near-transfer response before any dashboard discussion or differential teacher feedback.
 9. Students complete the three-item survey and reach the neutral completion screen.
 10. Close the session after confirming completion or documenting time-outs.
+11. After all near-transfer responses are locked, start the dashboard-review timer. The teacher reviews the misconception clusters, selects an instructional action, and stops the timer when that action is recorded.
 
 ## Fidelity and contamination controls
 
@@ -47,9 +48,10 @@ The condition-specific loop has a maximum target of eight minutes. The full sess
 
 ## Outcomes and claim boundary
 
-Primary outcome: blinded human-scored same-session near-transfer Knowledge Integration score.
+Primary outcome: blinded human-scored same-session near-transfer total (0–8) using the frozen cellular-respiration matter-and-energy rubric.
 
 Secondary outcomes: initial-to-final change, alternative-conception transitions, revision type, completion, duration, fallback use, student clarity/pressure/helpfulness, teacher actionability, and AI–human tag agreement.
 
-This is a preliminary randomized one-class pilot. Same-session near transfer is not retention, durable conceptual change, or proof of general effectiveness.
+The content scope is matter cycling and energy flow among biotic and abiotic ecosystem components. Do not score knowledge of glycolysis, the Krebs cycle, the electron-transport chain, ATP yield, or a memorized cellular-respiration equation.
 
+This is a preliminary randomized one-class pilot. Same-session near transfer is not retention, durable conceptual change, or proof of general effectiveness.

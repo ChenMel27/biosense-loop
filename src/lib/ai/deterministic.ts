@@ -1,4 +1,4 @@
-import { selectivePermeabilityPack } from "@/content/selective-permeability";
+import { cellularRespirationPack } from "@/content/cellular-respiration";
 import type { ClassificationResult } from "@/lib/domain/types";
 
 function includesAny(text: string, terms: string[]) {
@@ -11,62 +11,90 @@ export function deterministicClassify(response: string): ClassificationResult {
   const possibleAlternativeConceptionIds: string[] = [];
 
   if (
-    includesAny(text, ["some", "certain", "selective", "not all", "limits"]) &&
-    includesAny(text, ["cross", "pass", "move", "enter", "leave"])
+    includesAny(text, ["matter", "carbon", "atom", "molecule", "food"]) &&
+    includesAny(text, ["carbon dioxide", "body", "waste", "soil", "air", "rearrange", "move"])
   ) {
-    demonstratedIdeaIds.push("selective_boundary");
+    demonstratedIdeaIds.push("matter_path");
   }
 
   if (
-    includesAny(text, ["protein", "channel", "carrier", "charge", "polar", "lipid"])
+    includesAny(text, ["energy", "chemical energy"]) &&
+    includesAny(text, ["flow", "transfer", "use", "heat", "move", "stay alive", "function"])
   ) {
-    demonstratedIdeaIds.push("substance_and_membrane_properties");
+    demonstratedIdeaIds.push("energy_flow");
   }
 
   if (
-    includesAny(text, ["concentration", "more outside", "more inside", "high to low"])
+    includesAny(text, ["cellular respiration", "respiration in cells", "cells release", "cells use food"]) &&
+    includesAny(text, ["energy", "food", "sugar", "glucose"])
   ) {
-    demonstratedIdeaIds.push("concentration_gradient");
+    demonstratedIdeaIds.push("cellular_respiration_role");
   }
 
   if (
-    includesAny(text, ["waste", "oxygen", "glucose", "balance", "condition", "function", "energy"]) &&
-    includesAny(text, ["inside", "cell", "remove", "need", "maintain"])
+    includesAny(text, ["environment", "ecosystem", "plant", "producer", "decomposer", "soil", "air"]) &&
+    includesAny(text, ["carbon dioxide", "matter", "energy", "food", "cycle", "flow"])
   ) {
-    demonstratedIdeaIds.push("system_effect");
-  }
-
-  if (includesAny(text, ["nothing can", "blocks everything", "cannot cross", "no substance"])) {
-    possibleAlternativeConceptionIds.push("membrane_blocks_everything");
-  }
-
-  if (includesAny(text, ["everything can", "anything can", "all substances cross", "all molecules pass"])) {
-    possibleAlternativeConceptionIds.push("membrane_allows_everything");
+    demonstratedIdeaIds.push("ecosystem_connection");
   }
 
   if (
-    includesAny(text, ["only size", "just size", "smaller passes", "large cannot"]) &&
-    !includesAny(text, ["protein", "channel", "charge", "concentration"])
+    includesAny(text, ["respiration is breathing", "respiration means breathing", "only breathing", "just breathing"]) ||
+    (includesAny(text, ["breathe", "breathing", "lungs"]) &&
+      !includesAny(text, ["cell", "food", "energy"]))
   ) {
-    possibleAlternativeConceptionIds.push("size_only");
+    possibleAlternativeConceptionIds.push("respiration_is_breathing_only");
   }
 
-  const allIdeaIds = selectivePermeabilityPack.ideas.map((idea) => idea.id);
+  if (
+    includesAny(text, [
+      "matter becomes energy",
+      "food becomes energy",
+      "carbon becomes energy",
+      "matter disappears",
+      "food disappears",
+      "used up completely",
+    ])
+  ) {
+    possibleAlternativeConceptionIds.push("matter_becomes_energy_or_disappears");
+  }
+
+  if (
+    includesAny(text, [
+      "plants do not respire",
+      "plants don't respire",
+      "only animals respire",
+      "plants only photosynthesize",
+      "photosynthesis is plant respiration",
+    ])
+  ) {
+    possibleAlternativeConceptionIds.push("plants_do_not_respire");
+  }
+
+  if (
+    includesAny(text, ["energy cycles", "energy is recycled", "energy returns to the plant", "energy goes in a cycle"])
+  ) {
+    possibleAlternativeConceptionIds.push("energy_cycles_like_matter");
+  }
+
+  const allIdeaIds = cellularRespirationPack.ideas.map((idea) => idea.id);
   const missingIdeaIds = allIdeaIds.filter((id) => !demonstratedIdeaIds.includes(id));
 
-  let recommendedPromptId = "membrane_clarify_01";
-  if (possibleAlternativeConceptionIds.includes("membrane_blocks_everything")) {
-    recommendedPromptId = "membrane_not_all_or_none_01";
-  } else if (
-    possibleAlternativeConceptionIds.includes("membrane_allows_everything") ||
-    possibleAlternativeConceptionIds.includes("size_only") ||
-    missingIdeaIds.includes("substance_and_membrane_properties")
-  ) {
-    recommendedPromptId = "membrane_properties_01";
-  } else if (missingIdeaIds.includes("concentration_gradient")) {
-    recommendedPromptId = "membrane_gradient_01";
-  } else if (missingIdeaIds.includes("system_effect")) {
-    recommendedPromptId = "membrane_system_effect_01";
+  let recommendedPromptId = "respiration_clarify_01";
+  if (possibleAlternativeConceptionIds.includes("respiration_is_breathing_only")) {
+    recommendedPromptId = "respiration_breathing_probe_01";
+  } else if (possibleAlternativeConceptionIds.includes("matter_becomes_energy_or_disappears")) {
+    recommendedPromptId = "respiration_matter_energy_probe_01";
+  } else if (possibleAlternativeConceptionIds.includes("plants_do_not_respire")) {
+    recommendedPromptId = "respiration_plants_probe_01";
+  } else if (possibleAlternativeConceptionIds.includes("energy_cycles_like_matter")) {
+    recommendedPromptId = "respiration_flow_cycle_probe_01";
+  } else if (missingIdeaIds.includes("matter_path") || missingIdeaIds.includes("energy_flow")) {
+    recommendedPromptId = "respiration_matter_energy_probe_01";
+  } else if (missingIdeaIds.includes("cellular_respiration_role")) {
+    recommendedPromptId = "respiration_breathing_probe_01";
+  } else if (missingIdeaIds.includes("ecosystem_connection")) {
+    recommendedPromptId = "respiration_ecosystem_probe_01";
   }
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
@@ -76,9 +104,11 @@ export function deterministicClassify(response: string): ClassificationResult {
     demonstratedIdeaIds,
     missingIdeaIds,
     possibleAlternativeConceptionIds,
-    classificationConfidence: abstain ? 0.35 : Math.min(0.85, 0.5 + demonstratedIdeaIds.length * 0.08),
+    classificationConfidence: abstain
+      ? 0.35
+      : Math.min(0.85, 0.5 + demonstratedIdeaIds.length * 0.08),
     recommendedPromptId: abstain
-      ? selectivePermeabilityPack.fallbackPrompt.id
+      ? cellularRespirationPack.fallbackPrompt.id
       : recommendedPromptId,
     abstain,
     reasonCodes: abstain
@@ -88,4 +118,3 @@ export function deterministicClassify(response: string): ClassificationResult {
         : ["insufficient_evidence"],
   };
 }
-

@@ -14,11 +14,16 @@ The application can be built and rehearsed before these gates are complete. **Do
 
 ## Content and measurement freeze
 
+- [ ] The teacher confirms that the lesson target is Georgia GSE S7L4.b and that the activity occurs after relevant instruction.
+- [ ] Every prompt has been checked against the S7L4.b boundary: trace matter and energy, but do not assess biochemical stages or memorized reaction details.
+- [ ] Each alternative-conception category is supported by a cited research source and a teacher-observed classroom need.
+- [ ] Each category has inclusion rules, exclusion rules, ambiguous examples, and a teacher-approved two-minute response.
 - [ ] Classroom teacher approves the initial, adaptive, fixed-control, revision, and near-transfer prompts.
 - [ ] A second biology educator reviews scientific accuracy and developmental appropriateness.
 - [ ] The teacher confirms that the class has received the necessary instruction before the activity.
 - [ ] Cognitive interviews or a non-study rehearsal confirm that seventh graders understand the wording.
 - [ ] The Knowledge Integration rubric and anchor responses are frozen.
+- [ ] Teacher dashboard labels describe response patterns rather than diagnosing or labeling students.
 - [ ] Raters practice on non-study responses and resolve ambiguous descriptors.
 - [ ] Condition labels are removed from files used for primary human scoring.
 - [ ] The statistical analysis plan is frozen before outcome scoring begins.
@@ -53,4 +58,4 @@ The application can be built and rehearsed before these gates are complete. **Do
 - [ ] The teacher has the standardized introduction and neutral transition script.
 - [ ] Dashboard/outcome access remains closed until all near-transfer responses are locked.
 - [ ] Deviations, absences, accommodations, and technical incidents will be recorded.
-
+- [ ] A timer is ready to record dashboard-review time from first opening to the teacher's selected instructional action.

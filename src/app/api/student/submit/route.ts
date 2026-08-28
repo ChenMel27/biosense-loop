@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { classifyForRouting } from "@/lib/ai/classifier";
-import { getContentPack } from "@/content/selective-permeability";
+import { getContentPack } from "@/content/cellular-respiration";
 import { getStudentIdentity } from "@/lib/auth/guards";
 import type { StudyResponse } from "@/lib/domain/types";
 import { studentSubmissionSchema } from "@/lib/domain/validation";
@@ -131,4 +131,3 @@ export async function POST(request: Request) {
 
   return Response.json({ ok: true });
 }
-

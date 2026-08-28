@@ -10,6 +10,12 @@ BioSense Loop is a deployable, teacher-governed classroom research instrument fo
 
 The software does **not** grade students, declare mastery, generate scientific advice, or determine the research outcome. AI may only classify teacher-defined evidence and select a whitelisted teacher-authored prompt. Human raters score the frozen near-transfer responses.
 
+## Frozen pilot topic and Georgia alignment
+
+The pilot content pack focuses on **cellular respiration as part of matter cycling and energy flow in ecosystems**. It is aligned to Georgia Standards of Excellence **S7L4** and **S7L4.b**: students develop a model that traces matter cycling and energy flow among living and nonliving ecosystem components.
+
+The Georgia Department of Education clarification sets an explicit grade-level boundary: seventh-grade work emphasizes tracing matter and energy, not the biochemical mechanisms of photosynthesis or cellular respiration. The application therefore does not assess glycolysis, the Krebs cycle, the electron-transport chain, ATP yield, or memorization of a chemical equation. See [`docs/GEORGIA_STANDARDS_ALIGNMENT.md`](docs/GEORGIA_STANDARDS_ALIGNMENT.md).
+
 ## Study implemented in the product
 
 The session uses a randomized parallel-group pilot with approximately 30 students:
@@ -27,6 +33,7 @@ This design can estimate a preliminary short-term near-transfer difference. It c
 - Immutable initial, final, and near-transfer response records.
 - Autosave, refresh recovery, and a neutral completion screen.
 - Teacher sign-in, session creation, participant-code manifest, launch/close controls, live completion status, and CSV/JSON exports.
+- Misconception-cluster summaries with a teacher-reviewed two-minute instructional response for each detected pattern.
 - OpenAI Responses API adapter with Structured Outputs, `store: false`, a whitelisted output schema, timeout, abstention, and deterministic fallback.
 - AI routing disabled unless the API key **and** a separate minor-data-safeguard confirmation flag are configured.
 - Supabase migration with row-level security enabled and no public table policies.
@@ -153,7 +160,8 @@ scripts/load-test.mjs       Thirty-student synthetic workflow test
 
 ## Known limitations
 
-- The included selective-permeability pack is a **draft** and must be reviewed by the partner teacher and a biology educator before research use.
+- The included cellular-respiration pack is a **draft**. Its misconception map, prompts, action cards, and rubric require partner-teacher and biology-reviewer approval before research use.
+- The current pack is valid only for the S7L4.b matter-and-energy scope. It must not be represented as an assessment of detailed cellular-respiration biochemistry.
 - The teacher password is appropriate for a small one- or two-teacher pilot, not a district-wide identity system.
 - In-memory rate limiting is useful for a small pilot but should be replaced by a distributed limiter if the application expands across serverless regions.
 - A one-class sample of about 15 students per condition is underpowered for precise general claims. Report effect estimates, uncertainty, feasibility, and limitations rather than treating statistical significance as the sole result.

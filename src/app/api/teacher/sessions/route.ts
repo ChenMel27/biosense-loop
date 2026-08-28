@@ -1,4 +1,4 @@
-import { selectivePermeabilityPack } from "@/content/selective-permeability";
+import { cellularRespirationPack } from "@/content/cellular-respiration";
 import { getTeacherIdentity } from "@/lib/auth/guards";
 import { teacherSessionSchema } from "@/lib/domain/validation";
 import { apiError, validationMessage } from "@/lib/http";
@@ -18,8 +18,7 @@ export async function POST(request: Request) {
   }
   const result = await getStore().createSession({
     ...parsed.data,
-    contentVersionId: selectivePermeabilityPack.versionId,
+    contentVersionId: cellularRespirationPack.versionId,
   });
   return Response.json({ ok: true, ...result }, { status: 201 });
 }
-

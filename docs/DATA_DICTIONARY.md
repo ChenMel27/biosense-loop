@@ -17,6 +17,8 @@
 
 The application does not create the primary score. Raters add blinded Knowledge Integration scores in a separate analysis file keyed by `participant_tag`.
 
+The frozen primary rubric is [`research/instruments/CELLULAR_RESPIRATION_RUBRIC.md`](../research/instruments/CELLULAR_RESPIRATION_RUBRIC.md). It measures matter tracing, energy flow, the role of cellular respiration, and ecosystem connection at the Georgia S7L4.b level.
+
 ## Secondary learning-process fields
 
 | Field | Meaning |
@@ -28,12 +30,22 @@ The application does not create the primary score. Raters add blinded Knowledge 
 | `ai_abstained` | Whether uncertainty forced the clarification prompt |
 | `fallback_reason` | Why the external classifier was not used or failed |
 
+The frozen alternative-conception identifiers are:
+
+- `respiration_is_breathing_only`
+- `matter_becomes_energy_or_disappears`
+- `plants_do_not_respire`
+- `energy_cycles_like_matter`
+
+These are codes for evidence in a response, not stable labels assigned to a student.
+
 ## Feasibility and experience fields
 
 - `completion_state`, `started_at`, and `completed_at` support completion and duration summaries.
 - `clarity`, `pressure`, and `helpfulness` are single study-specific 1–5 items. They are not a validated anxiety scale.
 - `open_comment` is optional qualitative implementation feedback.
 - The event table records joins, stage locks, fallbacks, and completion for technical/fidelity analysis.
+- `teacher_action.created_at`, `action_type`, and `note` are stored by the MVP. For the classroom pilot, an observer records the first locked-summary view time on the session protocol; dashboard review time is the interval from that observation to the stored action timestamp. A first-view audit event is a production gate before unattended data collection.
 
 ## Data-quality rules
 
@@ -43,4 +55,3 @@ The application does not create the primary score. Raters add blinded Knowledge 
 4. Missing responses are not imputed for the primary one-class pilot unless a statistician specifies a presigned method.
 5. Report the number randomized, started, completed, excluded, and analyzed by condition.
 6. Keep the roster-to-code crosswalk outside the application and research export.
-
