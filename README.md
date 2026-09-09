@@ -4,7 +4,7 @@ ExitLoop is a teacher-governed, low-stakes formative-assessment platform for Kâ€
 
 ## Current research phase
 
-The current study is a remote usability study with two to five high school biology teachers. Teachers review and edit the diagnostic content, inspect frozen classifier output for a simulated class of 18 researcher-written responses, use a class summary to choose an instructional next step, and complete usability measures. No students or student data are included in this study.
+The current study is a remote usability study with two to five high school biology teachers. Teachers review and edit the diagnostic content, inspect frozen AI-generated classifier output for a simulated class of 18 researcher-written responses, use a class summary to choose an instructional next step, and complete usability measures. No students or student data are included in this study.
 
 The earlier randomized classroom study remains in the repository as a future prototype. It must not be run until the required IRB, district, school, consent, and assent approvals are in place. The draft abstract is intentionally not being revised while the advisor completes edits.
 

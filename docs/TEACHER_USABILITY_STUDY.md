@@ -27,7 +27,7 @@ The teacher reviews at least five of the 18 simulated student explanations. Each
 
 The teacher records whether they agree, think the output needs revision, or are unsure. They may explain what should change.
 
-For comparability, the demonstration classifications are frozen. Every participant reviews the same responses and system output. This is different from running the live classifier during the study.
+OpenAI `gpt-5.6-sol` classified all 18 researcher-written responses on September 9, 2026 using the constrained schema, current content bank, and `store: false`. Those outputs are frozen for comparability, so every participant reviews the same responses and system output. The outputs are not treated as correct by default. Teacher judgments are the evaluation data.
 
 ### 3. Use the class summary
 
@@ -78,7 +78,7 @@ The live student prototype calls `classifyForRouting` after an adaptive-conditio
 
 The server validates this structured output. If confidence is below 0.55 or the model abstains, ExitLoop selects the clarification prompt. Otherwise, code uses the returned ID to look up the prewritten question. The model does not write the student-facing question, assign a score, determine mastery, or create a new misconception label. If external routing is disabled, unavailable, invalid, or below the accepted boundary, deterministic code selects an approved prompt.
 
-The teacher-usability study does not call the live classifier on the 18 samples. It presents frozen outputs so each participant evaluates the same material. Teacher judgments from the study can be used to revise the taxonomy, question bank, classifier instructions, and future test cases.
+The teacher-usability study does not rerun the classifier for each participant. The model was run once on the 18 simulated samples and its outputs were saved in `src/content/simulated-class.ts`. This uses the actual AI classifier while preventing model variation from giving different teachers different study materials. Teacher judgments can be used to revise the taxonomy, question bank, classifier instructions, and future test cases.
 
 ## Data export
 

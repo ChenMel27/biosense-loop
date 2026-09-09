@@ -13,10 +13,12 @@ describe("teacher usability study fixtures", () => {
     ]);
     for (const item of simulatedClass) {
       expect(allowed.has(item.classification.displayedPromptId)).toBe(true);
+      expect(item.classification.provenance).toBe("frozen_ai_output");
+      expect(item.classification.reasonCodes?.length).toBeGreaterThan(0);
     }
     expect(simulatedClass.some((item) => item.classification.possibleAlternativeConceptionIds.length > 0)).toBe(true);
     expect(simulatedClass.some((item) => item.classification.missingIdeaIds.length === 0)).toBe(true);
-    expect(simulatedClass.some((item) => item.classification.confidence < 0.55)).toBe(true);
+    expect(simulatedClass.some((item) => item.classification.displayedPromptId === traitInheritancePack.fallbackPrompt.id)).toBe(true);
   });
 
   it("creates an ordered class summary", () => {

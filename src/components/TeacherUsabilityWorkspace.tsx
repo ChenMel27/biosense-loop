@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import type { SimulatedStudentCase } from "@/content/simulated-class";
+import { simulatedAiRun, type SimulatedStudentCase } from "@/content/simulated-class";
 import type { ContentPack } from "@/content/trait-inheritance";
 import type {
   TeacherUsabilityReview,
@@ -309,7 +309,7 @@ export function TeacherUsabilityWorkspace({ contentPack, simulatedClass, summary
         {step === "classification_review" ? (
           <>
             <div><span className="eyebrow">Task 2 · Classification review</span><h1>Check the system’s reasoning</h1><p className="lead-copy">Review at least five frozen examples. Decide whether the labels and selected follow-up question make sense.</p></div>
-            <div className="callout neutral"><strong>How the current AI step works:</strong> In a live activity, the language model can return only approved idea labels, misconception labels, and a question ID from this bank. Code validates that output and looks up the prewritten question. For this usability study, the outputs below are frozen so every teacher reviews the same class.</div>
+            <div className="callout neutral"><strong>How the current AI step works:</strong> OpenAI {simulatedAiRun.resolvedModel} classified these 18 researcher-written responses using the constrained label and question bank. The results were saved on {simulatedAiRun.generatedAt} so every teacher reviews the same output. They are not assumed to be correct; your review helps identify where the classifier should change. In a future live activity, the same process can return only approved labels and a prewritten question ID.</div>
             <p className="review-count"><strong>{Object.keys(reviews).length}</strong> of {simulatedClass.length} examples reviewed · minimum 5</p>
             <div className="simulated-response-list">
               {simulatedClass.map((sample) => {
@@ -317,7 +317,7 @@ export function TeacherUsabilityWorkspace({ contentPack, simulatedClass, summary
                 const prompt = promptMap[sample.classification.displayedPromptId];
                 return (
                   <article className="simulated-response-card stack-md" key={sample.id}>
-                    <div className="sample-heading"><div><span className="sample-id">{sample.id}</span><strong>Simulated student explanation</strong></div><span className="confidence-chip">System confidence {Math.round(sample.classification.confidence * 100)}%</span></div>
+                    <div className="sample-heading"><div><span className="sample-id">{sample.id}</span><strong>Simulated student explanation</strong></div><span className="confidence-chip">Frozen AI confidence {Math.round(sample.classification.confidence * 100)}%</span></div>
                     <blockquote>{sample.responseText}</blockquote>
                     <div className="classification-grid">
                       <div><small>Ideas present</small><p>{sample.classification.demonstratedIdeaIds.map((id) => labels[id]).join(", ") || "None identified"}</p></div>

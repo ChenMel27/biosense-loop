@@ -48,7 +48,7 @@ Out of scope: ecosystem matter/energy, Punnett-square procedures, inheritance pr
 
 1. A teacher signs in with a pseudonymous study ID and begins a remote think-aloud session.
 2. The teacher reviews and may edit the demonstration prompt, target ideas, possible misconceptions, and prewritten follow-up questions.
-3. The teacher inspects at least five of 18 researcher-written explanations with frozen labels, routing reasons, confidence values, and selected questions.
+3. The teacher inspects at least five of 18 researcher-written explanations with frozen AI-generated labels, routing reasons, confidence values, and selected questions.
 4. For each inspected example, the teacher records agree, needs revision, or unsure and may describe a correction.
 5. The teacher sees the top two patterns first, can inspect supporting response excerpts or open the full list, selects the most important pattern, explains what it means, and records a next instructional action and confidence rating.
 6. The teacher completes the ten-item System Usability Scale, two ExitLoop-specific ratings, and open feedback.

@@ -1,3 +1,5 @@
+import { traitInheritancePack } from "@/content/trait-inheritance";
+
 export interface SimulatedClassification {
   demonstratedIdeaIds: string[];
   missingIdeaIds: string[];
@@ -5,6 +7,8 @@ export interface SimulatedClassification {
   displayedPromptId: string;
   confidence: number;
   explanation: string;
+  reasonCodes?: string[];
+  provenance?: "frozen_ai_output";
 }
 
 export interface SimulatedStudentCase {
@@ -20,7 +24,7 @@ export interface SimulatedStudentCase {
  * of learning. The writing intentionally varies in completeness and polish so
  * teachers can judge the usefulness of the system output.
  */
-export const simulatedClass: SimulatedStudentCase[] = [
+const simulatedResponseDrafts: SimulatedStudentCase[] = [
   {
     id: "S01",
     responseText:
@@ -318,3 +322,69 @@ export const simulatedClass: SimulatedStudentCase[] = [
   },
 ];
 
+export const simulatedAiRun = {
+  provider: "OpenAI",
+  requestedModel: "gpt-5.6",
+  resolvedModel: "gpt-5.6-sol",
+  generatedAt: "2026-09-09",
+  store: false,
+} as const;
+
+type FrozenAiOutput = Omit<SimulatedClassification, "explanation">;
+
+const frozenAiOutputById = {
+  S01: { demonstratedIdeaIds: ["gene_trait_information", "gene_on_chromosome", "both_parent_contributions", "evidence_linked_explanation"], missingIdeaIds: [], possibleAlternativeConceptionIds: [], displayedPromptId: "inheritance_complete_check_01", confidence: 0.99, reasonCodes: ["explicit_evidence"], provenance: "frozen_ai_output" },
+  S02: { demonstratedIdeaIds: ["both_parent_contributions", "evidence_linked_explanation"], missingIdeaIds: ["gene_trait_information", "gene_on_chromosome"], possibleAlternativeConceptionIds: ["gene_is_the_trait"], displayedPromptId: "inheritance_gene_trait_probe_01", confidence: 0.90, reasonCodes: ["explicit_evidence", "missing_relationship"], provenance: "frozen_ai_output" },
+  S03: { demonstratedIdeaIds: ["gene_trait_information", "evidence_linked_explanation"], missingIdeaIds: ["gene_on_chromosome", "both_parent_contributions"], possibleAlternativeConceptionIds: ["genes_and_chromosomes_unrelated"], displayedPromptId: "inheritance_chromosome_probe_01", confidence: 0.98, reasonCodes: ["explicit_evidence", "contradictory_statement", "missing_relationship"], provenance: "frozen_ai_output" },
+  S04: { demonstratedIdeaIds: ["gene_trait_information", "evidence_linked_explanation"], missingIdeaIds: ["gene_on_chromosome", "both_parent_contributions"], possibleAlternativeConceptionIds: ["one_parent_determines_trait"], displayedPromptId: "inheritance_both_parents_probe_01", confidence: 0.99, reasonCodes: ["explicit_evidence", "contradictory_statement", "missing_relationship"], provenance: "frozen_ai_output" },
+  S05: { demonstratedIdeaIds: ["gene_trait_information"], missingIdeaIds: ["gene_on_chromosome", "both_parent_contributions", "evidence_linked_explanation"], possibleAlternativeConceptionIds: ["one_parent_determines_trait", "parents_contribute_different_traits"], displayedPromptId: "inheritance_same_trait_both_parents_probe_01", confidence: 0.98, reasonCodes: ["explicit_evidence", "missing_relationship", "contradictory_statement"], provenance: "frozen_ai_output" },
+  S06: { demonstratedIdeaIds: [], missingIdeaIds: ["gene_trait_information", "gene_on_chromosome", "both_parent_contributions", "evidence_linked_explanation"], possibleAlternativeConceptionIds: ["acquired_trait_is_inherited"], displayedPromptId: "inheritance_acquired_trait_probe_01", confidence: 0.99, reasonCodes: ["explicit_evidence", "contradictory_statement", "missing_relationship"], provenance: "frozen_ai_output" },
+  S07: { demonstratedIdeaIds: [], missingIdeaIds: ["gene_trait_information", "gene_on_chromosome", "both_parent_contributions", "evidence_linked_explanation"], possibleAlternativeConceptionIds: [], displayedPromptId: "inheritance_clarify_01", confidence: 0.96, reasonCodes: ["missing_relationship", "insufficient_evidence"], provenance: "frozen_ai_output" },
+  S08: { demonstratedIdeaIds: [], missingIdeaIds: ["gene_trait_information", "gene_on_chromosome", "both_parent_contributions", "evidence_linked_explanation"], possibleAlternativeConceptionIds: [], displayedPromptId: "inheritance_clarify_01", confidence: 0.98, reasonCodes: ["too_short", "missing_relationship", "insufficient_evidence"], provenance: "frozen_ai_output" },
+  S09: { demonstratedIdeaIds: ["gene_trait_information", "gene_on_chromosome", "both_parent_contributions", "evidence_linked_explanation"], missingIdeaIds: [], possibleAlternativeConceptionIds: [], displayedPromptId: "inheritance_complete_check_01", confidence: 0.99, reasonCodes: ["explicit_evidence"], provenance: "frozen_ai_output" },
+  S10: { demonstratedIdeaIds: [], missingIdeaIds: ["gene_trait_information", "gene_on_chromosome", "both_parent_contributions", "evidence_linked_explanation"], possibleAlternativeConceptionIds: ["genes_lack_hereditary_information"], displayedPromptId: "inheritance_gene_information_probe_01", confidence: 0.98, reasonCodes: ["explicit_evidence", "contradictory_statement", "missing_relationship"], provenance: "frozen_ai_output" },
+  S11: { demonstratedIdeaIds: ["gene_trait_information", "gene_on_chromosome", "evidence_linked_explanation"], missingIdeaIds: ["both_parent_contributions"], possibleAlternativeConceptionIds: [], displayedPromptId: "inheritance_both_parents_probe_01", confidence: 0.95, reasonCodes: ["explicit_evidence", "missing_relationship"], provenance: "frozen_ai_output" },
+  S12: { demonstratedIdeaIds: ["gene_trait_information", "both_parent_contributions", "evidence_linked_explanation"], missingIdeaIds: ["gene_on_chromosome"], possibleAlternativeConceptionIds: [], displayedPromptId: "inheritance_chromosome_probe_01", confidence: 0.98, reasonCodes: ["explicit_evidence", "missing_relationship"], provenance: "frozen_ai_output" },
+  S13: { demonstratedIdeaIds: ["both_parent_contributions", "evidence_linked_explanation"], missingIdeaIds: ["gene_trait_information", "gene_on_chromosome"], possibleAlternativeConceptionIds: ["gene_is_the_trait"], displayedPromptId: "inheritance_gene_trait_probe_01", confidence: 0.92, reasonCodes: ["explicit_evidence", "missing_relationship", "contradictory_statement"], provenance: "frozen_ai_output" },
+  S14: { demonstratedIdeaIds: ["gene_trait_information", "gene_on_chromosome", "both_parent_contributions", "evidence_linked_explanation"], missingIdeaIds: [], possibleAlternativeConceptionIds: [], displayedPromptId: "inheritance_complete_check_01", confidence: 0.97, reasonCodes: ["explicit_evidence"], provenance: "frozen_ai_output" },
+  S15: { demonstratedIdeaIds: ["gene_trait_information", "gene_on_chromosome", "both_parent_contributions", "evidence_linked_explanation"], missingIdeaIds: [], possibleAlternativeConceptionIds: [], displayedPromptId: "inheritance_complete_check_01", confidence: 0.99, reasonCodes: ["explicit_evidence"], provenance: "frozen_ai_output" },
+  S16: { demonstratedIdeaIds: [], missingIdeaIds: ["gene_trait_information", "gene_on_chromosome", "both_parent_contributions", "evidence_linked_explanation"], possibleAlternativeConceptionIds: [], displayedPromptId: "inheritance_acquired_trait_probe_01", confidence: 0.93, reasonCodes: ["missing_relationship", "contradictory_statement"], provenance: "frozen_ai_output" },
+  S17: { demonstratedIdeaIds: ["gene_trait_information", "gene_on_chromosome", "both_parent_contributions", "evidence_linked_explanation"], missingIdeaIds: [], possibleAlternativeConceptionIds: [], displayedPromptId: "inheritance_complete_check_01", confidence: 0.99, reasonCodes: ["explicit_evidence"], provenance: "frozen_ai_output" },
+  S18: { demonstratedIdeaIds: ["evidence_linked_explanation"], missingIdeaIds: ["gene_trait_information", "gene_on_chromosome", "both_parent_contributions"], possibleAlternativeConceptionIds: ["one_parent_determines_trait"], displayedPromptId: "inheritance_both_parents_probe_01", confidence: 0.99, reasonCodes: ["explicit_evidence", "missing_relationship", "contradictory_statement"], provenance: "frozen_ai_output" },
+} satisfies Record<string, FrozenAiOutput>;
+
+const contentLabels = new Map([
+  ...traitInheritancePack.ideas.map((item) => [item.id, item.label] as const),
+  ...traitInheritancePack.alternativeConceptions.map((item) => [item.id, item.label] as const),
+]);
+
+function labelList(ids: string[]) {
+  return ids.map((id) => contentLabels.get(id) ?? id).join(", ");
+}
+
+function describeFrozenOutput(output: FrozenAiOutput) {
+  const prompt = [...traitInheritancePack.followUps, traitInheritancePack.fallbackPrompt]
+    .find((item) => item.id === output.displayedPromptId);
+  if (output.displayedPromptId === "inheritance_complete_check_01") {
+    return "The AI marked all four target relationships as present and selected the completion review question.";
+  }
+  if (output.displayedPromptId === traitInheritancePack.fallbackPrompt.id) {
+    return "The AI did not find enough case-linked scientific evidence for a more specific approved question, so it selected the clarification question.";
+  }
+  const finding = output.possibleAlternativeConceptionIds.length
+    ? `flagged ${labelList(output.possibleAlternativeConceptionIds)} and marked ${labelList(output.missingIdeaIds)} as missing`
+    : `marked ${labelList(output.missingIdeaIds)} as missing`;
+  return `The AI ${finding}, then selected “${prompt?.title ?? output.displayedPromptId}” from the approved question bank.`;
+}
+
+export const simulatedClass: SimulatedStudentCase[] = simulatedResponseDrafts.map((sample) => {
+  const output = frozenAiOutputById[sample.id as keyof typeof frozenAiOutputById];
+  if (!output) throw new Error(`Missing frozen AI output for ${sample.id}.`);
+  return {
+    ...sample,
+    classification: {
+      ...output,
+      explanation: describeFrozenOutput(output),
+    },
+  };
+});
