@@ -1,119 +1,82 @@
-# BioSense Loop
+# ExitLoop
 
-BioSense Loop is a deployable, teacher-governed classroom research instrument for a single-session seventh-grade biology pilot. It replaces a one-response exit ticket with a short loop:
+ExitLoop is a teacher-governed, low-stakes formative-assessment platform for K–12 classrooms. Its first prototype uses trait inheritance to demonstrate a short **explain → targeted probe → revise → near-transfer** loop. The software does not grade students or generate new questions during class. A constrained classifier selects only from a teacher-reviewed prompt bank, abstains when evidence is weak, and shows class-level patterns for teacher review.
 
-1. explain a biological phenomenon;
-2. receive one reflection prompt;
-3. revise the explanation;
-4. apply the same relationship to an unseen, unaided near-transfer situation; and
-5. complete a three-item implementation survey.
+## Current research phase
 
-The software does **not** grade students, declare mastery, generate scientific advice, or determine the research outcome. AI may only classify teacher-defined evidence and select a whitelisted teacher-authored prompt. Human raters score the frozen near-transfer responses.
+The current study is a remote usability study with two to five high school biology teachers. Teachers review and edit the diagnostic content, inspect frozen classifier output for a simulated class of 18 researcher-written responses, use a class summary to choose an instructional next step, and complete usability measures. No students or student data are included in this study.
 
-## Frozen pilot topic and Georgia alignment
+The earlier randomized classroom study remains in the repository as a future prototype. It must not be run until the required IRB, district, school, consent, and assent approvals are in place. The draft abstract is intentionally not being revised while the advisor completes edits.
 
-The pilot content pack focuses on **cellular respiration as part of matter cycling and energy flow in ecosystems**. It is aligned to Georgia Standards of Excellence **S7L4** and **S7L4.b**: students develop a model that traces matter cycling and energy flow among living and nonliving ecosystem components.
+## Demonstration content
 
-The Georgia Department of Education clarification sets an explicit grade-level boundary: seventh-grade work emphasizes tracing matter and energy, not the biochemical mechanisms of photosynthesis or cellular respiration. The application therefore does not assess glycolysis, the Krebs cycle, the electron-transport chain, ATP yield, or memorization of a chemical equation. See [`docs/GEORGIA_STANDARDS_ALIGNMENT.md`](docs/GEORGIA_STANDARDS_ALIGNMENT.md).
+The frozen pilot content pack is aligned only to Georgia Standards of Excellence **S7L3.a**:
 
-## Study implemented in the product
+> Construct an explanation supported with scientific evidence of the role of genes and chromosomes in the process of inheriting a specific trait.
 
-The session uses a randomized parallel-group pilot with approximately 30 students:
+Students use a fictional beetle evidence card to explain how a bristle-shape gene located on a chromosome is inherited from both parents and relates to the offspring's trait. The unaided near-transfer task uses a fictional plant seed-coat trait.
 
-- **Adaptive condition (about 15):** the system selects one targeted teacher-authored prompt using a constrained classifier.
-- **Reflection control (about 15):** the system displays one fixed teacher-authored generic reflection prompt using the same interface and time window.
-- **Shared outcome:** both groups answer the same unseen, unaided same-session near-transfer prompt before seeing a dashboard or receiving teacher feedback.
+The pilot does **not** assess ecosystem matter/energy, Punnett-square procedures, probability calculations, memorized meiosis or mitosis stages, DNA replication, protein synthesis, or complex human inheritance. See [Georgia standards alignment](docs/GEORGIA_STANDARDS_ALIGNMENT.md).
 
-This design can estimate a preliminary short-term near-transfer difference. It cannot establish retention, long-term mastery, or broad effectiveness.
+## Future classroom workflow
 
-## Current capabilities
+1. The teacher creates a 15-minute session and downloads pseudonymous participant codes.
+2. The teacher opens the session and displays the class code.
+3. Each student joins with the class code and an assigned participant code; no name or email is requested.
+4. Every student completes the same S7L3.a evidence-supported initial explanation and confidence item.
+5. The server keeps the frozen random assignment:
+   - **Adaptive condition:** the classifier selects one teacher-authored diagnostic probe.
+   - **Reflection condition:** the student receives a time-matched general evidence-check prompt.
+6. Each student revises the original explanation.
+7. Each student completes the same unaided near-transfer explanation and short experience survey.
+8. The teacher reviews class-level possible misconception patterns and records an instructional next step.
+9. The research team exports de-identified responses for blinded human scoring with the frozen rubric.
 
-- Responsive student join and activity flow with pseudonymous participant codes.
-- Exactly balanced condition manifests for even class sizes.
-- Immutable initial, final, and near-transfer response records.
-- Autosave, refresh recovery, and a neutral completion screen.
-- Teacher sign-in, session creation, participant-code manifest, launch/close controls, live completion status, and CSV/JSON exports.
-- Misconception-cluster summaries with a teacher-reviewed two-minute instructional response for each detected pattern.
-- OpenAI Responses API adapter with Structured Outputs, `store: false`, a whitelisted output schema, timeout, abstention, and deterministic fallback.
-- AI routing disabled unless the API key **and** a separate minor-data-safeguard confirmation flag are configured.
-- Supabase migration with row-level security enabled and no public table policies.
-- Local demonstration mode with 30 synthetic participant codes.
-- Unit tests and a 30-student concurrent workflow test.
+## What makes the tool distinct
 
-## Run locally
+- It elicits a short causal explanation rather than relying on recognition or flash-card recall.
+- Its content taxonomy is built from published genetics-education research, not generated from model guesses.
+- AI is limited to classification and routing among approved prompts; it cannot grade, label a learner, or invent classroom content.
+- The comparison condition, frozen content version, complete event trail, and exportable research data support a classroom study rather than a product demo alone.
+- The teacher receives short, actionable class patterns and two-minute response ideas instead of a raw transcript feed.
 
-Requirements: Node.js 20+ and pnpm.
+## Technology
+
+- Next.js 16 App Router, React 19, and TypeScript
+- Supabase Postgres for shared production storage
+- OpenAI Responses API with strict structured output for optional constrained routing
+- Deterministic local fallback when AI is disabled, times out, or returns low-confidence evidence
+- Vercel-compatible deployment
+
+The in-memory store is for local demonstration only. A classroom deployment must use Supabase so concurrent server instances share state.
+
+## Local development
 
 ```bash
-cp .env.example .env.local
 pnpm install
+cp .env.example .env.local
 pnpm dev
 ```
 
 Open `http://localhost:3000`.
 
-Local demonstration credentials:
+Development demo credentials:
 
-- Teacher password: `demo-teacher`
-- Class code: `BIO7`
-- Participant codes: `BIO-001` through `BIO-030`
+- Student class code: `GEN7`
+- Student participant codes: `GEN-001` through `GEN-030`
+- Teacher password: `demo-teacher` unless overridden
 
-When Supabase variables are absent, data stays in server memory and resets when the process restarts. This is suitable only for development and rehearsal.
+## Required production configuration
 
-## Production setup
+Set the variables described in `.env.example`, including Supabase credentials, a strong teacher password, signing secrets, and a participant-code pepper. Apply `supabase/migrations/001_initial.sql` and `supabase/migrations/002_teacher_usability.sql` before enabling the Supabase store.
 
-### 1. Supabase
+AI routing must remain off until all three conditions are true:
 
-1. Create a dedicated Supabase project in the approved region and account.
-2. Run [`supabase/migrations/001_initial.sql`](supabase/migrations/001_initial.sql) in the SQL editor or through the Supabase CLI.
-3. Set `NEXT_PUBLIC_SUPABASE_URL` and the server-only `SUPABASE_SERVICE_ROLE_KEY`.
-4. Confirm that the service-role key is never exposed in a client bundle, screenshot, repository, or student device.
-5. Configure backups and the approved deletion/retention schedule.
+1. the teacher and research advisor approve the frozen content pack;
+2. school/research requirements for work with minors are confirmed; and
+3. `MINOR_DATA_SAFEGUARDS_CONFIRMED=true` and `AI_ROUTING_ENABLED=true` are set deliberately.
 
-All database calls occur on the server. Public and authenticated browser roles receive no table access.
-
-### 2. Vercel
-
-1. Import this repository into Vercel.
-2. add every variable from `.env.example` in the Vercel project settings;
-3. deploy a preview environment first;
-4. apply the Supabase migration;
-5. run the unit, build, and deployed load tests; and
-6. promote the tested commit to production.
-
-Generate strong secrets, for example with `openssl rand -base64 48`. Do not reuse passwords or secrets from another project.
-
-### 3. OpenAI routing
-
-Leave `AI_ROUTING_ENABLED=false` during ordinary development. The deterministic classifier exercises the full workflow without sending student text to an external model.
-
-For a real minor-facing session, do not enable the adapter until the responsible institution confirms the approved data flow and the applicable OpenAI minor-data safeguards. OpenAI’s current [Under 18 API Guidance](https://developers.openai.com/api/docs/guides/safety-checks/under-18-api-guidance) states that personal data of children under 13 or the applicable age of digital consent should not be processed without zero data retention. Student free text can accidentally contain personal information even when names are not requested.
-
-Only after written approval:
-
-```dotenv
-AI_ROUTING_ENABLED=true
-MINOR_DATA_SAFEGUARDS_CONFIRMED=true
-OPENAI_API_KEY=...
-OPENAI_MODEL=gpt-5.6
-```
-
-The adapter uses [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs), removes common email/phone/link patterns, sends no names or account identifiers, uses a hashed safety identifier, and displays only the selected local prompt text. It never displays model prose.
-
-## Required environment variables
-
-| Variable | Where used | Required for classroom use |
-|---|---|---|
-| `TEACHER_PASSWORD` | Teacher workspace | Yes |
-| `SESSION_SIGNING_SECRET` | Signed student/teacher cookies | Yes |
-| `PARTICIPANT_CODE_PEPPER` | Participant-code hashing | Yes |
-| `CONTENT_PACK_APPROVED` | Production launch gate for teacher/biology review | Yes (`true`) |
-| `NEXT_PUBLIC_SUPABASE_URL` | Server database client | Yes |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server database access | Yes |
-| `AI_ROUTING_ENABLED` | External classifier gate | No; fallback is functional |
-| `MINOR_DATA_SAFEGUARDS_CONFIRMED` | Independent safety gate | Required before external AI use |
-| `OPENAI_API_KEY` | Server classifier | Required only for external AI use |
-| `OPENAI_MODEL` | Frozen classifier version | Required only for external AI use |
+The system sends only redacted student response text to the model, uses `store: false`, and uses an attempt-derived safety identifier. If those safeguards are not confirmed, the deterministic teacher-authored fallback remains available.
 
 ## Verification
 
@@ -124,44 +87,29 @@ pnpm test
 pnpm build
 ```
 
-For the synthetic 30-student test, start a fresh development server and run:
+With the development server running, validate 30 simultaneous student flows and the teacher export:
 
 ```bash
 pnpm load-test
 ```
 
-Set `BIOSENSE_BASE_URL` to test a non-local preview. The reset endpoint is unavailable in production, so deployed production load testing should use a dedicated rehearsal project or seeded test session.
+## Research files
 
-## Classroom and research gates
+- [Product design specification](docs/PRODUCT_DESIGN_SPEC.md)
+- [Current teacher usability study](docs/TEACHER_USABILITY_STUDY.md)
+- [Georgia standards alignment](docs/GEORGIA_STANDARDS_ALIGNMENT.md)
+- [Misconception evidence map](research/MISCONCEPTION_EVIDENCE_MAP.md)
+- [Single-session protocol](research/instruments/SINGLE_SESSION_PROTOCOL.md)
+- [Trait-inheritance scoring rubric](research/instruments/TRAIT_INHERITANCE_RUBRIC.md)
+- [Data dictionary and analysis fields](docs/DATA_DICTIONARY.md)
+- [Pre-classroom checklist](docs/PRE_CLASSROOM_CHECKLIST.md)
+- [Draft abstract](research/ABSTRACT.md)
 
-Development may proceed now. Real student research may not begin until all items in [`docs/PRE_CLASSROOM_CHECKLIST.md`](docs/PRE_CLASSROOM_CHECKLIST.md) are completed. At minimum this includes:
+## Safety and interpretation boundaries
 
-- Georgia Tech/CEISMC and IRB determination or approval;
-- school/district authorization;
-- parent permission and student assent when required;
-- teacher and biology-reviewer approval of the frozen prompt pack and rubric;
-- an approved data-retention and incident-response plan; and
-- a successful rehearsal on the actual school devices and network.
-
-## Repository map
-
-```text
-src/app/                    Next.js pages and server routes
-src/components/             Student and teacher interfaces
-src/content/                Versioned teacher-authored content pack
-src/lib/ai/                 Constrained classifier and safe fallback
-src/lib/auth/               Signed pseudonymous sessions
-src/lib/store/              Memory and Supabase data adapters
-supabase/migrations/        Production schema and export view
-research/instruments/       Pilot protocol, rubric, and scoring materials
-docs/                       Deployment, data, and classroom checklists
-scripts/load-test.mjs       Thirty-student synthetic workflow test
-```
-
-## Known limitations
-
-- The included cellular-respiration pack is a **draft**. Its misconception map, prompts, action cards, and rubric require partner-teacher and biology-reviewer approval before research use.
-- The current pack is valid only for the S7L4.b matter-and-energy scope. It must not be represented as an assessment of detailed cellular-respiration biochemistry.
-- The teacher password is appropriate for a small one- or two-teacher pilot, not a district-wide identity system.
-- In-memory rate limiting is useful for a small pilot but should be replaced by a distributed limiter if the application expands across serverless regions.
-- A one-class sample of about 15 students per condition is underpowered for precise general claims. Report effect estimates, uncertainty, feasibility, and limitations rather than treating statistical significance as the sole result.
+- Possible misconception tags are routing hypotheses, not diagnoses or permanent student labels.
+- The teacher remains responsible for instructional decisions.
+- Primary research outcomes are scored later by blinded human raters, not by the routing classifier.
+- The simulated class is system-demonstration data, not evidence of student learning.
+- The current study can support claims about teacher usability and interpretability only, not classroom effectiveness.
+- Do not use the tool with students until the teacher, advisor, and required IRB, district, and school reviewers approve the protocol, content, data handling, and consent/assent process.

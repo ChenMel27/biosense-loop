@@ -12,8 +12,9 @@ export default function Home() {
             <span className="eyebrow">Before the bell rings</span>
             <h1>Turn a quick check into a second chance to understand.</h1>
             <p>
-              BioSense helps seventh-grade biology students explain an idea, reconsider one
-              teacher-defined relationship, and revise—while teachers see patterns they can act on.
+              ExitLoop is designed for K–12 classrooms. This first seventh-grade biology pilot helps
+              students explain an idea, reconsider one teacher-defined relationship, and revise—while
+              teachers see patterns they can act on.
             </p>
             <div className="button-row">
               <Link className="button primary large" href="/student">Join as a student</Link>
@@ -25,7 +26,7 @@ export default function Home() {
               <span><b>Human-scored</b> research outcomes</span>
             </div>
           </div>
-          <div className="hero-visual" aria-label="BioSense activity loop illustration">
+          <div className="hero-visual" aria-label="ExitLoop activity loop illustration">
             <div className="loop-orbit">
               <div className="loop-center"><span>One class</span><strong>idea</strong><small>made visible</small></div>
               <div className="orbit-step step-one"><b>1</b><span>Explain</span></div>
@@ -38,7 +39,7 @@ export default function Home() {
         <section className="problem-band">
           <div className="shell problem-grid">
             <div><span className="eyebrow light">The classroom problem</span><h2>A one-response exit ticket often ends when the useful evidence begins.</h2></div>
-            <p>Biology ideas build on one another. BioSense closes a short formative-assessment loop inside the lesson without turning the final minutes into another graded quiz.</p>
+            <p>Biology ideas build on one another. ExitLoop closes a short formative-assessment loop inside the lesson without turning the final minutes into another graded quiz.</p>
           </div>
         </section>
         <section className="shell feature-section">
@@ -50,7 +51,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="site-footer"><div className="shell"><span>BioSense Loop · Research prototype</span><span>AI supports routing; teachers retain authority.</span></div></footer>
+      <footer className="site-footer"><div className="shell"><span>ExitLoop · Research prototype</span><span>AI supports routing; teachers retain authority.</span></div></footer>
     </div>
   );
 }

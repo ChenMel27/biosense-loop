@@ -130,7 +130,16 @@ export interface DashboardSnapshot {
   conditionCounts: Record<Condition, number>;
   fallbackCount: number;
   ideaCounts: Record<string, number>;
+  missingIdeaCounts: Record<string, number>;
   misconceptionCounts: Record<string, number>;
+  patternExamples: Record<
+    string,
+    Array<{
+      participantTag: string;
+      responseText: string;
+      displayedPromptId: string;
+    }>
+  >;
   recentEvents: StudyEvent[];
   teacherAction: TeacherInstructionalAction | null;
 }
@@ -142,4 +151,57 @@ export interface SessionCreationResult {
     participantCode: string;
     condition: Condition;
   }>;
+}
+
+export type UsabilityReviewJudgment = "agree" | "needs_revision" | "unsure";
+
+export interface TeacherUsabilityReview {
+  sampleId: string;
+  judgment: UsabilityReviewJudgment;
+  correction: string;
+}
+
+export interface TeacherUsabilityTaskMetric {
+  taskId: "authoring" | "classification_review" | "class_summary" | "survey";
+  durationMs: number;
+  completed: boolean;
+}
+
+export interface TeacherUsabilitySubmission {
+  id: string;
+  runId: string;
+  participantTag: string;
+  contentVersionId: string;
+  startedAt: string;
+  completedAt: string;
+  authoringDraft: {
+    initialPrompt: string;
+    ideaDescriptions: Record<string, string>;
+    misconceptionDescriptions: Record<string, string>;
+    followUpPrompts: Record<string, string>;
+  };
+  reviews: TeacherUsabilityReview[];
+  classSummary: {
+    primaryPatternId: string;
+    interpretation: string;
+    nextAction: string;
+    confidence: number;
+  };
+  susResponses: number[];
+  susScore: number;
+  summaryUsefulness: number;
+  promptControl: number;
+  openFeedback: string;
+  taskMetrics: TeacherUsabilityTaskMetric[];
+}
+
+export interface TeacherUsabilityEvent {
+  id: string;
+  runId: string;
+  participantTag: string;
+  taskId: string;
+  eventType: string;
+  durationMs: number | null;
+  payload: Record<string, unknown>;
+  createdAt: string;
 }

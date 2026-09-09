@@ -20,7 +20,7 @@ export function generateJoinCode() {
 
 export function generateParticipantCode(index: number) {
   const suffix = randomBytes(2).toString("hex").toUpperCase();
-  return `BIO-${String(index + 1).padStart(2, "0")}-${suffix}`;
+  return `GEN-${String(index + 1).padStart(2, "0")}-${suffix}`;
 }
 
 export function balancedConditions(count: number, random: () => number = Math.random) {
@@ -35,4 +35,3 @@ export function balancedConditions(count: number, random: () => number = Math.ra
 
   return conditions;
 }
-

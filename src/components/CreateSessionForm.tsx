@@ -15,7 +15,7 @@ interface CreatedSession {
 export function CreateSessionForm() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("Period 3 · Cellular respiration");
+  const [title, setTitle] = useState("Period 3 · Trait inheritance");
   const [participantCount, setParticipantCount] = useState(30);
   const [created, setCreated] = useState<CreatedSession | null>(null);
   const [error, setError] = useState("");

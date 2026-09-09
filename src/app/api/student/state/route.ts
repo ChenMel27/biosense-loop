@@ -1,4 +1,4 @@
-import { getFollowUpPrompt, getContentPack } from "@/content/cellular-respiration";
+import { getContentPack, getFollowUpPrompt } from "@/content/trait-inheritance";
 import { getStudentIdentity } from "@/lib/auth/guards";
 import { apiError } from "@/lib/http";
 import { getStore } from "@/lib/store";
@@ -17,6 +17,17 @@ export async function GET() {
   const followUp = bundle.decision
     ? getFollowUpPrompt(bundle.decision.displayedPromptId)
     : null;
+  const ideaById = new Map(pack.ideas.map((idea) => [idea.id, idea.label]));
+  const patternById = new Map(
+    pack.alternativeConceptions.map((pattern) => [pattern.id, pattern.label]),
+  );
+  const initiallyCovered = bundle.decision?.demonstratedIdeaIds
+    .map((id) => ideaById.get(id))
+    .filter((label): label is string => Boolean(label)) ?? [];
+  const revisionFocus = [
+    ...(bundle.decision?.missingIdeaIds ?? []).map((id) => ideaById.get(id)),
+    ...(bundle.decision?.possibleAlternativeConceptionIds ?? []).map((id) => patternById.get(id)),
+  ].filter((label): label is string => Boolean(label));
   return Response.json({
     ok: true,
     activity: {
@@ -31,6 +42,13 @@ export async function GET() {
       initialPrompt: pack.initialPrompt,
       nearTransferPrompt: pack.nearTransferPrompt,
       followUp,
+      reflectionSummary: bundle.decision
+        ? {
+            initiallyCovered,
+            revisionFocus,
+            promptTitle: followUp?.title ?? "Use evidence to strengthen your explanation",
+          }
+        : null,
       initialResponse: initialResponse?.responseText ?? null,
       finalResponse: finalResponse?.responseText ?? null,
       draftText:

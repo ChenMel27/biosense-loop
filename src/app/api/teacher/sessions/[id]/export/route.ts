@@ -16,14 +16,14 @@ export async function GET(
     return new Response(JSON.stringify({ session, rows }, null, 2), {
       headers: {
         "content-type": "application/json; charset=utf-8",
-        "content-disposition": `attachment; filename="biosense-${session.joinCode}.json"`,
+        "content-disposition": `attachment; filename="exitloop-${session.joinCode}.json"`,
       },
     });
   }
   return new Response(rowsToCsv(rows), {
     headers: {
       "content-type": "text/csv; charset=utf-8",
-      "content-disposition": `attachment; filename="biosense-${session.joinCode}.csv"`,
+      "content-disposition": `attachment; filename="exitloop-${session.joinCode}.csv"`,
     },
   });
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { cellularRespirationPack } from "@/content/cellular-respiration";
+import { traitInheritancePack } from "@/content/trait-inheritance";
 import type { DashboardSnapshot, StudySession } from "@/lib/domain/types";
 
 const actionOptions = [
@@ -46,7 +46,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
     : 0;
   const ideaRows = useMemo(
     () =>
-      cellularRespirationPack.ideas.map((idea) => ({
+      traitInheritancePack.ideas.map((idea) => ({
         ...idea,
         count: snapshot.ideaCounts[idea.id] ?? 0,
       })),
@@ -54,11 +54,34 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
   );
   const misconceptionRows = useMemo(
     () =>
-      cellularRespirationPack.alternativeConceptions.map((idea) => ({
+      traitInheritancePack.alternativeConceptions.map((idea) => ({
         ...idea,
         count: snapshot.misconceptionCounts[idea.id] ?? 0,
       })),
     [snapshot.misconceptionCounts],
+  );
+  const missingRows = useMemo(
+    () =>
+      traitInheritancePack.ideas.map((idea) => ({
+        ...idea,
+        count: snapshot.missingIdeaCounts[idea.id] ?? 0,
+        kind: "Missing relationship" as const,
+      })),
+    [snapshot.missingIdeaCounts],
+  );
+  const priorityRows = useMemo(
+    () =>
+      [
+        ...missingRows,
+        ...misconceptionRows.map((idea) => ({
+          ...idea,
+          kind: "Possible alternative conception" as const,
+        })),
+      ]
+        .filter((item) => item.count > 0)
+        .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+        .slice(0, 2),
+    [missingRows, misconceptionRows],
   );
 
   async function setStatus(status: StudySession["status"]) {
@@ -193,7 +216,50 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         </div>
       </section>
 
-      <div className="dashboard-columns">
+      {snapshot.session.status === "closed" ? (
+        <section className="panel stack-lg">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Suggested review order</span>
+              <h2>Start with these class patterns</h2>
+            </div>
+            <span className="small-note">The system suggests; you decide.</span>
+          </div>
+          {priorityRows.length ? (
+            <div className="signal-list warning">
+              {priorityRows.map((item) => (
+                <div key={`${item.kind}-${item.id}`}>
+                  <span>
+                    <strong>{item.label}</strong>
+                    <small>{item.kind} · {item.count} response{item.count === 1 ? "" : "s"}</small>
+                    <small className="action-tip">{item.teacherAction}</small>
+                    {(snapshot.patternExamples[item.id] ?? []).map((example) => (
+                      <small key={`${item.id}-${example.participantTag}`} className="response-example">
+                        {example.participantTag}: “{example.responseText}”
+                      </small>
+                    ))}
+                  </span>
+                  <b>{item.count}</b>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="small-note">No routed missing or incompatible relationship is available for review.</p>
+          )}
+        </section>
+      ) : (
+        <section className="panel stack-lg">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Protected research boundary</span>
+              <h2>Class patterns appear after the session closes.</h2>
+            </div>
+          </div>
+          <p className="small-note">While students work, use only the completion and technical-status information above.</p>
+        </section>
+      )}
+
+      {snapshot.session.status === "closed" ? <div className="dashboard-columns">
         <section className="panel stack-lg">
           <div className="section-heading">
             <div>
@@ -235,7 +301,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
             ))}
           </div>
         </section>
-      </div>
+      </div> : null}
 
       <section className="research-boundary">
         <div className="boundary-icon">R</div>
@@ -243,8 +309,9 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           <span className="eyebrow">Research boundary</span>
           <h2>Primary outcomes stay hidden until the session is closed.</h2>
           <p>
-            The near-transfer responses are exported for blinded human scoring. BioSense does not
-            generate a learning score, mastery label, or automated research outcome.
+            Initial, revision, and near-transfer responses are exported for blinded human scoring.
+            ExitLoop does not generate the targeted-repair outcome, a learning score, or a mastery
+            label.
           </p>
         </div>
         <div className="condition-balance">
@@ -254,7 +321,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         </div>
       </section>
 
-      <form className="panel teacher-action-form stack-lg" onSubmit={saveInstructionalAction}>
+      {snapshot.session.status === "closed" ? <form className="panel teacher-action-form stack-lg" onSubmit={saveInstructionalAction}>
         <div className="section-heading">
           <div>
             <span className="eyebrow">Instructional actionability</span>
@@ -289,13 +356,13 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
             maxLength={2000}
             value={actionNote}
             onChange={(event) => setActionNote(event.target.value)}
-            placeholder="For example: Several responses changed matter into energy, so I will color-code the two paths…"
+            placeholder="For example: Several responses treated genes and chromosomes as unrelated, so I will trace one gene location on chromosome strips…"
           />
         </div>
         <button className="button primary" disabled={savingAction}>
           {savingAction ? "Recording…" : snapshot.teacherAction ? "Update instructional response" : "Record instructional response"}
         </button>
-      </form>
+      </form> : null}
     </div>
   );
 }

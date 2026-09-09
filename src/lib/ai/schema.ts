@@ -1,14 +1,14 @@
 import { z } from "zod";
 
-import { cellularRespirationPack } from "@/content/cellular-respiration";
+import { traitInheritancePack } from "@/content/trait-inheritance";
 
-const ideaIds = cellularRespirationPack.ideas.map((idea) => idea.id);
-const misconceptionIds = cellularRespirationPack.alternativeConceptions.map(
+const ideaIds = traitInheritancePack.ideas.map((idea) => idea.id);
+const misconceptionIds = traitInheritancePack.alternativeConceptions.map(
   (idea) => idea.id,
 );
 const promptIds = [
-  ...cellularRespirationPack.followUps.map((prompt) => prompt.id),
-  cellularRespirationPack.fallbackPrompt.id,
+  ...traitInheritancePack.followUps.map((prompt) => prompt.id),
+  traitInheritancePack.fallbackPrompt.id,
 ];
 
 export const classificationSchema = z.object({
@@ -35,4 +35,4 @@ export const classificationSchema = z.object({
 
 export type RawClassification = z.infer<typeof classificationSchema>;
 
-export const CLASSIFIER_SCHEMA_VERSION = "cellular-respiration-classifier-v1";
+export const CLASSIFIER_SCHEMA_VERSION = "trait-inheritance-classifier-v2";

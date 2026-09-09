@@ -1,4 +1,4 @@
-const baseUrl = process.env.BIOSENSE_BASE_URL || "http://localhost:3000";
+const baseUrl = process.env.EXITLOOP_BASE_URL || "http://localhost:3000";
 
 async function jsonFetch(path, init = {}) {
   const response = await fetch(`${baseUrl}${path}`, init);
@@ -10,11 +10,11 @@ async function jsonFetch(path, init = {}) {
 }
 
 async function runStudent(index) {
-  const code = `BIO-${String(index + 1).padStart(3, "0")}`;
+  const code = `GEN-${String(index + 1).padStart(3, "0")}`;
   const joined = await jsonFetch("/api/student/join", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ joinCode: "BIO7", participantCode: code }),
+    body: JSON.stringify({ joinCode: "GEN7", participantCode: code }),
   });
   const cookie = joined.response.headers.get("set-cookie")?.split(";")[0];
   if (!cookie) throw new Error(`No student cookie returned for ${code}`);
@@ -29,21 +29,21 @@ async function runStudent(index) {
   await submit({
     action: "initial",
     responseText:
-      "The rabbit gets carbon matter and stored chemical energy from grass. During cellular respiration, carbon can leave in carbon dioxide while energy is made usable and eventually leaves the ecosystem as heat.",
+      "The bristle-shape gene is inherited information located on chromosome 3. The offspring received one b version from each parent, so it has b and b, and the evidence shows b and b beetles grow curved bristles.",
     confidenceChoice: "somewhat_sure",
     clientTimestamp: new Date().toISOString(),
   });
   await submit({
     action: "revision",
     responseText:
-      "Carbon matter from food can become part of the rabbit and later return to the air as carbon dioxide. Cellular respiration releases usable energy in cells; matter can cycle, while energy flows and eventually leaves as heat.",
+      "Each parent contributed a chromosome 3 carrying a b version of the bristle-shape gene. The offspring therefore has b and b; because the evidence links that gene-version pair with curved bristles, the inherited information explains its trait.",
     confidenceChoice: "very_sure",
     clientTimestamp: new Date().toISOString(),
   });
   await submit({
     action: "transfer",
     responseText:
-      "In the terrarium, carbon matter moves among the plant, insect, decomposers, air, and soil. Light energy enters, stored energy moves through food, cellular respiration releases usable energy, and some energy leaves as heat rather than cycling.",
+      "The seed inherited one chromosome 2 and one seed-coat gene version from each parent. It has c and c, and the evidence says plants with c and c make spotted seed coats, so the inherited gene information supports the spotted trait.",
     confidenceChoice: "somewhat_sure",
     clientTimestamp: new Date().toISOString(),
   });

@@ -11,6 +11,8 @@ import type {
   StudySession,
   StudentSurvey,
   TeacherInstructionalAction,
+  TeacherUsabilityEvent,
+  TeacherUsabilitySubmission,
 } from "@/lib/domain/types";
 
 export interface CreateSessionInput {
@@ -41,4 +43,7 @@ export interface ResearchStore {
   updateSessionStatus(sessionId: string, status: StudySession["status"]): Promise<void>;
   getDashboardSnapshot(sessionId: string): Promise<DashboardSnapshot | null>;
   exportSession(sessionId: string): Promise<Array<Record<string, string | number | boolean | null>>>;
+  saveTeacherUsabilityEvent(event: TeacherUsabilityEvent): Promise<void>;
+  saveTeacherUsabilitySubmission(submission: TeacherUsabilitySubmission): Promise<void>;
+  listTeacherUsabilitySubmissions(): Promise<TeacherUsabilitySubmission[]>;
 }

@@ -2,14 +2,14 @@ import Link from "next/link";
 
 export function Brand() {
   return (
-    <Link href="/" className="brand" aria-label="BioSense Loop home">
+    <Link href="/" className="brand" aria-label="ExitLoop home">
       <span className="brand-mark" aria-hidden="true">
         <span />
         <span />
         <span />
       </span>
       <span>
-        <strong>BioSense</strong>
+        <strong>ExitLoop</strong>
         <small>Understanding loop</small>
       </span>
     </Link>

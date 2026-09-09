@@ -4,11 +4,11 @@ interface Bucket {
 }
 
 declare global {
-  var __biosenseRateLimits: Map<string, Bucket> | undefined;
+  var __exitloopRateLimits: Map<string, Bucket> | undefined;
 }
 
-const buckets = globalThis.__biosenseRateLimits ?? new Map<string, Bucket>();
-globalThis.__biosenseRateLimits = buckets;
+const buckets = globalThis.__exitloopRateLimits ?? new Map<string, Bucket>();
+globalThis.__exitloopRateLimits = buckets;
 
 export function withinRateLimit(key: string, limit: number, windowMs: number) {
   const current = Date.now();

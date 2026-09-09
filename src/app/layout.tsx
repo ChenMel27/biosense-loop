@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "BioSense Loop", template: "%s · BioSense Loop" },
+  title: { default: "ExitLoop", template: "%s · ExitLoop" },
   description: "A teacher-governed, low-stakes biology understanding loop for classroom research.",
 };
 

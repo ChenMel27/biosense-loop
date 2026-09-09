@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { classifyForRouting } from "@/lib/ai/classifier";
-import { getContentPack } from "@/content/cellular-respiration";
+import { getContentPack } from "@/content/trait-inheritance";
 import { getStudentIdentity } from "@/lib/auth/guards";
 import type { StudyResponse } from "@/lib/domain/types";
 import { studentSubmissionSchema } from "@/lib/domain/validation";

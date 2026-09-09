@@ -21,10 +21,9 @@ describe("study assignment", () => {
   });
 
   it("normalizes codes before hashing", () => {
-    expect(normalizeCode(" bio-001 ")).toBe("BIO-001");
-    expect(hashParticipantCode("bio-001", "pepper")).toBe(
-      hashParticipantCode(" BIO-001 ", "pepper"),
+    expect(normalizeCode(" gen-001 ")).toBe("GEN-001");
+    expect(hashParticipantCode("gen-001", "pepper")).toBe(
+      hashParticipantCode(" GEN-001 ", "pepper"),
     );
   });
 });
-

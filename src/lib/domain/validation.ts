@@ -51,3 +51,53 @@ export const teacherSessionSchema = z.object({
   durationMinutes: z.number().int().min(8).max(25).default(15),
 });
 
+const participantTagSchema = z
+  .string()
+  .trim()
+  .min(2)
+  .max(24)
+  .regex(/^[A-Za-z0-9_-]+$/, "Use only letters, numbers, hyphens, or underscores.");
+
+export const teacherUsabilityEventSchema = z.object({
+  runId: z.string().uuid(),
+  participantTag: participantTagSchema,
+  taskId: z.string().trim().min(2).max(80),
+  eventType: z.string().trim().min(2).max(80),
+  durationMs: z.number().int().min(0).max(7_200_000).nullable().default(null),
+  payload: z.record(z.string(), z.unknown()).default({}),
+});
+
+export const teacherUsabilitySubmissionSchema = z.object({
+  runId: z.string().uuid(),
+  participantTag: participantTagSchema,
+  startedAt: z.string().datetime(),
+  authoringDraft: z.object({
+    initialPrompt: z.string().trim().min(20).max(4_000),
+    ideaDescriptions: z.record(z.string(), z.string().trim().min(4).max(1_000)),
+    misconceptionDescriptions: z.record(
+      z.string(),
+      z.string().trim().min(4).max(1_000),
+    ),
+    followUpPrompts: z.record(z.string(), z.string().trim().min(4).max(2_000)),
+  }),
+  reviews: z.array(z.object({
+    sampleId: z.string().trim().min(2).max(24),
+    judgment: z.enum(["agree", "needs_revision", "unsure"]),
+    correction: z.string().trim().max(1_000),
+  })).min(5).max(30),
+  classSummary: z.object({
+    primaryPatternId: z.string().trim().min(2).max(120),
+    interpretation: z.string().trim().min(10).max(2_000),
+    nextAction: z.string().trim().min(10).max(2_000),
+    confidence: z.number().int().min(1).max(5),
+  }),
+  susResponses: z.array(z.number().int().min(1).max(5)).length(10),
+  summaryUsefulness: z.number().int().min(1).max(5),
+  promptControl: z.number().int().min(1).max(5),
+  openFeedback: z.string().trim().max(4_000),
+  taskMetrics: z.array(z.object({
+    taskId: z.enum(["authoring", "classification_review", "class_summary", "survey"]),
+    durationMs: z.number().int().min(0).max(7_200_000),
+    completed: z.boolean(),
+  })).length(4),
+});

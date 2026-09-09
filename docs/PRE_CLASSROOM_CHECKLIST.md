@@ -1,61 +1,54 @@
-# Pre-Classroom Readiness Checklist
+# ExitLoop Pre-Classroom Checklist
 
-The application can be built and rehearsed before these gates are complete. **Do not collect real student research data until the responsible project lead confirms every required item.**
+Do not run the student session until every required item is complete.
 
-## Authorization and participation
+## Research and student protections
 
-- [ ] Georgia Tech/CEISMC supervisor confirms the responsible investigator and data owner.
-- [ ] IRB determination or approval is documented for the exact protocol and software data flow.
-- [ ] School and district technology/research authorization is documented.
-- [ ] Required parent/guardian permission language is approved and distributed.
-- [ ] Required student assent language is approved and collected without coercion.
-- [ ] The protocol explains that research participation does not affect grades or instructional access.
-- [ ] Eligibility is recorded before codes are included in the research export.
+- [ ] Advisor and classroom teacher have approved the one-session protocol.
+- [ ] The school and research team have confirmed whether IRB review, district permission, parental permission, and student assent are required.
+- [ ] Participation and alternatives are explained without grade pressure or coercion.
+- [ ] Participant-code cards contain no student names, emails, or student IDs.
+- [ ] The code-to-student distribution list, if the teacher needs one operationally, is kept outside ExitLoop and is not exported with research data.
+- [ ] Data retention, deletion, access, and incident-response responsibilities are documented.
 
-## Content and measurement freeze
+## Content validity
 
-- [ ] The teacher confirms that the lesson target is Georgia GSE S7L4.b and that the activity occurs after relevant instruction.
-- [ ] Every prompt has been checked against the S7L4.b boundary: trace matter and energy, but do not assess biochemical stages or memorized reaction details.
-- [ ] Each alternative-conception category is supported by a cited research source and a teacher-observed classroom need.
-- [ ] Each category has inclusion rules, exclusion rules, ambiguous examples, and a teacher-approved two-minute response.
-- [ ] Classroom teacher approves the initial, adaptive, fixed-control, revision, and near-transfer prompts.
-- [ ] A second biology educator reviews scientific accuracy and developmental appropriateness.
-- [ ] The teacher confirms that the class has received the necessary instruction before the activity.
-- [ ] Cognitive interviews or a non-study rehearsal confirm that seventh graders understand the wording.
-- [ ] The Knowledge Integration rubric and anchor responses are frozen.
-- [ ] Teacher dashboard labels describe response patterns rather than diagnosing or labeling students.
-- [ ] Raters practice on non-study responses and resolve ambiguous descriptors.
-- [ ] Condition labels are removed from files used for primary human scoring.
-- [ ] The statistical analysis plan is frozen before outcome scoring begins.
+- [ ] The teacher confirms the target is Georgia GSE S7L3.a.
+- [ ] Students have completed relevant instruction on genes, chromosomes, and trait inheritance.
+- [ ] The teacher has reviewed the beetle initial task, every adaptive probe, the fixed reflection prompt, and the plant near-transfer task.
+- [ ] The teacher confirms that Punnett squares, probability, cell-division stages, and complex human traits are not required.
+- [ ] The misconception evidence map and scoring rubric have been reviewed by the advisor or a biology-education content expert.
+- [ ] The frozen content version is recorded and `CONTENT_PACK_APPROVED=true` is set only after approval.
 
-## Data and AI governance
+## Deployment and concurrency
 
-- [ ] The teacher controls the separate roster-to-code crosswalk; it is never uploaded to BioSense.
-- [ ] Supabase region, access, backups, retention, deletion, and incident handling are approved.
-- [ ] No real names, emails, student IDs, or dates of birth are requested by the application.
-- [ ] The student introduction says not to include names or personal details in free text.
-- [ ] If external AI is enabled, minor-data requirements and zero-data-retention requirements are confirmed in writing.
-- [ ] `AI_ROUTING_ENABLED` remains `false` unless the previous item is complete.
-- [ ] The static teacher-authored fallback has been tested and is acceptable as the classroom default.
+- [ ] The production deployment uses Supabase, not the in-memory demo store.
+- [ ] Database migration `001_initial.sql` has been applied.
+- [ ] Production secrets are strong, unique, and unavailable to students.
+- [ ] The health endpoint reports the expected storage and classifier configuration.
+- [ ] A 30-student load test has passed against the exact deployment build.
+- [ ] Student join, draft autosave, resume, revision, near-transfer, survey, teacher dashboard, and CSV export have been tested on school devices and network.
+- [ ] The teacher has printed or securely distributed participant codes and has a replacement-code procedure.
+- [ ] A static paper or form fallback is ready if the network or deployment fails.
 
-## Technical rehearsal
+## AI and fallback safety
 
-- [ ] Production secrets are unique and stored only in the hosting provider.
-- [ ] Database migration and row-level-security settings are verified in the production project.
-- [ ] Preview and production URLs use HTTPS.
-- [ ] All automated tests and a clean production build pass.
-- [ ] Thirty synthetic students complete the flow without lost or duplicated response stages.
-- [ ] Teacher login, code download, session launch/close, dashboard, CSV, and JSON export are rehearsed.
-- [ ] Refresh, brief offline operation, model timeout, invalid code, and closed-session paths are rehearsed.
-- [ ] Actual classroom Chromebooks/laptops and the school network are tested.
-- [ ] A printable fixed-prompt backup activity and incident log are available.
+- [ ] AI routing is disabled unless minor-data safeguards and school approval are confirmed.
+- [ ] The API sends only response text after likely identifiers are redacted, uses `store: false`, and cannot call tools.
+- [ ] The classifier schema accepts only frozen idea, misconception, and prompt identifiers.
+- [ ] Low-confidence, invalid, or timed-out classifications route to the teacher-authored fallback prompt.
+- [ ] Staff understand that classifier tags are hypotheses for routing, not diagnoses or grades.
 
-## Session-day freeze
+## Study execution
 
-- [ ] Final Git commit, deployment ID, content version, AI schema, routing threshold, and model are recorded.
-- [ ] No code, prompt, model, or rubric change will be made during the session.
-- [ ] Participant code cards are shuffled and distributed without revealing condition.
-- [ ] The teacher has the standardized introduction and neutral transition script.
-- [ ] Dashboard/outcome access remains closed until all near-transfer responses are locked.
-- [ ] Deviations, absences, accommodations, and technical incidents will be recorded.
-- [ ] A timer is ready to record dashboard-review time from first opening to the teacher's selected instructional action.
+- [ ] Approximately 15 minutes are reserved with identical instructions and timing for both conditions.
+- [ ] Random assignment is generated before the session and remains hidden from students.
+- [ ] The teacher will not coach the two conditions differently.
+- [ ] Initial, revision, and near-transfer responses are locked by stage.
+- [ ] The near-transfer task hides the student's earlier response.
+- [ ] Human raters will be blinded to condition and classifier output.
+- [ ] The teacher will record dashboard-review time and one intended instructional action.
+
+## Stop conditions
+
+Stop or switch to the fallback activity if authentication fails repeatedly, multiple responses cannot be saved, the wrong content version appears, condition assignment changes, personally identifying information is exposed, or students experience unexpected distress or pressure.

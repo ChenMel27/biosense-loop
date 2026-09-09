@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1040" viewBox="0 0 1800 1040">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="7" stdDeviation="11" flood-color="#102A43" flood-opacity="0.12"/></filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#2F6B9A"/></marker>
+    <marker id="arrowGold" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#C99700"/></marker>
+    <style>
+      .title { font: 700 44px Arial, sans-serif; fill: #102A43; }
+      .sub { font: 400 23px Arial, sans-serif; fill: #52677A; }
+      .layer { font: 700 17px Arial, sans-serif; letter-spacing: 1.5px; fill: #5E7385; }
+      .head { font: 700 24px Arial, sans-serif; fill: #102A43; }
+      .body { font: 400 18px Arial, sans-serif; fill: #42586A; }
+      .small { font: 400 16px Arial, sans-serif; fill: #52677A; }
+      .white { fill: #FFFFFF; }
+      .badge { font: 700 16px Arial, sans-serif; fill: #FFFFFF; }
+      .callout { font: 700 18px Arial, sans-serif; fill: #8A6800; }
+    </style>
+  </defs>
+  <rect width="1800" height="1040" fill="#F7F9FC"/>
+  <text x="80" y="75" class="title">ExitLoop system architecture</text>
+  <text x="80" y="115" class="sub">Teacher-governed routing, resilient classroom workflow, and research-ready data capture</text>
+
+  <text x="80" y="175" class="layer">CLASSROOM CLIENTS</text>
+  <g filter="url(#shadow)">
+    <rect x="80" y="205" width="360" height="150" rx="22" fill="#FFFFFF" stroke="#D7E2EB" stroke-width="3"/>
+    <circle cx="130" cy="255" r="24" fill="#2F6B9A"/>
+    <text x="121" y="263" class="badge">S</text>
+    <text x="170" y="260" class="head">Student browser</text>
+    <text x="110" y="305" class="body">Join • explain • revise • transfer • survey</text>
+    <text x="110" y="335" class="small">Autosaved drafts + signed pseudonymous session</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="505" y="205" width="360" height="150" rx="22" fill="#FFFFFF" stroke="#D7E2EB" stroke-width="3"/>
+    <circle cx="555" cy="255" r="24" fill="#2B7A78"/>
+    <text x="546" y="263" class="badge">T</text>
+    <text x="595" y="260" class="head">Teacher browser</text>
+    <text x="535" y="305" class="body">Launch • monitor • review • act • export</text>
+    <text x="535" y="335" class="small">Class-level evidence; no automated grades</text>
+  </g>
+
+  <path d="M260 355 V420" stroke="#2F6B9A" stroke-width="5" marker-end="url(#arrow)"/>
+  <path d="M685 355 V420" stroke="#2F6B9A" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <text x="80" y="420" class="layer">APPLICATION</text>
+  <g filter="url(#shadow)">
+    <rect x="80" y="450" width="785" height="230" rx="26" fill="#102A43"/>
+    <text x="120" y="500" class="badge">NEXT.JS WEB APPLICATION + API ROUTES</text>
+    <rect x="120" y="535" width="210" height="105" rx="16" fill="#FFFFFF" opacity="0.96"/>
+    <text x="145" y="573" class="head">Auth &amp; access</text>
+    <text x="145" y="607" class="small">Class codes, signed cookies,</text>
+    <text x="145" y="630" class="small">teacher guard, rate limits</text>
+    <rect x="365" y="535" width="215" height="105" rx="16" fill="#FFFFFF" opacity="0.96"/>
+    <text x="390" y="573" class="head">Workflow engine</text>
+    <text x="390" y="607" class="small">Balanced assignment, stage</text>
+    <text x="390" y="630" class="small">locks, resume, timing</text>
+    <rect x="615" y="535" width="210" height="105" rx="16" fill="#FFFFFF" opacity="0.96"/>
+    <text x="640" y="573" class="head">Teacher tools</text>
+    <text x="640" y="607" class="small">Live summaries, actions,</text>
+    <text x="640" y="630" class="small">CSV / JSON export</text>
+    <text x="120" y="665" class="small" style="fill:#D7E2EB">Deployment target: Vercel</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="925" y="205" width="795" height="475" rx="26" fill="#FFFFFF" stroke="#C99700" stroke-width="4"/>
+    <text x="970" y="258" class="layer">CONSTRAINED DIAGNOSTIC ROUTER</text>
+    <rect x="970" y="295" width="300" height="122" rx="18" fill="#FFF6D9"/>
+    <text x="995" y="333" class="head">Frozen content pack</text>
+    <text x="995" y="367" class="body">S7L3.a evidence rules +</text>
+    <text x="995" y="394" class="body">fixed prompts + actions</text>
+    <rect x="1360" y="295" width="315" height="122" rx="18" fill="#EEF5FA"/>
+    <text x="1385" y="333" class="head">Structured classifier</text>
+    <text x="1385" y="367" class="body">Response evidence → allowed</text>
+    <text x="1385" y="394" class="body">category and prompt ID</text>
+    <path d="M1270 356 H1360" stroke="#C99700" stroke-width="5" marker-end="url(#arrowGold)"/>
+    <rect x="970" y="470" width="705" height="145" rx="18" fill="#E7F5F3"/>
+    <text x="995" y="510" class="head">Safety gate and deterministic routing</text>
+    <text x="995" y="545" class="body">External AI off or failed → keyword router • low confidence → clarification</text>
+    <text x="995" y="582" class="callout">Only local prewritten prompt text reaches the student.</text>
+    <path d="M865 565 H925" stroke="#2F6B9A" stroke-width="5" marker-end="url(#arrow)"/>
+  </g>
+
+  <text x="80" y="755" class="layer">DATA, OPTIONAL SERVICE, AND RESEARCH OUTPUT</text>
+  <path d="M480 680 V775" stroke="#2F6B9A" stroke-width="5" marker-end="url(#arrow)"/>
+  <path d="M1320 680 V775" stroke="#C99700" stroke-width="5" stroke-dasharray="14 10" marker-end="url(#arrowGold)"/>
+  <g filter="url(#shadow)">
+    <rect x="80" y="805" width="500" height="155" rx="24" fill="#FFFFFF" stroke="#2B7A78" stroke-width="4"/>
+    <text x="120" y="850" class="head">Supabase PostgreSQL</text>
+    <text x="120" y="887" class="body">Sessions • pseudonymous participants • locked responses</text>
+    <text x="120" y="919" class="body">routing decisions • events • surveys • teacher actions</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="650" y="805" width="430" height="155" rx="24" fill="#FFFFFF" stroke="#D7E2EB" stroke-width="3"/>
+    <text x="690" y="850" class="head">Blinded research export</text>
+    <text x="690" y="887" class="body">Immutable CSV / JSON stages</text>
+    <text x="690" y="919" class="body">Human scoring of near-transfer outcome</text>
+  </g>
+  <path d="M580 883 H650" stroke="#2F6B9A" stroke-width="5" marker-end="url(#arrow)"/>
+  <g filter="url(#shadow)">
+    <rect x="1150" y="805" width="570" height="155" rx="24" fill="#FFFFFF" stroke="#C99700" stroke-width="3" stroke-dasharray="10 8"/>
+    <text x="1190" y="850" class="head">Optional approved OpenAI Responses API</text>
+    <text x="1190" y="887" class="body">Deidentified explanation • store false • structured output</text>
+    <text x="1190" y="919" class="small">External route stays off until minor-data safeguards are confirmed.</text>
+  </g>
+</svg>

@@ -1,4 +1,4 @@
-import { cellularRespirationPack } from "@/content/cellular-respiration";
+import { traitInheritancePack } from "@/content/trait-inheritance";
 import type { ClassificationResult } from "@/lib/domain/types";
 
 function includesAny(text: string, terms: string[]) {
@@ -11,90 +11,136 @@ export function deterministicClassify(response: string): ClassificationResult {
   const possibleAlternativeConceptionIds: string[] = [];
 
   if (
-    includesAny(text, ["matter", "carbon", "atom", "molecule", "food"]) &&
-    includesAny(text, ["carbon dioxide", "body", "waste", "soil", "air", "rearrange", "move"])
+    includesAny(text, ["gene", "genes", "gene version", "b version", "inherited information"]) &&
+    includesAny(text, ["information", "trait", "bristle", "shape", "curved", "straight"])
   ) {
-    demonstratedIdeaIds.push("matter_path");
+    demonstratedIdeaIds.push("gene_trait_information");
   }
 
   if (
-    includesAny(text, ["energy", "chemical energy"]) &&
-    includesAny(text, ["flow", "transfer", "use", "heat", "move", "stay alive", "function"])
+    includesAny(text, ["gene", "gene version", "bristle-shape"]) &&
+    includesAny(text, ["chromosome", "chromosome 3", "located", "position", "carried"])
   ) {
-    demonstratedIdeaIds.push("energy_flow");
+    demonstratedIdeaIds.push("gene_on_chromosome");
   }
 
   if (
-    includesAny(text, ["cellular respiration", "respiration in cells", "cells release", "cells use food"]) &&
-    includesAny(text, ["energy", "food", "sugar", "glucose"])
+    includesAny(text, ["both parents", "each parent", "one from each", "parent 1", "parent 2"]) ||
+    (includesAny(text, ["mother", "mom", "maternal"]) &&
+      includesAny(text, ["father", "dad", "paternal"]))
   ) {
-    demonstratedIdeaIds.push("cellular_respiration_role");
+    demonstratedIdeaIds.push("both_parent_contributions");
   }
 
   if (
-    includesAny(text, ["environment", "ecosystem", "plant", "producer", "decomposer", "soil", "air"]) &&
-    includesAny(text, ["carbon dioxide", "matter", "energy", "food", "cycle", "flow"])
+    includesAny(text, ["b and b", "b/b", "two b", "bb"]) &&
+    includesAny(text, ["curved", "bristle"]) &&
+    includesAny(text, ["because", "so", "therefore", "evidence", "shows", "supports"])
   ) {
-    demonstratedIdeaIds.push("ecosystem_connection");
-  }
-
-  if (
-    includesAny(text, ["respiration is breathing", "respiration means breathing", "only breathing", "just breathing"]) ||
-    (includesAny(text, ["breathe", "breathing", "lungs"]) &&
-      !includesAny(text, ["cell", "food", "energy"]))
-  ) {
-    possibleAlternativeConceptionIds.push("respiration_is_breathing_only");
+    demonstratedIdeaIds.push("evidence_linked_explanation");
   }
 
   if (
     includesAny(text, [
-      "matter becomes energy",
-      "food becomes energy",
-      "carbon becomes energy",
-      "matter disappears",
-      "food disappears",
-      "used up completely",
+      "the gene is the trait",
+      "gene is curved bristles",
+      "gene is the curved bristle",
+      "passed down curved bristles",
+      "parents gave it curved bristles",
     ])
   ) {
-    possibleAlternativeConceptionIds.push("matter_becomes_energy_or_disappears");
+    possibleAlternativeConceptionIds.push("gene_is_the_trait");
   }
 
   if (
     includesAny(text, [
-      "plants do not respire",
-      "plants don't respire",
-      "only animals respire",
-      "plants only photosynthesize",
-      "photosynthesis is plant respiration",
+      "genes do not carry information",
+      "genes do not contain information",
+      "genes have no hereditary information",
+      "only chromosomes contain information",
+      "only chromosomes carry information",
     ])
   ) {
-    possibleAlternativeConceptionIds.push("plants_do_not_respire");
+    possibleAlternativeConceptionIds.push("genes_lack_hereditary_information");
   }
 
   if (
-    includesAny(text, ["energy cycles", "energy is recycled", "energy returns to the plant", "energy goes in a cycle"])
+    includesAny(text, [
+      "genes are not on chromosomes",
+      "gene is not on the chromosome",
+      "genes and chromosomes are separate",
+      "chromosomes do not carry genes",
+      "chromosome does not carry the gene",
+    ])
   ) {
-    possibleAlternativeConceptionIds.push("energy_cycles_like_matter");
+    possibleAlternativeConceptionIds.push("genes_and_chromosomes_unrelated");
   }
 
-  const allIdeaIds = cellularRespirationPack.ideas.map((idea) => idea.id);
+  if (
+    includesAny(text, [
+      "only one parent",
+      "only the mother",
+      "only the mom",
+      "only the father",
+      "only the dad",
+      "comes from the same-sex parent",
+      "comes from the parent of the same sex",
+    ])
+  ) {
+    possibleAlternativeConceptionIds.push("one_parent_determines_trait");
+  }
+
+  if (
+    includesAny(text, [
+      "mother gives bristle shape and father gives",
+      "mom gives bristle shape and dad gives",
+      "father gives bristle shape and mother gives",
+      "dad gives bristle shape and mom gives",
+      "one parent gives bristle shape and the other gives",
+      "each parent gives a different trait",
+    ])
+  ) {
+    possibleAlternativeConceptionIds.push("parents_contribute_different_traits");
+  }
+
+  if (
+    includesAny(text, [
+      "trimmed bristles are inherited",
+      "cut bristles are inherited",
+      "offspring will have trimmed bristles",
+      "changes during life are passed down",
+      "acquired traits are inherited",
+    ])
+  ) {
+    possibleAlternativeConceptionIds.push("acquired_trait_is_inherited");
+  }
+
+  const allIdeaIds = traitInheritancePack.ideas.map((idea) => idea.id);
   const missingIdeaIds = allIdeaIds.filter((id) => !demonstratedIdeaIds.includes(id));
 
-  let recommendedPromptId = "respiration_clarify_01";
-  if (possibleAlternativeConceptionIds.includes("respiration_is_breathing_only")) {
-    recommendedPromptId = "respiration_breathing_probe_01";
-  } else if (possibleAlternativeConceptionIds.includes("matter_becomes_energy_or_disappears")) {
-    recommendedPromptId = "respiration_matter_energy_probe_01";
-  } else if (possibleAlternativeConceptionIds.includes("plants_do_not_respire")) {
-    recommendedPromptId = "respiration_plants_probe_01";
-  } else if (possibleAlternativeConceptionIds.includes("energy_cycles_like_matter")) {
-    recommendedPromptId = "respiration_flow_cycle_probe_01";
-  } else if (missingIdeaIds.includes("matter_path") || missingIdeaIds.includes("energy_flow")) {
-    recommendedPromptId = "respiration_matter_energy_probe_01";
-  } else if (missingIdeaIds.includes("cellular_respiration_role")) {
-    recommendedPromptId = "respiration_breathing_probe_01";
-  } else if (missingIdeaIds.includes("ecosystem_connection")) {
-    recommendedPromptId = "respiration_ecosystem_probe_01";
+  let recommendedPromptId = traitInheritancePack.fallbackPrompt.id;
+  if (possibleAlternativeConceptionIds.includes("gene_is_the_trait")) {
+    recommendedPromptId = "inheritance_gene_trait_probe_01";
+  } else if (possibleAlternativeConceptionIds.includes("genes_lack_hereditary_information")) {
+    recommendedPromptId = "inheritance_gene_information_probe_01";
+  } else if (possibleAlternativeConceptionIds.includes("genes_and_chromosomes_unrelated")) {
+    recommendedPromptId = "inheritance_chromosome_probe_01";
+  } else if (possibleAlternativeConceptionIds.includes("parents_contribute_different_traits")) {
+    recommendedPromptId = "inheritance_same_trait_both_parents_probe_01";
+  } else if (possibleAlternativeConceptionIds.includes("one_parent_determines_trait")) {
+    recommendedPromptId = "inheritance_both_parents_probe_01";
+  } else if (possibleAlternativeConceptionIds.includes("acquired_trait_is_inherited")) {
+    recommendedPromptId = "inheritance_acquired_trait_probe_01";
+  } else if (missingIdeaIds.includes("gene_trait_information")) {
+    recommendedPromptId = "inheritance_gene_trait_probe_01";
+  } else if (missingIdeaIds.includes("gene_on_chromosome")) {
+    recommendedPromptId = "inheritance_chromosome_probe_01";
+  } else if (missingIdeaIds.includes("both_parent_contributions")) {
+    recommendedPromptId = "inheritance_both_parents_probe_01";
+  } else if (missingIdeaIds.includes("evidence_linked_explanation")) {
+    recommendedPromptId = "inheritance_evidence_probe_01";
+  } else {
+    recommendedPromptId = "inheritance_complete_check_01";
   }
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
@@ -108,13 +154,15 @@ export function deterministicClassify(response: string): ClassificationResult {
       ? 0.35
       : Math.min(0.85, 0.5 + demonstratedIdeaIds.length * 0.08),
     recommendedPromptId: abstain
-      ? cellularRespirationPack.fallbackPrompt.id
+      ? traitInheritancePack.fallbackPrompt.id
       : recommendedPromptId,
     abstain,
     reasonCodes: abstain
       ? ["too_short", "insufficient_evidence"]
-      : demonstratedIdeaIds.length
-        ? ["explicit_evidence", "missing_relationship"]
-        : ["insufficient_evidence"],
+      : possibleAlternativeConceptionIds.length
+        ? ["contradictory_statement", "missing_relationship"]
+        : demonstratedIdeaIds.length
+          ? ["explicit_evidence", "missing_relationship"]
+          : ["insufficient_evidence"],
   };
 }

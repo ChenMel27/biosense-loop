@@ -23,6 +23,11 @@ interface ActivityState {
   initialPrompt: Prompt;
   nearTransferPrompt: Prompt;
   followUp: Prompt | null;
+  reflectionSummary: {
+    initiallyCovered: string[];
+    revisionFocus: string[];
+    promptTitle: string;
+  } | null;
   initialResponse: string | null;
   finalResponse: string | null;
   draftText: string | null;
@@ -119,7 +124,7 @@ export function StudentActivity() {
     const next = result.activity;
     setActivity(next);
     setSaved("idle");
-    const storageKey = `biosense-draft:${next.attemptKey}:${next.stage}`;
+    const storageKey = `exitloop-draft:${next.attemptKey}:${next.stage}`;
     const localDraft = window.localStorage.getItem(storageKey);
     if (next.stage === "revision") {
       setText(localDraft ?? next.draftText ?? next.initialResponse ?? "");
@@ -158,7 +163,7 @@ export function StudentActivity() {
 
   useEffect(() => {
     if (!activity || !["initial", "revision", "transfer"].includes(activity.stage) || !text) return;
-    const storageKey = `biosense-draft:${activity.attemptKey}:${activity.stage}`;
+    const storageKey = `exitloop-draft:${activity.attemptKey}:${activity.stage}`;
     window.localStorage.setItem(storageKey, text);
     const timer = window.setTimeout(async () => {
       try {
@@ -211,7 +216,7 @@ export function StudentActivity() {
       const result = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(result.error || "Your response could not be saved.");
       if (activity) {
-        window.localStorage.removeItem(`biosense-draft:${activity.attemptKey}:${activity.stage}`);
+        window.localStorage.removeItem(`exitloop-draft:${activity.attemptKey}:${activity.stage}`);
       }
       await loadState();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -288,6 +293,26 @@ export function StudentActivity() {
               <h1>How did the activity feel?</h1>
               <p>These answers do not affect a grade. Choose the response that fits best.</p>
             </div>
+            {activity.reflectionSummary ? (
+              <div className="callout neutral stack-sm">
+                <strong>Your activity recap</strong>
+                {activity.reflectionSummary.initiallyCovered.length ? (
+                  <p>
+                    <b>Ideas you included at the start:</b>{" "}
+                    {activity.reflectionSummary.initiallyCovered.join("; ")}.
+                  </p>
+                ) : null}
+                <p>
+                  <b>Your revision focused on:</b>{" "}
+                  {activity.reflectionSummary.revisionFocus.length
+                    ? activity.reflectionSummary.revisionFocus.join("; ")
+                    : activity.reflectionSummary.promptTitle}.
+                </p>
+                <p>
+                  Use this recap to guide future explanations. It is not a score, grade, or mastery decision.
+                </p>
+              </div>
+            ) : null}
             <ScaleQuestion name="clarity" label="The instructions were clear." low="Not at all" high="Very clear" value={clarity} onChange={setClarity} />
             <ScaleQuestion name="pressure" label="I felt pressure or stress during this activity." low="None" high="A lot" value={pressure} onChange={setPressure} />
             <ScaleQuestion name="helpfulness" label="The reflection question helped me reconsider my explanation." low="Not at all" high="A lot" value={helpfulness} onChange={setHelpfulness} />
@@ -322,10 +347,17 @@ export function StudentActivity() {
             </div>
 
             {activity.stage === "revision" && activity.initialResponse ? (
-              <div className="original-response">
-                <span>Your first explanation</span>
-                <p>{activity.initialResponse}</p>
-              </div>
+              <>
+                <div className="original-response">
+                  <span>Your original question</span>
+                  <strong>{activity.initialPrompt.title}</strong>
+                  <p>{activity.initialPrompt.text}</p>
+                </div>
+                <div className="original-response">
+                  <span>Your first explanation</span>
+                  <p>{activity.initialResponse}</p>
+                </div>
+              </>
             ) : null}
 
             {activity.stage === "transfer" ? (

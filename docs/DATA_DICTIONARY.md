@@ -1,57 +1,151 @@
-# Research Data Dictionary
+# ExitLoop Data Dictionary and Analysis Plan
 
-## Unit of assignment and analysis
+## Current study boundary
 
-- `participant_tag`: pseudonymous label used within the session (for example `P07`).
-- `condition`: frozen `adaptive` or `reflection` assignment. Each participant experiences one condition only.
-- Primary analysis unit: one eligible participant with an available same-session near-transfer response.
+The current research cycle collects data from two to five high school biology teachers using the teacher usability workspace. It does not collect student data. The simulated explanations are researcher-written system-demonstration content.
 
-## Primary outcome fields
+Current teacher-study fields are stored in `teacher_usability_submissions`:
 
-| Export field | Meaning | Research use |
-|---|---|---|
-| `near_transfer_text` | Unseen, unaided response after the revision loop | Blinded human-scored primary outcome |
-| `near_transfer_confidence` | Student’s three-level confidence choice | Exploratory calibration/description |
-| `condition` | Frozen randomized assignment | Between-group contrast |
-| `initial_text` | Common initial explanation | Baseline balance and sensitivity analysis |
+| Field | Purpose |
+| --- | --- |
+| `participant_tag`, `run_id` | Pseudonymously connect one teacher's study records |
+| `started_at`, `completed_at` | Overall study timing |
+| `authoring_draft` | Teacher edits to the activity, target ideas, misconceptions, and prewritten questions |
+| `reviews` | Agree, needs revision, or unsure judgment and optional correction for each reviewed example |
+| `class_summary` | Selected pattern, interpretation, next instructional action, and confidence |
+| `sus_responses`, `sus_score` | Ten System Usability Scale responses and calculated 0–100 score |
+| `summary_usefulness` | ExitLoop-specific 1–5 rating of the summary's decision support |
+| `prompt_control` | ExitLoop-specific 1–5 rating of teacher control over content |
+| `open_feedback` | Optional final feedback |
+| `task_metrics` | Completion and elapsed time for each of four study tasks |
 
-The application does not create the primary score. Raters add blinded Knowledge Integration scores in a separate analysis file keyed by `participant_tag`.
+Task events are also written to `teacher_usability_events` to preserve task-level timing if a participant does not submit the final survey. CSV and JSON exports are available from `/api/teacher/usability/export` after teacher sign-in.
 
-The frozen primary rubric is [`research/instruments/CELLULAR_RESPIRATION_RUBRIC.md`](../research/instruments/CELLULAR_RESPIRATION_RUBRIC.md). It measures matter tracing, energy flow, the role of cellular respiration, and ecosystem connection at the Georgia S7L4.b level.
+The sections below document the deferred classroom research data model. They are not part of the current teacher usability study.
 
-## Secondary learning-process fields
+## 1. Data-minimization rule
 
-| Field | Meaning |
-|---|---|
-| `final_text` | Revised explanation after the condition-specific prompt |
-| `displayed_prompt_id` | Exact teacher-authored prompt shown |
-| `ai_provider` | `openai`, deterministic fallback, or fixed control |
-| `ai_confidence` | Routing confidence; not a student achievement score |
-| `ai_abstained` | Whether uncertainty forced the clarification prompt |
-| `fallback_reason` | Why the external classifier was not used or failed |
+ExitLoop stores a session-scoped participant tag and hashed participant code, not a student name, email, school ID, birth date, or demographic profile. The same participant can resume within one session. Long-term progress tracking is intentionally deferred; a future longitudinal study would require a separate consented linkage design.
 
-The frozen alternative-conception identifiers are:
+## 2. Frozen outcome instrument
 
-- `respiration_is_breathing_only`
-- `matter_becomes_energy_or_disappears`
-- `plants_do_not_respire`
-- `energy_cycles_like_matter`
+The primary rubric is [Trait-Inheritance Explanation Rubric](../research/instruments/TRAIT_INHERITANCE_RUBRIC.md). Four dimensions are scored 0–2:
 
-These are codes for evidence in a response, not stable labels assigned to a student.
+- gene as inherited trait-related information;
+- gene–chromosome relationship;
+- contribution from both parents;
+- evidence-linked trait explanation.
 
-## Feasibility and experience fields
+Total range: 0–8. Human raters score de-identified initial, final-revision, and near-transfer texts. Targeted repair from initial explanation to revision is the primary exploratory outcome; near-transfer is secondary.
 
-- `completion_state`, `started_at`, and `completed_at` support completion and duration summaries.
-- `clarity`, `pressure`, and `helpfulness` are single study-specific 1–5 items. They are not a validated anxiety scale.
-- `open_comment` is optional qualitative implementation feedback.
-- The event table records joins, stage locks, fallbacks, and completion for technical/fidelity analysis.
-- `teacher_action.created_at`, `action_type`, and `note` are stored by the MVP. For the classroom pilot, an observer records the first locked-summary view time on the session protocol; dashboard review time is the interval from that observation to the stored action timestamp. A first-view audit event is a production gate before unattended data collection.
+## 3. Core identifiers and session fields
 
-## Data-quality rules
+| Field | Type | Purpose |
+| --- | --- | --- |
+| `session_id` | UUID/string | Groups all records from one classroom administration |
+| `participant_tag` | string | Research-facing label such as P01; not a student identity |
+| `condition` | `adaptive` or `reflection` | Frozen randomized condition |
+| `content_version_id` | string | Exact approved prompt/taxonomy version |
+| `completion_state` | enum | Last completed workflow stage |
+| `started_at`, `completed_at` | server timestamps | Feasibility and completion time |
+| `technical_status` | enum | Normal, fallback, or interrupted flow |
 
-1. Initial, final, and near-transfer records are append-only and unique within an attempt.
-2. Client timestamps are descriptive; server timestamps determine ordering.
-3. Prompt, content, schema, model, and deployment versions must be frozen and reported.
-4. Missing responses are not imputed for the primary one-class pilot unless a statistician specifies a presigned method.
-5. Report the number randomized, started, completed, excluded, and analyzed by condition.
-6. Keep the roster-to-code crosswalk outside the application and research export.
+## 4. Response fields
+
+| Field | Description |
+| --- | --- |
+| `initial_text` | Common beetle evidence explanation before any follow-up |
+| `initial_confidence` | Student confidence after initial response |
+| `final_text` | Revised beetle explanation after condition-specific prompt |
+| `final_confidence` | Student confidence after revision |
+| `near_transfer_text` | Common unaided plant evidence explanation |
+| `near_transfer_confidence` | Student confidence after near transfer |
+| response server/client timestamps | Stage duration and technical auditing; server time is authoritative |
+| prompt and content IDs | Reproduces exactly what the student saw |
+
+## 5. Routing fields
+
+| Field | Description |
+| --- | --- |
+| `displayed_prompt_id` | Teacher-authored prompt actually shown |
+| `demonstrated_idea_ids` | Relationships explicitly evidenced in the response |
+| `missing_idea_ids` | Required relationships not evidenced |
+| `possible_alternative_conception_ids` | Reviewable response patterns, not diagnoses |
+| `classification_confidence` | Router confidence from 0 to 1 |
+| `abstain` | Whether the system declined a specific classification |
+| `reason_codes` | Structured reason for classification or abstention |
+| `provider`, `model`, `schema_version` | Reproducibility metadata |
+| `latency_ms`, `fallback_reason` | Operational performance and reliability |
+
+Allowed relationship IDs:
+
+- `gene_trait_information`
+- `gene_on_chromosome`
+- `both_parent_contributions`
+- `evidence_linked_explanation`
+
+Allowed pattern IDs:
+
+- `gene_is_the_trait`
+- `genes_lack_hereditary_information`
+- `genes_and_chromosomes_unrelated`
+- `one_parent_determines_trait`
+- `parents_contribute_different_traits`
+- `acquired_trait_is_inherited`
+
+## 6. Experience and teacher-action fields
+
+| Field | Scale/use |
+| --- | --- |
+| `clarity` | 1–5 student rating |
+| `pressure` | 1–5 student rating; lower is preferable |
+| `helpfulness` | 1–5 student rating |
+| `open_comment` | Optional text; screen for accidental identifiers before analysis |
+| `teacher_dashboard_review_seconds` | Time from opening locked summary to action decision, collected by observer or protocol timer |
+| `teacher_action_type` | Proceed, whole-class clarification, small group, review responses, or other |
+| `teacher_action_note` | Optional rationale |
+
+## 7. Human-scored analysis dataset
+
+Create a separate analysis file after export with:
+
+- `initial_rater1_*`, `initial_rater2_*`, consensus scores;
+- `revision_rater1_*`, `revision_rater2_*`, consensus scores;
+- `transfer_rater1_*`, `transfer_rater2_*`, consensus scores;
+- total scores for each stage;
+- targeted-repair indicator: whether the specific routed relationship improved from initial to revision;
+- misconception-pattern human codes for classifier agreement;
+- blind rater IDs and scoring timestamps.
+
+Raters must not see condition, displayed prompt ID, AI tags, or student confidence while scoring the primary outcome.
+
+## 8. One-session analysis
+
+Primary comparison:
+
+- targeted-repair proportion in adaptive vs reflection condition;
+- risk difference with a 95% Newcombe-Wilson confidence interval, risk ratio when estimable, and two-sided Fisher exact test;
+- exact numerator/denominator shown for each condition because n is small.
+
+Secondary descriptive comparisons:
+
+- initial-to-revision total change by condition;
+- near-transfer total by condition, raw difference, standardized mean difference, and confidence interval;
+- classifier–human agreement for each relationship/pattern and overall agreement statistic when cell counts permit;
+- abstention, deterministic fallback, completion, missing-data, and median latency rates;
+- student experience medians/distributions;
+- teacher review time and whether a concrete action was recorded.
+
+If the class is too small or outcome distributions are sparse, emphasize descriptive estimates and exact denominators. Treat p-values, if reported, as exploratory and never as the sole evidence of effectiveness.
+
+## 9. Missing data and exclusions
+
+- Retain randomized participants in a flow table even if they do not finish.
+- Define completion before looking at group outcomes.
+- Do not silently replace missing near-transfer scores with revision scores.
+- Report technical failures and fallback use by condition.
+- Exclude a response from text analysis only for a predeclared reason such as no assent, accidental identifying information that cannot be safely redacted, duplicate test account, or unusable blank response.
+
+## 10. Interpretation boundary
+
+The one-session study can show whether the tool operated reliably, selected prompts consistently with human coding, supported stronger immediate revision or near-transfer signals, felt low pressure, and produced an actionable teacher summary. It cannot establish retention, long-term progress, generalization to other biology units, or effectiveness across schools.

@@ -1,57 +1,114 @@
-# Single-Session Randomized Pilot Protocol
+# Single-Session Classroom Protocol
+
+## Study question
+
+Does a teacher-approved, misconception-sensitive follow-up question help a student repair the exact scientific relationship missing from their explanation, compared with a general reflection prompt? This first test is conducted in one seventh-grade biology class. Secondarily, does the class summary help one teacher decide what to do next quickly and interpretably?
+
+This is an exploratory feasibility and signal-detection study, not a test of retention or broad efficacy.
 
 ## Design
 
-Approximately 30 seventh-grade biology students are assigned to two parallel groups before the activity. The software creates a balanced assignment manifest when the teacher creates the session. Students, not responses, are the unit of assignment. Each student experiences one condition.
+- Setting: one seventh-grade biology classroom.
+- Expected sample: approximately 30 students who meet the approved participation requirements.
+- Design: randomized parallel groups, approximately 1:1 adaptive and reflection.
+- Duration: 12–15 minutes during one class session.
+- Common tasks: beetle initial explanation, beetle revision, plant near-transfer explanation, experience survey.
+- Manipulation: only the reflection prompt between initial and revision.
+- Primary outcome: blinded targeted repair from initial explanation to revision.
+- Secondary student outcome: blinded plant near-transfer total, 0–8.
+- Secondary teacher outcome: time-to-action plus descriptive usefulness and interpretability ratings from one teacher.
 
-- Adaptive group: common initial explanation → one AI-selected teacher-authored targeted prompt → revision.
-- Reflection group: common initial explanation → one fixed teacher-authored generic reflection prompt → revision.
-- Both groups: the same unseen, unaided near-transfer prompt → brief implementation survey.
+## Before the session
 
-The condition-specific loop has a maximum target of eight minutes. The full session is designed for approximately 12–15 minutes.
+1. Confirm the class has completed relevant instruction on genes, chromosomes, and inheritance under Georgia GSE S7L3.a.
+2. Complete the [pre-classroom checklist](../../docs/PRE_CLASSROOM_CHECKLIST.md), including required school/research approvals, permission, and assent decisions.
+3. Freeze the content-pack ID, classifier schema, prompts, rubric, assignment procedure, analysis outcomes, and exclusion rules.
+4. Create the classroom session for the expected count. Download the participant-code manifest and keep it separate from research exports.
+5. Confirm the database, deployment health, school-device test, 30-user load test, and paper/form fallback.
+6. Prepare a neutral script and do not reveal condition labels to students.
 
-## Before class
+## Neutral teacher script
 
-1. Confirm the class has completed relevant instruction on matter cycling, energy flow, and the conceptual role of cellular respiration under Georgia GSE S7L4.b.
-2. Confirm approvals and eligibility using the separate school-controlled list.
-3. Freeze the commit, deployment, content pack, classifier schema, prompt bank, model configuration, rubric, and analysis plan.
-4. Create the session and download the participant manifest.
-5. Shuffle code cards without sorting or marking them by condition.
-6. If known absences change the expected sample before distribution, create a new session for the actual expected count and document the change. Never reassign a student after a response is visible.
-7. Test one non-research code on the classroom network, then reset or create the actual session.
+“Today you will complete a short, low-stakes biology explanation activity. It is not graded. Use the evidence in each question and explain your thinking in your own words. The computer may choose a teacher-written reflection question, but it does not decide your grade or tell your teacher what to teach. Use only the participant code you were given; do not type your name.”
 
-## Standardized teacher introduction
+Use additional language required by the approved permission/assent process.
 
-“Today you will complete a short biology reflection activity. It is not graded. First explain your thinking in your own words. The program will give you one reflection question, then you will revise and answer a new situation. Do not enter your name or anyone else’s name. I can help with directions or technology, but I cannot help with the biology while the activity is running.”
+## In-class timing
 
-## In-class sequence
+| Time | Student activity | Teacher/researcher action |
+| --- | --- | --- |
+| 0:00–1:30 | Join with class and participant codes | Open session; resolve access only, without science coaching |
+| 1:30–4:30 | Read beetle evidence card; write initial explanation; choose confidence | Monitor completion and technical status |
+| 4:30–6:30 | Answer the adaptive probe or general reflection | Use the same neutral support for both conditions |
+| 6:30–9:00 | Revise the complete beetle explanation | Do not provide science coaching |
+| 9:00–11:30 | Complete unaided plant near-transfer explanation | Hide the earlier response and prompt |
+| 11:30–12:30 | Complete clarity, pressure, and helpfulness items | Confirm submissions and show a neutral completion screen |
 
-1. Distribute shuffled participant-code cards.
-2. Display the application URL and class code.
-3. Open the session for students.
-4. Students complete the initial explanation and confidence item.
-5. The server displays the assigned targeted or fixed prompt.
-6. Students revise and lock the final explanation.
-7. Use a neutral transition only if needed: “When the next page appears, answer the new situation on your own. Your previous answer is hidden.”
-8. Students complete the near-transfer response before any dashboard discussion or differential teacher feedback.
-9. Students complete the three-item survey and reach the neutral completion screen.
-10. Close the session after confirming completion or documenting time-outs.
-11. After all near-transfer responses are locked, start the dashboard-review timer. The teacher reviews the misconception clusters, selects an instructional action, and stops the timer when that action is recorded.
+If the schedule slips, preserve the same task order and comparable opportunity for both conditions. Record deviations.
 
-## Fidelity and contamination controls
+## Condition implementation
 
-- The teacher may solve login/device problems but does not explain biology during the activity.
-- Do not announce group membership or compare prompt wording during the session.
-- Do not display the concept dashboard, earlier responses, scores, or class discussion before the near-transfer response.
-- Do not change prompts, model, thresholds, code, or timing after the first student begins.
-- Record absences, late entry, accommodations, researcher help, connection problems, fallback use, and early termination.
+### Adaptive condition
 
-## Outcomes and claim boundary
+The constrained classifier processes the locked initial response and selects one prompt from the frozen bank based only on explicit evidence. A short, unclear, or out-of-scope response receives `inheritance_clarify_01`. A response evidencing all four target relationships with no incompatible claim receives `inheritance_complete_check_01`, which acknowledges task coverage without assigning a grade or mastery label.
 
-Primary outcome: blinded human-scored same-session near-transfer total (0–8) using the frozen cellular-respiration matter-and-energy rubric.
+### Reflection condition
 
-Secondary outcomes: initial-to-final change, alternative-conception transitions, revision type, completion, duration, fallback use, student clarity/pressure/helpfulness, teacher actionability, and AI–human tag agreement.
+The student receives `control_reflection_01`, which asks for an evidence and parent-to-offspring reasoning check without targeting a classified pattern.
 
-The content scope is matter cycling and energy flow among biotic and abiotic ecosystem components. Do not score knowledge of glycolysis, the Krebs cycle, the electron-transport chain, ATP yield, or a memorized cellular-respiration equation.
+The teacher must not know or use condition assignment to coach students differently during the session.
 
-This is a preliminary randomized one-class pilot. Same-session near transfer is not retention, durable conceptual change, or proof of general effectiveness.
+## Primary targeted-repair outcome
+
+Before raters see revisions, two blinded human raters code the initial response against the frozen four-relationship rubric and six possible-alternative-conception codes. The pre-specified target is the first explicit incompatible conception in the frozen priority order; if none is present, it is the first missing relationship in the frozen priority order. The same rule is applied in both conditions, independent of the prompt actually displayed.
+
+`targeted_repair = 1` when the target is absent/incompatible in the initial response and is present/compatible in the revision, with no new incompatible claim. Otherwise `targeted_repair = 0`. Report the adaptive and reflection repair proportions, a risk difference with a 95% Newcombe-Wilson confidence interval, a risk ratio when estimable, and a two-sided Fisher exact test as exploratory. Use alpha = .05 only as a reporting threshold; do not treat it as proof of effectiveness. With approximately 15 students per group, precision and practical magnitude are more informative than statistical significance.
+
+## Teacher dashboard and actionability measure
+
+After closing the session:
+
+1. Start a timer when the teacher opens the locked class summary.
+2. Ask the teacher to identify the most instructionally important class pattern.
+3. Teacher records one action: proceed, whole-class clarification, temporary small group, review selected responses, or other, plus an optional rationale.
+4. Stop the timer when the action is saved.
+5. Teacher rates four statements from 1 (strongly disagree) to 5 (strongly agree): the summary was understandable; it identified an instructionally important pattern; it reduced the need to read every response before choosing an action; and it supported a concrete next step.
+6. Ask the teacher to open the response examples behind the highest-priority tag and record whether the tag appears supported, unsupported, or uncertain.
+
+Because there is one teacher and one session, report teacher measures descriptively. Do not calculate a teacher-effect p-value or claim general teacher usefulness.
+
+Do not reveal near-transfer group comparisons before the teacher records the action.
+
+## Data handling and scoring
+
+1. Export CSV/JSON after the session and store it only in the approved research location.
+2. Remove or redact accidental identifiers from optional comments before analysis, documenting the action.
+3. Create a blinded rater file with response text and randomized response IDs only.
+4. Score initial, revision, and near-transfer responses with the frozen rubric.
+5. Save independent rater scores before consensus.
+6. Join scores to condition only after primary scoring is complete.
+7. Produce a participant flow accounting for assigned, started, completed, and analyzed counts by condition.
+
+## Analysis and reporting
+
+Report:
+
+- targeted-repair proportions by condition, exact numerator/denominator, risk difference with a 95% Newcombe-Wilson confidence interval, risk ratio when estimable, and exploratory Fisher exact p-value;
+- initial and revision score distributions and change;
+- near-transfer means/distributions by condition, raw difference, standardized effect estimate, and uncertainty interval;
+- classifier–human agreement and abstention/fallback rates;
+- completion, missingness, latency, and technical incidents;
+- student clarity, pressure, and helpfulness responses;
+- teacher review time, recorded action, and concise qualitative feedback.
+
+Avoid causal or durable-learning claims beyond what one small session supports. A useful outcome can be feasibility and measurement evidence even if the group difference is uncertain.
+
+## Deviations and stop rules
+
+Log deployment version, content version, start/end times, absent participants, timing deviations, outages, fallback use, teacher coaching deviations, and any data-quality issue.
+
+Stop the digital activity or use the prepared fallback if saved responses cannot be verified, the wrong content appears, condition assignment changes, identifiers are exposed, or student welfare is at risk. Do not merge fallback-mode data with the digital comparison without clearly labeling the deviation.
+
+## Follow-up decision
+
+Proceed to a larger or repeated-session study only if the tool completes reliably, rater reliability is acceptable, classifier agreement and abstention are interpretable, student pressure is acceptably low, and the teacher can identify an actionable pattern quickly. A future progress dashboard requires explicit longitudinal linkage and approval; it is not part of this session.

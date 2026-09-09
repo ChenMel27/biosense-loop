@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { cellularRespirationPack } from "@/content/cellular-respiration";
+import { traitInheritancePack } from "@/content/trait-inheritance";
 import {
   balancedConditions,
   generateJoinCode,
@@ -21,6 +21,8 @@ import type {
   StudySession,
   StudentSurvey,
   TeacherInstructionalAction,
+  TeacherUsabilityEvent,
+  TeacherUsabilitySubmission,
 } from "@/lib/domain/types";
 import type { CreateSessionInput, ResearchStore } from "@/lib/store/types";
 
@@ -33,6 +35,8 @@ interface MemoryState {
   surveys: StudentSurvey[];
   events: StudyEvent[];
   teacherActions: TeacherInstructionalAction[];
+  teacherUsabilityEvents: TeacherUsabilityEvent[];
+  teacherUsabilitySubmissions: TeacherUsabilitySubmission[];
 }
 
 function now() {
@@ -46,9 +50,9 @@ function participantPepper() {
 function buildDemoState(): MemoryState {
   const session: StudySession = {
     id: "demo-session",
-    title: "Period 3 · Cellular respiration",
-    joinCode: "BIO7",
-    contentVersionId: cellularRespirationPack.versionId,
+    title: "Period 3 · Trait inheritance",
+    joinCode: "GEN7",
+    contentVersionId: traitInheritancePack.versionId,
     status: "active",
     assignmentSeed: "demo-balanced-v1",
     durationMinutes: 15,
@@ -57,7 +61,7 @@ function buildDemoState(): MemoryState {
     closedAt: null,
   };
   const participants = Array.from({ length: 30 }, (_, index): Participant => {
-    const participantCode = `BIO-${String(index + 1).padStart(3, "0")}`;
+    const participantCode = `GEN-${String(index + 1).padStart(3, "0")}`;
     return {
       id: `demo-participant-${index + 1}`,
       sessionId: session.id,
@@ -77,19 +81,23 @@ function buildDemoState(): MemoryState {
     surveys: [],
     events: [],
     teacherActions: [],
+    teacherUsabilityEvents: [],
+    teacherUsabilitySubmissions: [],
   };
 }
 
 declare global {
-  var __biosenseMemoryState: MemoryState | undefined;
+  var __exitloopMemoryState: MemoryState | undefined;
 }
 
 function getState() {
-  if (!globalThis.__biosenseMemoryState) {
-    globalThis.__biosenseMemoryState = buildDemoState();
+  if (!globalThis.__exitloopMemoryState) {
+    globalThis.__exitloopMemoryState = buildDemoState();
   }
-  globalThis.__biosenseMemoryState.teacherActions ??= [];
-  return globalThis.__biosenseMemoryState;
+  globalThis.__exitloopMemoryState.teacherActions ??= [];
+  globalThis.__exitloopMemoryState.teacherUsabilityEvents ??= [];
+  globalThis.__exitloopMemoryState.teacherUsabilitySubmissions ??= [];
+  return globalThis.__exitloopMemoryState;
 }
 
 export function resetMemoryStore() {
@@ -103,6 +111,8 @@ export function resetMemoryStore() {
   state.surveys.splice(0, state.surveys.length);
   state.events.splice(0, state.events.length);
   state.teacherActions.splice(0, state.teacherActions.length);
+  state.teacherUsabilityEvents.splice(0, state.teacherUsabilityEvents.length);
+  state.teacherUsabilitySubmissions.splice(0, state.teacherUsabilitySubmissions.length);
 }
 
 export class MemoryResearchStore implements ResearchStore {
@@ -224,6 +234,25 @@ export class MemoryResearchStore implements ResearchStore {
     this.state.teacherActions.push(action);
   }
 
+  async saveTeacherUsabilityEvent(event: TeacherUsabilityEvent) {
+    if (this.state.teacherUsabilityEvents.some((item) => item.id === event.id)) return;
+    this.state.teacherUsabilityEvents.push(event);
+  }
+
+  async saveTeacherUsabilitySubmission(submission: TeacherUsabilitySubmission) {
+    const existing = this.state.teacherUsabilitySubmissions.findIndex(
+      (item) => item.runId === submission.runId,
+    );
+    if (existing >= 0) this.state.teacherUsabilitySubmissions[existing] = submission;
+    else this.state.teacherUsabilitySubmissions.push(submission);
+  }
+
+  async listTeacherUsabilitySubmissions() {
+    return [...this.state.teacherUsabilitySubmissions].sort((a, b) =>
+      b.completedAt.localeCompare(a.completedAt),
+    );
+  }
+
   async listSessions() {
     return [...this.state.sessions].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
@@ -287,11 +316,37 @@ export class MemoryResearchStore implements ResearchStore {
       attempts.some((attempt) => attempt.id === decision.attemptId),
     );
     const ideaCounts: Record<string, number> = {};
+    const missingIdeaCounts: Record<string, number> = {};
     const misconceptionCounts: Record<string, number> = {};
+    const patternExamples: DashboardSnapshot["patternExamples"] = {};
     for (const decision of decisions) {
       for (const id of decision.demonstratedIdeaIds) ideaCounts[id] = (ideaCounts[id] ?? 0) + 1;
+      for (const id of decision.missingIdeaIds) {
+        missingIdeaCounts[id] = (missingIdeaCounts[id] ?? 0) + 1;
+      }
       for (const id of decision.possibleAlternativeConceptionIds) {
         misconceptionCounts[id] = (misconceptionCounts[id] ?? 0) + 1;
+      }
+      if (session.status === "closed") {
+        const attempt = attempts.find((item) => item.id === decision.attemptId);
+        const response = this.state.responses.find(
+          (item) => item.attemptId === decision.attemptId && item.stage === "initial",
+        );
+        if (attempt && response) {
+          for (const id of [
+            ...decision.missingIdeaIds,
+            ...decision.possibleAlternativeConceptionIds,
+          ]) {
+            patternExamples[id] ??= [];
+            if (patternExamples[id].length < 3) {
+              patternExamples[id].push({
+                participantTag: attempt.participantTag,
+                responseText: response.responseText,
+                displayedPromptId: decision.displayedPromptId,
+              });
+            }
+          }
+        }
       }
     }
     return {
@@ -304,7 +359,9 @@ export class MemoryResearchStore implements ResearchStore {
       },
       fallbackCount: decisions.filter((item) => item.fallbackReason).length,
       ideaCounts,
+      missingIdeaCounts,
       misconceptionCounts,
+      patternExamples,
       recentEvents: this.state.events
         .filter((item) => item.sessionId === sessionId)
         .slice(-20)

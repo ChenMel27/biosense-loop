@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export const TEACHER_COOKIE = "biosense_teacher";
-export const STUDENT_COOKIE = "biosense_student";
+export const TEACHER_COOKIE = "exitloop_teacher";
+export const STUDENT_COOKIE = "exitloop_student";
 
 interface TokenPayload {
   sub: string;

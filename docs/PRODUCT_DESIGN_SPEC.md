@@ -1,157 +1,179 @@
-# BioSense Loop Product and Research Design Specification
+# ExitLoop Product Design Specification
 
-## Product decision
+## 1. Product decision
 
-BioSense Loop will first solve one problem well: detect research-documented misconceptions about cellular respiration quickly enough for a teacher to act before those ideas compound. The MVP excludes broad AI question generation, engineering transfer, multiple units, grading, and long-term progress dashboards.
+ExitLoop is designed as a K–12 formative-assessment platform. The current MVP evaluates the teacher-facing design tools with two to five high school biology teachers and a simulated class. It uses trait inheritance as demonstration content, but the product direction can expand to other documented biology concepts after the diagnostic workflow is usable. The MVP uses a fixed, research-grounded question bank. It does not allow the classifier to write student-facing questions, grade work, or determine mastery.
 
-## Problem
+The earlier S7L3.a randomized student comparison remains a future classroom phase. It is not the current study and cannot begin without the required IRB and district approvals.
 
-Teachers have limited class time to cover required content, support students, and determine whether the class is ready to proceed. A one-response exit ticket can reveal that an answer is wrong without exposing the relationship driving the error, and it usually ends before the student can reconsider. Thirty open responses can also leave the teacher with more information than time to interpret.
+## 2. Problem and rationale
 
-This is particularly consequential for cellular respiration because students must coordinate matter, energy, organisms, cells, and ecosystems. Vocabulary accuracy can hide incompatible relationships such as “food matter becomes energy,” “respiration is breathing,” or “plants do not respire.”
+Teachers have limited time to cover required content while supporting students who may hold partial or incompatible ideas. A conventional exit ticket usually captures one answer after instruction; it can show that an explanation is incomplete without revealing which relationship needs attention or giving the student time to reconsider it. Thirty open responses can also take longer to interpret than the teacher has available.
 
-## Users and jobs
+Genetics-education research shows that students often struggle to coordinate the structural and functional relationships among genes, chromosomes, inherited information, parental contribution, and traits. ExitLoop adds one rapid feedback cycle: the student explains, receives a targeted teacher-reviewed probe or a time-matched reflection, revises, and applies the reasoning to a new case. This is low-stakes formative assessment: no score or mastery label is shown, and the teacher retains instructional authority.
+
+## 3. Users and jobs to be done
 
 ### Student
 
-- Explain a familiar phenomenon in two to four sentences.
-- Receive one short question that tests a specific relationship in the explanation.
-- Reconstruct the explanation rather than append an answer.
-- Apply the relationship to an unseen ecosystem situation.
-- Complete the entire activity without grades, rankings, or AI-generated scientific prose.
+- Explain a biological relationship in their own words.
+- Reconsider one specific relationship without being told an answer.
+- Apply the relationship to an unseen but structurally similar case.
+- Complete the activity in roughly 12–15 minutes without a name, email, or grade.
 
 ### Teacher
 
-- Launch a prepared, standards-aligned activity in under one minute.
-- See completion status without seeing experimental-condition outcomes early.
-- After outcomes are locked, see counts by misconception pattern, uncertainty, and representative de-identified evidence.
-- Receive one teacher-reviewed two-minute response for each pattern.
-- Record whether to proceed, clarify, regroup, or review responses.
+- Review and edit the activity prompt, target ideas, possible misconceptions, and follow-up questions.
+- Inspect the response text and reasoning behind a classification rather than accepting a hidden label.
+- Review a short class-level summary of possible patterns, not a raw transcript dump.
+- Receive a content-specific response idea for each visible pattern.
+- Record what instructional action the summary prompted and how confident they are.
 
-### Research team
+### Researcher
 
-- Freeze content, conditions, versions, and assignment before the session.
-- Export immutable response stages and routing decisions.
-- Score outcomes using blinded human raters.
-- Evaluate learning evidence, AI validity, teacher time, feasibility, and student experience.
+- Give each teacher a pseudonymous study ID and run the same frozen simulation.
+- Observe the remote think-aloud tasks and conduct the approved short interview.
+- Export authoring edits, routing judgments, decision-support responses, timing, and usability ratings.
+- Report usability findings without treating the simulated class as evidence of student learning.
 
-## Standards-aligned content scope
+## 4. Learning objective and scope
 
-Primary standard: Georgia GSE S7L4.b. See [`GEORGIA_STANDARDS_ALIGNMENT.md`](GEORGIA_STANDARDS_ALIGNMENT.md).
+Primary standard: Georgia GSE **S7L3.a**. See [Georgia standards alignment](GEORGIA_STANDARDS_ALIGNMENT.md).
 
-Target construct: tracing matter separately from energy through a simple ecosystem and explaining the conceptual role of cellular respiration.
+Target construct: an evidence-supported explanation that a gene is inherited information related to a specific trait, the gene is located on a chromosome, the offspring receives a relevant gene version on a chromosome from each parent, and the supplied evidence links the inherited pair with the observed trait.
 
-Explicitly excluded: glycolysis, Krebs cycle, electron-transport chain, ATP accounting, chemiosmosis, molecular details, and memorized equations.
+Out of scope: ecosystem matter/energy, Punnett-square procedures, inheritance probabilities, memorized cell-division stages, molecular gene expression, and complex human inheritance.
 
-## End-to-end student flow
+## 5. Current teacher usability flow
 
-1. Enter class code and pseudonymous participant code.
-2. Read the low-stakes disclosure and instructions.
-3. Answer the rabbit-and-grass initial phenomenon and select simple confidence.
-4. The server locks the initial response.
-5. Adaptive condition: constrained AI or deterministic fallback maps response evidence to the frozen taxonomy and selects one teacher-authored probe. Reflection condition: fixed general reflection prompt.
-6. Student revises the full explanation; prior response is available only during revision.
-7. The server locks the revision and hides it.
-8. Student answers the unseen terrarium near-transfer prompt unaided.
-9. Student completes clarity, pressure, and helpfulness items.
-10. Student sees a neutral completion screen.
+1. A teacher signs in with a pseudonymous study ID and begins a remote think-aloud session.
+2. The teacher reviews and may edit the demonstration prompt, target ideas, possible misconceptions, and prewritten follow-up questions.
+3. The teacher inspects at least five of 18 researcher-written explanations with frozen labels, routing reasons, confidence values, and selected questions.
+4. For each inspected example, the teacher records agree, needs revision, or unsure and may describe a correction.
+5. The teacher sees the top two patterns first, can inspect supporting response excerpts or open the full list, selects the most important pattern, explains what it means, and records a next instructional action and confidence rating.
+6. The teacher completes the ten-item System Usability Scale, two ExitLoop-specific ratings, and open feedback.
+7. The system stores task times and exports the teacher study data as CSV or JSON.
 
-Target duration: 12–15 minutes total, including no more than eight minutes for the condition-specific loop.
+The simulation is not student data and cannot be used as evidence of student learning.
 
-## AI boundary
+## 6. Future classroom flow
 
-AI is a constrained classifier and router, not a question generator or grader.
+### Before class
 
-Inputs:
+1. Teacher signs in and creates a 15-minute session for the expected participant count.
+2. Server creates a balanced random assignment and one pseudonymous code per participant.
+3. Teacher downloads the one-time code manifest, confirms the frozen content version, and opens the session.
 
-- one de-identified student explanation;
-- frozen idea definitions;
-- frozen alternative-conception definitions; and
-- allowed teacher-authored prompt IDs.
+### Student loop
 
-Outputs:
+1. Student enters class code and participant code.
+2. Student reads the non-graded, teacher-governed disclosure.
+3. Student answers the beetle bristle-shape evidence task in 2–4 sentences and selects confidence.
+4. The response is locked. Condition assignment determines the next prompt:
+   - Adaptive: constrained classifier identifies evidenced/missing relationships and possible alternative-conception language, then selects one approved prompt.
+   - Reflection: fixed general prompt asks the student to check evidence and parent-to-offspring reasoning.
+5. A short, unclear, or out-of-scope response receives a clarification question. If all four target relationships are present and no incompatible claim is identified, the student receives an evidence-check prompt that acknowledges task coverage without assigning a grade or mastery label.
+6. Student sees the original response, answers the prompt, and locks a revision.
+7. Original work is hidden. Student completes the plant seed-coat near-transfer explanation and confidence item.
+8. Student rates clarity, pressure, and helpfulness and may leave an optional comment.
+9. Completion screen shows no score or diagnostic label.
 
-- demonstrated idea IDs;
-- missing idea IDs;
-- possible alternative-conception IDs;
-- confidence and reason codes;
-- abstention flag; and
-- exactly one allowed prompt ID.
+### Teacher closeout
 
-Unknown IDs, invalid schemas, low confidence, timeouts, or disabled external AI route to a static teacher-authored fallback. Model prose is never shown to students.
+1. Teacher monitors completion only while students work.
+2. Teacher closes the session.
+3. Dashboard shows class-level idea and possible-alternative-conception counts for routing evidence, plus teacher-authored two-minute response suggestions.
+4. Teacher records one intended action and optional rationale.
+5. Researcher exports CSV/JSON for blinded human coding.
 
-## Teacher dashboard information architecture
+## 7. Content model
 
-### During the activity
+### Demonstrated relationships
 
-- number not started, working, and complete;
-- current workflow stages;
-- technical fallbacks and incidents; and
-- no outcome comparison or coaching by condition.
+- `gene_trait_information`: gene as inherited trait-related information, distinct from the visible trait.
+- `gene_on_chromosome`: gene versions located on and carried by chromosomes.
+- `both_parent_contributions`: one relevant chromosome/gene version from each parent.
+- `evidence_linked_explanation`: evidence facts connected through reasoning to the offspring trait.
 
-### After near-transfer is locked
+### Possible alternative conceptions
 
-Each misconception card shows:
+- `gene_is_the_trait`
+- `genes_lack_hereditary_information`
+- `genes_and_chromosomes_unrelated`
+- `one_parent_determines_trait`
+- `parents_contribute_different_traits`
+- `acquired_trait_is_inherited`
 
-- plain-language pattern title;
-- number of responses containing evidence;
-- concise definition;
-- AI uncertainty/abstention count;
-- optional de-identified examples for teacher review; and
-- a teacher-approved two-minute instructional response.
+These are response-pattern tags, not learner diagnoses. Absence of a relationship is recorded as missing evidence, not automatically as a misconception.
 
-Example:
+## 8. AI design constraints
 
-> **Food matter becomes energy or disappears — 6 responses**  
-> Students converted carbon matter into energy or did not account for it.  
-> **Two-minute response:** color-code carbon atoms and energy arrows separately; require one destination for each.
+The model is a router, not a tutor or grader.
 
-The dashboard must allow the teacher to record an action and rationale. Time from first locked-summary view to recorded action is a study outcome.
+- Input: redacted response text and a fixed instruction block.
+- Output: allowed idea IDs, possible pattern IDs, confidence, reason codes, abstention, and one allowed prompt ID.
+- No tools, free-form teaching text, score, praise, mastery decision, or persistent student profile.
+- Strict schema validation and a 0.55 confidence threshold.
+- `store: false` and a hashed attempt safety identifier.
+- Deterministic fallback whenever AI is disabled, unapproved, timed out, invalid, or below threshold.
+- Teacher-authored prompts and teacher-reviewed content pack are versioned and frozen before data collection.
 
-## Misconception content model
+## 9. Teacher summary requirements
 
-Every category must include:
+The dashboard must answer four questions in under two minutes:
 
-- research source;
-- observable inclusion rule;
-- exclusion rule;
-- positive, negative, and ambiguous examples;
-- prompt routing priority;
-- teacher-authored discriminating probe;
-- two-minute teacher action; and
-- human-scoring rule.
+1. Did the session run successfully and who is still working?
+2. Which S7L3.a relationships appeared in adaptive-group responses?
+3. Which possible patterns deserve teacher review, and what is a two-minute response option?
+4. What instructional action will the teacher take next?
 
-The initial taxonomy is documented in [`research/MISCONCEPTION_EVIDENCE_MAP.md`](../research/MISCONCEPTION_EVIDENCE_MAP.md).
+After outcomes are locked, it ranks the top one or two class patterns, shows a small set of supporting response excerpts, and offers a teacher-approved two-minute response. The teacher—not the system—chooses and records one action: proceed, clarify for the whole class, regroup for temporary small-group support, or review responses when the evidence is uncertain.
 
-## One-session comparison
+It must not display a student ranking, automated mastery score, condition-comparative outcomes before closure, or unsupported individual diagnosis.
 
-- Approximately 30 students, balanced into adaptive and reflection conditions.
-- Same initial prompt, revision opportunity, unseen near-transfer task, and survey.
-- Adaptive group receives one misconception-specific prompt.
-- Control group receives one time-matched generic reflection prompt.
-- Primary outcome: blinded human-scored near-transfer rubric total.
-- Secondary outcomes: misconception repair, revision type, AI–human agreement, completion, student experience, teacher review time, and recorded instructional action.
+## 10. Reliability and accessibility
 
-This is a feasibility and preliminary-effect pilot. It cannot establish retention or broad effectiveness.
+- Shared production state in Supabase; in-memory state only for local demo.
+- Thirty concurrent complete flows must pass before classroom use.
+- Draft autosave and same-code resume.
+- Server-side stage locking prevents duplicate research responses.
+- Visible offline notice and prepared non-digital fallback.
+- Keyboard-operable controls, labels, live status text, readable contrast, and plain seventh-grade language.
+- Server timestamps remain authoritative; client timestamps are supplemental.
 
-## MVP acceptance criteria
+## 11. Current research design embedded in product
 
-- Thirty simulated students complete without data loss or duplicate stages.
-- Even class sizes receive an exactly balanced assignment.
-- No condition-specific information is available before near-transfer is locked.
-- Every displayed adaptive prompt exists in the frozen teacher-approved bank.
-- Invalid or uncertain AI output uses a safe fallback.
-- Teacher sees misconception counts plus actionable two-minute responses.
-- Teacher action and timing data are exportable.
-- Prompts and rubric pass teacher, biology, standards, reading-level, and research review.
-- Application remains fully functional with external AI disabled.
+Two to five high school biology teachers complete a 45–60 minute remote think-aloud usability session. Data include content edits, judgments on frozen classification examples, class-summary interpretation, a planned instructional action, confidence, four task times, ten System Usability Scale items, two ExitLoop-specific ratings, and open feedback. Short interviews provide qualitative explanation of what was useful, confusing, or missing.
 
-## Deferred work
+With this small sample, analysis is descriptive and formative. The study can support design decisions and preliminary claims about usability, interpretability, teacher control, and decision support. It cannot demonstrate student learning or classroom effectiveness.
 
-- Engineering/application extension
-- Additional biology units
-- Teacher authoring marketplace
-- Student longitudinal dashboard
-- Grades, mastery labels, or LMS synchronization
-- District-scale identity and analytics
-- Automated scientific feedback written by a model
+## 12. Future classroom research
+
+One classroom session uses a randomized parallel-group design, approximately 15 adaptive and 15 reflection participants. Both groups receive identical initial and near-transfer tasks, timing, confidence items, and survey. The manipulation is only the middle prompt. Near-transfer responses are scored by blinded human raters using the frozen 0–8 rubric.
+
+Primary exploratory outcome: blinded targeted repair—whether the pre-specified missing or incompatible relationship in the initial explanation is corrected in the revision without a new incompatible claim.
+
+Secondary outcomes: near-transfer total score, initial-to-revision score change, classifier–human agreement, clarification rate, completion and timing, student clarity/pressure/helpfulness, teacher review time, recorded instructional action, response-tag audit, and four teacher utility ratings.
+
+Because the sample is one class, report targeted-repair proportions, exact denominators, a risk difference with a 95% Newcombe-Wilson confidence interval, a risk ratio when estimable, and an exploratory two-sided Fisher exact test. Near-transfer and score changes remain secondary. Do not present a non-significant result as proof of no effect or a significant result as durable learning.
+
+## 13. MVP acceptance criteria
+
+- One coherent demonstration content pack that teachers can review and edit.
+- Eighteen varied, researcher-written sample responses with frozen and inspectable routing output.
+- Classifier output is shown with the source response, routing reason, selected prewritten question, and confidence.
+- The class summary ranks common patterns and supports a written next-action decision.
+- Teacher task times, classification judgments, standardized usability ratings, ExitLoop-specific ratings, and open feedback are saved and exportable.
+- Lint, typecheck, unit tests, and production build pass.
+- The approved teacher-study consent, think-aloud, and interview procedure is followed before data collection.
+
+## 14. Deferred work
+
+- Longitudinal student progress dashboard
+- Multiple genetics topics or standards
+- Classroom data collection with students
+- Student-facing explanations or generative tutoring
+- Engineering/application extensions
+- Cross-classroom efficacy study
+
+These features can follow only after the misconception-detection loop is valid, usable, and demonstrably time-saving.

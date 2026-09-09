@@ -23,6 +23,8 @@ import type {
   StudySession,
   StudentSurvey,
   TeacherInstructionalAction,
+  TeacherUsabilityEvent,
+  TeacherUsabilitySubmission,
 } from "@/lib/domain/types";
 import type { CreateSessionInput, ResearchStore } from "@/lib/store/types";
 
@@ -463,6 +465,69 @@ export class SupabaseResearchStore implements ResearchStore {
     if (error) throw new Error(error.message);
   }
 
+  async saveTeacherUsabilityEvent(event: TeacherUsabilityEvent) {
+    const { error } = await this.client.from("teacher_usability_events").upsert({
+      id: event.id,
+      run_id: event.runId,
+      participant_tag: event.participantTag,
+      task_id: event.taskId,
+      event_type: event.eventType,
+      duration_ms: event.durationMs,
+      payload: event.payload,
+      created_at: event.createdAt,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  async saveTeacherUsabilitySubmission(submission: TeacherUsabilitySubmission) {
+    const { error } = await this.client.from("teacher_usability_submissions").upsert(
+      {
+        id: submission.id,
+        run_id: submission.runId,
+        participant_tag: submission.participantTag,
+        content_version_id: submission.contentVersionId,
+        started_at: submission.startedAt,
+        completed_at: submission.completedAt,
+        authoring_draft: submission.authoringDraft,
+        reviews: submission.reviews,
+        class_summary: submission.classSummary,
+        sus_responses: submission.susResponses,
+        sus_score: submission.susScore,
+        summary_usefulness: submission.summaryUsefulness,
+        prompt_control: submission.promptControl,
+        open_feedback: submission.openFeedback,
+        task_metrics: submission.taskMetrics,
+      },
+      { onConflict: "run_id" },
+    );
+    if (error) throw new Error(error.message);
+  }
+
+  async listTeacherUsabilitySubmissions(): Promise<TeacherUsabilitySubmission[]> {
+    const { data, error } = await this.client
+      .from("teacher_usability_submissions")
+      .select("*")
+      .order("completed_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => ({
+      id: row.id,
+      runId: row.run_id,
+      participantTag: row.participant_tag,
+      contentVersionId: row.content_version_id,
+      startedAt: row.started_at,
+      completedAt: row.completed_at,
+      authoringDraft: row.authoring_draft,
+      reviews: row.reviews,
+      classSummary: row.class_summary,
+      susResponses: row.sus_responses,
+      susScore: row.sus_score,
+      summaryUsefulness: row.summary_usefulness,
+      promptControl: row.prompt_control,
+      openFeedback: row.open_feedback,
+      taskMetrics: row.task_metrics,
+    })) as TeacherUsabilitySubmission[];
+  }
+
   async listSessions() {
     const { data, error } = await this.client
       .from("sessions")
@@ -573,13 +638,48 @@ export class SupabaseResearchStore implements ResearchStore {
       decisions = ((decisionQuery.data ?? []) as DecisionRow[]).map(mapDecision);
     }
     const ideaCounts: Record<string, number> = {};
+    const missingIdeaCounts: Record<string, number> = {};
     const misconceptionCounts: Record<string, number> = {};
+    const patternExamples: DashboardSnapshot["patternExamples"] = {};
     decisions.forEach((decision) => {
       decision.demonstratedIdeaIds.forEach((id) => (ideaCounts[id] = (ideaCounts[id] ?? 0) + 1));
+      decision.missingIdeaIds.forEach(
+        (id) => (missingIdeaCounts[id] = (missingIdeaCounts[id] ?? 0) + 1),
+      );
       decision.possibleAlternativeConceptionIds.forEach(
         (id) => (misconceptionCounts[id] = (misconceptionCounts[id] ?? 0) + 1),
       );
     });
+    if (session.status === "closed" && attempts.length) {
+      const responseQuery = await this.client
+        .from("response_stages")
+        .select("*")
+        .in(
+          "attempt_id",
+          attempts.map((attempt) => attempt.id),
+        )
+        .eq("stage", "initial");
+      if (responseQuery.error) throw new Error(responseQuery.error.message);
+      const responses = ((responseQuery.data ?? []) as ResponseRow[]).map(mapResponse);
+      for (const decision of decisions) {
+        const attempt = attempts.find((item) => item.id === decision.attemptId);
+        const response = responses.find((item) => item.attemptId === decision.attemptId);
+        if (!attempt || !response) continue;
+        for (const id of [
+          ...decision.missingIdeaIds,
+          ...decision.possibleAlternativeConceptionIds,
+        ]) {
+          patternExamples[id] ??= [];
+          if (patternExamples[id].length < 3) {
+            patternExamples[id].push({
+              participantTag: attempt.participantTag,
+              responseText: response.responseText,
+              displayedPromptId: decision.displayedPromptId,
+            });
+          }
+        }
+      }
+    }
     return {
       session,
       participantCount: participants.length,
@@ -590,7 +690,9 @@ export class SupabaseResearchStore implements ResearchStore {
       },
       fallbackCount: decisions.filter((item) => item.fallbackReason).length,
       ideaCounts,
+      missingIdeaCounts,
       misconceptionCounts,
+      patternExamples,
       recentEvents: ((eventQuery.data ?? []) as EventRow[]).map(mapEvent),
       teacherAction: teacherActionQuery.data
         ? mapTeacherAction(teacherActionQuery.data as TeacherActionRow)

@@ -53,7 +53,7 @@ export function StudentJoinForm() {
           autoCapitalize="characters"
           value={participantCode}
           onChange={(event) => setParticipantCode(event.target.value.toUpperCase())}
-          placeholder="Example: BIO-001"
+          placeholder="Example: GEN-001"
           required
         />
         <p className="field-note">Use the code card your teacher gave you. Do not enter your name.</p>
@@ -64,10 +64,9 @@ export function StudentJoinForm() {
       </button>
       {process.env.NODE_ENV !== "production" ? (
         <p className="demo-hint">
-          Demo: class <code>BIO7</code>, participant <code>BIO-001</code> through <code>BIO-030</code>
+          Demo: class <code>GEN7</code>, participant <code>GEN-001</code> through <code>GEN-030</code>
         </p>
       ) : null}
     </form>
   );
 }
-

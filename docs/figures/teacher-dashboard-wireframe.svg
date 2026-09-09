@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="13" flood-color="#102A43" flood-opacity="0.12"/></filter>
+    <style>
+      .title { font: 700 44px Arial, sans-serif; fill: #102A43; }
+      .sub { font: 400 23px Arial, sans-serif; fill: #52677A; }
+      .nav { font: 700 18px Arial, sans-serif; fill: #FFFFFF; }
+      .head { font: 700 25px Arial, sans-serif; fill: #102A43; }
+      .body { font: 400 18px Arial, sans-serif; fill: #42586A; }
+      .small { font: 400 16px Arial, sans-serif; fill: #52677A; }
+      .metric { font: 700 40px Arial, sans-serif; fill: #102A43; }
+      .eyebrow { font: 700 15px Arial, sans-serif; letter-spacing: 1.2px; fill: #2F6B9A; }
+      .count { font: 700 25px Arial, sans-serif; fill: #FFFFFF; }
+      .button { font: 700 17px Arial, sans-serif; fill: #FFFFFF; }
+      .note { font: 700 17px Arial, sans-serif; fill: #8A6800; }
+    </style>
+  </defs>
+  <rect width="1800" height="1100" fill="#F7F9FC"/>
+  <text x="80" y="75" class="title">Teacher dashboard interaction</text>
+  <text x="80" y="115" class="sub">One screen turns class evidence into a reviewable two-minute instructional decision</text>
+  <text x="1390" y="112" class="small">Illustrative values—not study results</text>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="155" width="1660" height="860" rx="28" fill="#FFFFFF" stroke="#D7E2EB" stroke-width="3"/>
+    <rect x="70" y="155" width="1660" height="78" rx="28" fill="#102A43"/>
+    <rect x="70" y="205" width="1660" height="28" fill="#102A43"/>
+    <text x="110" y="204" class="nav">ExitLoop</text>
+    <text x="1385" y="204" class="nav">Session: ACTIVE</text>
+
+    <text x="110" y="282" class="eyebrow">S7L3.A TRAIT-INHERITANCE PILOT</text>
+    <text x="110" y="320" class="head">Class code GEN7</text>
+    <rect x="1450" y="270" width="230" height="50" rx="12" fill="#2F6B9A"/>
+    <text x="1512" y="302" class="button">Export data</text>
+
+    <g>
+      <rect x="110" y="355" width="330" height="125" rx="18" fill="#EEF5FA"/>
+      <text x="135" y="392" class="eyebrow">COMPLETED</text>
+      <text x="135" y="442" class="metric">24 / 30</text>
+      <text x="285" y="440" class="small">80% of class</text>
+      <rect x="470" y="355" width="330" height="125" rx="18" fill="#F4F7FA"/>
+      <text x="495" y="392" class="eyebrow">WORKING NOW</text>
+      <text x="495" y="442" class="metric">6</text>
+      <text x="545" y="440" class="small">across four stages</text>
+      <rect x="830" y="355" width="330" height="125" rx="18" fill="#F4F7FA"/>
+      <text x="855" y="392" class="eyebrow">SAFE FALLBACKS</text>
+      <text x="855" y="442" class="metric">2</text>
+      <text x="905" y="440" class="small">prewritten prompt</text>
+      <rect x="1190" y="355" width="490" height="125" rx="18" fill="#E7F5F3"/>
+      <text x="1215" y="392" class="eyebrow">RESEARCH BOUNDARY</text>
+      <text x="1215" y="430" class="body">Near-transfer scores stay hidden.</text>
+      <text x="1215" y="458" class="small">Human raters score exported responses.</text>
+    </g>
+
+    <rect x="110" y="520" width="1000" height="405" rx="20" fill="#FFFFFF" stroke="#D7E2EB" stroke-width="3"/>
+    <text x="140" y="560" class="eyebrow">POSSIBLE ALTERNATIVE CONCEPTIONS</text>
+    <text x="140" y="598" class="head">What may need a two-minute clarification</text>
+
+    <rect x="140" y="630" width="940" height="120" rx="16" fill="#FFF6D9"/>
+    <circle cx="1040" cy="672" r="27" fill="#C99700"/>
+    <text x="1033" y="681" class="count">6</text>
+    <text x="170" y="669" class="head">Genes and chromosomes treated as unrelated</text>
+    <text x="170" y="701" class="body">Responses separated the gene from the structure carrying it.</text>
+    <text x="170" y="730" class="note">2-min response: mark one gene location and trace one chromosome from each parent.</text>
+
+    <rect x="140" y="770" width="940" height="120" rx="16" fill="#F4F7FA"/>
+    <circle cx="1040" cy="812" r="27" fill="#2F6B9A"/>
+    <text x="1033" y="821" class="count">4</text>
+    <text x="170" y="809" class="head">Only one parent determines the trait</text>
+    <text x="170" y="841" class="body">Responses traced the relevant gene information from one parent.</text>
+    <text x="170" y="870" class="small">2-min response: color-code and label the offspring's two inherited chromosomes.</text>
+
+    <rect x="1140" y="520" width="540" height="405" rx="20" fill="#F4F7FA" stroke="#D7E2EB" stroke-width="3"/>
+    <text x="1175" y="560" class="eyebrow">TEACHER DECISION</text>
+    <text x="1175" y="598" class="head">What will you do next?</text>
+    <rect x="1175" y="630" width="470" height="50" rx="12" fill="#FFFFFF" stroke="#AFC0CF" stroke-width="2"/>
+    <circle cx="1205" cy="655" r="10" fill="#FFFFFF" stroke="#2F6B9A" stroke-width="3"/>
+    <text x="1230" y="662" class="body">Proceed to the next lesson</text>
+    <rect x="1175" y="695" width="470" height="50" rx="12" fill="#EEF5FA" stroke="#2F6B9A" stroke-width="3"/>
+    <circle cx="1205" cy="720" r="10" fill="#2F6B9A"/>
+    <text x="1230" y="727" class="body">Whole-class clarification</text>
+    <rect x="1175" y="760" width="470" height="50" rx="12" fill="#FFFFFF" stroke="#AFC0CF" stroke-width="2"/>
+    <circle cx="1205" cy="785" r="10" fill="#FFFFFF" stroke="#2F6B9A" stroke-width="3"/>
+    <text x="1230" y="792" class="body">Temporary small group</text>
+    <rect x="1175" y="840" width="220" height="55" rx="12" fill="#2B7A78"/>
+    <text x="1220" y="875" class="button">Record action</text>
+
+    <rect x="110" y="950" width="1570" height="38" rx="10" fill="#E7F5F3"/>
+    <text x="135" y="976" class="small">Dashboard goal: show a few interpretable patterns and one prewritten action for teacher review—not a raw AI data dump.</text>
+  </g>
+</svg>
