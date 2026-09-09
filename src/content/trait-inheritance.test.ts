@@ -60,7 +60,8 @@ describe("trait-inheritance frozen question bank", () => {
 
   it("uses a non-grading completion check for fully evidenced responses", () => {
     const prompt = getFollowUpPrompt("inheritance_complete_check_01");
-    expect(prompt?.text).toContain("includes the four relationships");
+    expect(prompt?.text).toContain("already includes the key scientific ideas");
+    expect(prompt?.text).toContain("continue to the next example");
     expect(prompt?.text.toLowerCase()).not.toMatch(/grade|mastered|score/);
   });
 });

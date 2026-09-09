@@ -144,9 +144,9 @@ export const traitInheritancePack: ContentPack = {
     },
     {
       id: "inheritance_complete_check_01",
-      title: "All target relationships are present",
+      title: "Review your explanation",
       text:
-        "Your explanation includes the four relationships required for this activity. Identify the two evidence-card facts that most strongly support it, then revise only if you can make the reasoning clearer.",
+        "Your explanation already includes the key scientific ideas for this activity. Reread it and make any change that would connect your evidence and conclusion more clearly. If you would not change anything, continue to the next example.",
       targets: [
         "gene_trait_information",
         "gene_on_chromosome",
