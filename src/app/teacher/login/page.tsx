@@ -6,7 +6,14 @@ import { TeacherLoginForm } from "@/components/TeacherLoginForm";
 
 export const metadata: Metadata = { title: "Teacher sign-in" };
 
-export default function TeacherLoginPage() {
+export default async function TeacherLoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string | string[] }>;
+}) {
+  const requestedNext = (await searchParams).next;
+  const redirectTo = requestedNext === "/teacher/usability" ? requestedNext : "/teacher";
+
   return (
     <div className="auth-page teacher-auth">
       <AppHeader compact />
@@ -24,10 +31,9 @@ export default function TeacherLoginPage() {
         </section>
         <section className="auth-card">
           <div><span className="eyebrow">Restricted access</span><h2>Teacher sign-in</h2><p>Use the server-managed password for this pilot.</p></div>
-          <TeacherLoginForm />
+          <TeacherLoginForm redirectTo={redirectTo} />
         </section>
       </main>
     </div>
   );
 }
-

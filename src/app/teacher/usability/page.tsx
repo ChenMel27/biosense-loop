@@ -13,7 +13,9 @@ export const metadata: Metadata = { title: "Teacher usability study" };
 export const dynamic = "force-dynamic";
 
 export default async function TeacherUsabilityPage() {
-  if (!(await getTeacherIdentity())) redirect("/teacher/login");
+  if (!(await getTeacherIdentity())) {
+    redirect("/teacher/login?next=%2Fteacher%2Fusability");
+  }
   const summary = buildSimulatedSummary(simulatedClass);
 
   return (

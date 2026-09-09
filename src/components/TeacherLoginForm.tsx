@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function TeacherLoginForm() {
+export function TeacherLoginForm({ redirectTo = "/teacher" }: { redirectTo?: string }) {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ export function TeacherLoginForm() {
       });
       const result = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(result.error || "Unable to sign in.");
-      router.push("/teacher");
+      router.push(redirectTo);
       router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Unable to sign in.");
@@ -53,4 +53,3 @@ export function TeacherLoginForm() {
     </form>
   );
 }
-
