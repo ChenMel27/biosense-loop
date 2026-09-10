@@ -279,6 +279,12 @@ code { padding: 2px 5px; border-radius: 5px; background: #eaf1ee; color: var(--t
 .usability-progress li.done { color: var(--teal); }
 .usability-progress li.done > span { border-color: transparent; background: var(--mint); }
 .usability-task { min-width: 0; padding: clamp(25px, 4vw, 44px); }
+.lesson-upload-preview { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px 28px; align-items: center; padding: 22px; border: 1px dashed #94bdb0; border-radius: 14px; background: #f4faf7; }
+.lesson-upload-copy { display: grid; gap: 8px; }
+.lesson-upload-copy h2 { font-family: Georgia, serif; font-size: 1.55rem; font-weight: 500; }
+.lesson-upload-copy p { max-width: 720px; color: var(--ink-soft); font-size: .84rem; line-height: 1.65; }
+.coming-soon-badge { width: fit-content; padding: 4px 8px; border-radius: 999px; background: var(--ink); color: white; font-size: .63rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.coming-soon-button:disabled { cursor: not-allowed; opacity: .72; }
 .authoring-section { padding-top: 24px; border-top: 1px solid var(--line); }
 .authoring-section h2 { margin-bottom: 5px; font-family: Georgia, serif; font-size: 1.65rem; font-weight: 500; }
 .authoring-section > div:first-child p { color: var(--ink-soft); font-size: .82rem; }
@@ -374,6 +380,8 @@ code { padding: 2px 5px; border-radius: 5px; background: #eaf1ee; color: var(--t
   .condition-balance { padding: 18px 0 0; border-left: 0; border-top: 1px solid #405c59; text-align: left; }
   .demo-banner { align-items: flex-start; flex-direction: column; }
   .study-scope-grid, .classification-grid { grid-template-columns: 1fr; }
+  .lesson-upload-preview { grid-template-columns: 1fr; align-items: start; }
+  .lesson-upload-preview .button { width: 100%; }
   .usability-progress { overflow-x: auto; grid-template-columns: repeat(4, minmax(110px, 1fr)); }
   .sample-heading { align-items: flex-start; flex-direction: column; }
 }

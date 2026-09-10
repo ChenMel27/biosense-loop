@@ -66,6 +66,33 @@ export interface ClassifyOptions {
   responseText: string;
 }
 
+interface AiRoutingEnvironment {
+  AI_ROUTING_ENABLED?: string;
+  AI_DEMO_ROUTING_ENABLED?: string;
+  MINOR_DATA_SAFEGUARDS_CONFIRMED?: string;
+  OPENAI_API_KEY?: string;
+}
+
+export function isLiveAiRoutingEnabled(
+  env: AiRoutingEnvironment = process.env as AiRoutingEnvironment,
+) {
+  const approvedRoutingContext =
+    env.AI_DEMO_ROUTING_ENABLED === "true" ||
+    env.MINOR_DATA_SAFEGUARDS_CONFIRMED === "true";
+  return (
+    env.AI_ROUTING_ENABLED === "true" &&
+    Boolean(env.OPENAI_API_KEY) &&
+    approvedRoutingContext
+  );
+}
+
+function safeFallbackReason(error: unknown) {
+  if (error instanceof OpenAI.APIError) {
+    return error.code ? `openai_${error.code}` : `openai_http_${error.status}`;
+  }
+  return error instanceof Error ? error.name : "classifier_error";
+}
+
 export async function classifyForRouting(options: ClassifyOptions): Promise<AiDecision> {
   const startedAt = Date.now();
 
@@ -90,12 +117,7 @@ export async function classifyForRouting(options: ClassifyOptions): Promise<AiDe
     };
   }
 
-  const allowOpenAi =
-    process.env.AI_ROUTING_ENABLED === "true" &&
-    Boolean(process.env.OPENAI_API_KEY) &&
-    process.env.MINOR_DATA_SAFEGUARDS_CONFIRMED === "true";
-
-  if (!allowOpenAi) {
+  if (!isLiveAiRoutingEnabled()) {
     const result = deterministicClassify(options.responseText);
     return {
       id: crypto.randomUUID(),
@@ -106,7 +128,7 @@ export async function classifyForRouting(options: ClassifyOptions): Promise<AiDe
       ...result,
       displayedPromptId: result.recommendedPromptId,
       latencyMs: Date.now() - startedAt,
-      fallbackReason: "openai_disabled_or_safeguards_unconfirmed",
+      fallbackReason: "openai_disabled_or_routing_context_unapproved",
       createdAt: new Date().toISOString(),
     };
   }
@@ -155,7 +177,7 @@ export async function classifyForRouting(options: ClassifyOptions): Promise<AiDe
       ...result,
       displayedPromptId: result.recommendedPromptId,
       latencyMs: Date.now() - startedAt,
-      fallbackReason: error instanceof Error ? error.name : "classifier_error",
+      fallbackReason: safeFallbackReason(error),
       createdAt: new Date().toISOString(),
     };
   }

@@ -70,13 +70,12 @@ Development demo credentials:
 
 Set the variables described in `.env.example`, including Supabase credentials, a strong teacher password, signing secrets, and a participant-code pepper. Apply `supabase/migrations/001_initial.sql` and `supabase/migrations/002_teacher_usability.sql` before enabling the Supabase store.
 
-AI routing must remain off until all three conditions are true:
+Live AI routing requires `AI_ROUTING_ENABLED=true`, an OpenAI API key, and one approved use context:
 
-1. the teacher and research advisor approve the frozen content pack;
-2. school/research requirements for work with minors are confirmed; and
-3. `MINOR_DATA_SAFEGUARDS_CONFIRMED=true` and `AI_ROUTING_ENABLED=true` are set deliberately.
+1. For researcher or adult demonstrations using synthetic or researcher-entered responses, set `AI_DEMO_ROUTING_ENABLED=true`.
+2. For an approved study involving minors, set `MINOR_DATA_SAFEGUARDS_CONFIRMED=true` only after the required research, school, and data safeguards are confirmed.
 
-The system sends only redacted student response text to the model, uses `store: false`, and uses an attempt-derived safety identifier. If those safeguards are not confirmed, the deterministic teacher-authored fallback remains available.
+The system sends only redacted response text to the model, uses `store: false`, and uses an attempt-derived safety identifier. If neither use context is approved, the deterministic teacher-authored fallback remains available.
 
 ## Verification
 

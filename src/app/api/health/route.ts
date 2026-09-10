@@ -1,3 +1,4 @@
+import { isLiveAiRoutingEnabled } from "@/lib/ai/classifier";
 import { isDemoMode, isPersistentStorageConfigured } from "@/lib/store";
 
 export async function GET() {
@@ -13,7 +14,7 @@ export async function GET() {
         : isDemoMode()
           ? "memory-demo"
           : "unconfigured",
-      aiRouting: process.env.AI_ROUTING_ENABLED === "true" ? "configured" : "fallback",
+      aiRouting: isLiveAiRoutingEnabled() ? "live" : "fallback",
       contentPack: process.env.CONTENT_PACK_APPROVED === "true" ? "approved" : "draft",
       timestamp: new Date().toISOString(),
     },
