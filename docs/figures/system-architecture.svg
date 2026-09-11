@@ -50,7 +50,7 @@
     <text x="145" y="630" class="small">teacher guard, rate limits</text>
     <rect x="365" y="535" width="215" height="105" rx="16" fill="#FFFFFF" opacity="0.96"/>
     <text x="390" y="573" class="head">Workflow engine</text>
-    <text x="390" y="607" class="small">Balanced assignment, stage</text>
+    <text x="390" y="607" class="small">Shared AI routing, stage</text>
     <text x="390" y="630" class="small">locks, resume, timing</text>
     <rect x="615" y="535" width="210" height="105" rx="16" fill="#FFFFFF" opacity="0.96"/>
     <text x="640" y="573" class="head">Teacher tools</text>

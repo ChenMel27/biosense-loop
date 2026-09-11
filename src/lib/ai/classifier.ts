@@ -9,7 +9,7 @@ import {
   CLASSIFIER_SCHEMA_VERSION,
   classificationSchema,
 } from "@/lib/ai/schema";
-import type { AiDecision, ClassificationResult, Condition } from "@/lib/domain/types";
+import type { AiDecision, ClassificationResult } from "@/lib/domain/types";
 
 const CONFIDENCE_THRESHOLD = 0.55;
 
@@ -62,7 +62,6 @@ function buildInstructions() {
 
 export interface ClassifyOptions {
   attemptId: string;
-  condition: Condition;
   responseText: string;
 }
 
@@ -95,27 +94,6 @@ function safeFallbackReason(error: unknown) {
 
 export async function classifyForRouting(options: ClassifyOptions): Promise<AiDecision> {
   const startedAt = Date.now();
-
-  if (options.condition === "reflection") {
-    return {
-      id: crypto.randomUUID(),
-      attemptId: options.attemptId,
-      provider: "control",
-      model: "fixed-prompt",
-      schemaVersion: CLASSIFIER_SCHEMA_VERSION,
-      demonstratedIdeaIds: [],
-      missingIdeaIds: [],
-      possibleAlternativeConceptionIds: [],
-      classificationConfidence: 1,
-      recommendedPromptId: traitInheritancePack.fixedReflectionPrompt.id,
-      displayedPromptId: traitInheritancePack.fixedReflectionPrompt.id,
-      abstain: false,
-      reasonCodes: ["fixed_control_prompt"],
-      latencyMs: Date.now() - startedAt,
-      fallbackReason: null,
-      createdAt: new Date().toISOString(),
-    };
-  }
 
   if (!isLiveAiRoutingEnabled()) {
     const result = deterministicClassify(options.responseText);

@@ -33,7 +33,7 @@ export default async function TeacherPage() {
             <a className="button secondary" href="/api/teacher/usability/export?format=csv">Export teacher data</a>
           </div>
         </section>
-        <div className="section-heading"><div><span className="eyebrow">Future work</span><h2>Classroom prototype</h2></div><p className="small-note">The student-facing comparison study is retained for a later approval cycle and is not the current evidence-collection plan.</p></div>
+        <div className="section-heading"><div><span className="eyebrow">Future work</span><h2>Classroom prototype</h2></div><p className="small-note">The student-facing classroom study is retained for a later approval cycle and is not the current evidence-collection plan.</p></div>
         <section className="session-list">
           {sessions.map((session) => (
             <Link key={session.id} href={`/teacher/session/${session.id}`} className="session-row">

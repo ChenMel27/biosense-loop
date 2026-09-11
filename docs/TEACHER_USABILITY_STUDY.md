@@ -6,7 +6,7 @@ This cycle evaluates the teacher-facing design tools, not student learning. Two 
 
 No students participate in this study. The class shown in ExitLoop contains 18 researcher-written examples. These examples are system-demonstration data only. They cannot be reported as evidence that students learned or that the intervention was effective.
 
-The earlier randomized classroom comparison remains planned future work. It would require separate IRB, district, school, consent, and assent approvals before any student data are collected.
+A student-facing classroom study remains planned future work. Every student would receive a response-specific follow-up question. The study would require separate IRB, district, school, consent, and assent approvals before any student data are collected.
 
 ## Study tasks
 
@@ -74,7 +74,7 @@ Analyze think-aloud, correction, and interview responses for recurring usability
 
 ## Exact current AI classification step
 
-The live student prototype calls `classifyForRouting` after an adaptive-condition student submits an initial explanation. When external AI is enabled and the required safeguards are confirmed, the language model receives redacted response text and a fixed instruction block. Its structured output can contain only approved target-idea IDs, approved possible-misconception IDs, a confidence value, approved reason codes, an abstention flag, and one prompt ID from the prewritten bank.
+The live student prototype calls `classifyForRouting` after every student submits an initial explanation. When external AI is enabled and the required safeguards are confirmed, the language model receives redacted response text and a fixed instruction block. Its structured output can contain only approved target-idea IDs, approved possible-misconception IDs, a confidence value, approved reason codes, an abstention flag, and one prompt ID from the prewritten bank.
 
 The server validates this structured output. If confidence is below 0.55 or the model abstains, ExitLoop selects the clarification prompt. Otherwise, code uses the returned ID to look up the prewritten question. The model does not write the student-facing question, assign a score, determine mastery, or create a new misconception label. If external routing is disabled, unavailable, invalid, or below the accepted boundary, deterministic code selects an approved prompt.
 

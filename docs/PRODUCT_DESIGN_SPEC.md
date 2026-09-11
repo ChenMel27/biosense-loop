@@ -4,13 +4,13 @@
 
 ExitLoop is designed as a K–12 formative-assessment platform. The current MVP evaluates the teacher-facing design tools with two to five high school biology teachers and a simulated class. It uses trait inheritance as demonstration content, but the product direction can expand to other documented biology concepts after the diagnostic workflow is usable. The MVP uses a fixed, research-grounded question bank. It does not allow the classifier to write student-facing questions, grade work, or determine mastery.
 
-The earlier S7L3.a randomized student comparison remains a future classroom phase. It is not the current study and cannot begin without the required IRB and district approvals.
+The S7L3.a student workflow remains a future classroom phase. It is not the current study and cannot begin without the required IRB and district approvals. Every student in that workflow receives a response-specific follow-up question.
 
 ## 2. Problem and rationale
 
 Teachers have limited time to cover required content while supporting students who may hold partial or incompatible ideas. A conventional exit ticket usually captures one answer after instruction; it can show that an explanation is incomplete without revealing which relationship needs attention or giving the student time to reconsider it. Thirty open responses can also take longer to interpret than the teacher has available.
 
-Genetics-education research shows that students often struggle to coordinate the structural and functional relationships among genes, chromosomes, inherited information, parental contribution, and traits. ExitLoop adds one rapid feedback cycle: the student explains, receives a targeted teacher-reviewed probe or a time-matched reflection, revises, and applies the reasoning to a new case. This is low-stakes formative assessment: no score or mastery label is shown, and the teacher retains instructional authority.
+Genetics-education research shows that students often struggle to coordinate the structural and functional relationships among genes, chromosomes, inherited information, parental contribution, and traits. ExitLoop adds one rapid feedback cycle: the student explains, receives a targeted teacher-reviewed probe, revises, and applies the reasoning to a new case. This is low-stakes formative assessment: no score or mastery label is shown, and the teacher retains instructional authority.
 
 ## 3. Users and jobs to be done
 
@@ -61,7 +61,7 @@ The simulation is not student data and cannot be used as evidence of student lea
 ### Before class
 
 1. Teacher signs in and creates a 15-minute session for the expected participant count.
-2. Server creates a balanced random assignment and one pseudonymous code per participant.
+2. Server creates one pseudonymous code per participant. Every code uses response-specific routing.
 3. Teacher downloads the one-time code manifest, confirms the frozen content version, and opens the session.
 
 ### Student loop
@@ -69,9 +69,7 @@ The simulation is not student data and cannot be used as evidence of student lea
 1. Student enters class code and participant code.
 2. Student reads the non-graded, teacher-governed disclosure.
 3. Student answers the beetle bristle-shape evidence task in 2–4 sentences and selects confidence.
-4. The response is locked. Condition assignment determines the next prompt:
-   - Adaptive: constrained classifier identifies evidenced/missing relationships and possible alternative-conception language, then selects one approved prompt.
-   - Reflection: fixed general prompt asks the student to check evidence and parent-to-offspring reasoning.
+4. The response is locked. The constrained classifier identifies evidenced or missing relationships and possible alternative-conception language, then selects one approved prompt.
 5. A short, unclear, or out-of-scope response receives a clarification question. If all four target relationships are present and no incompatible claim is identified, the student receives an evidence-check prompt that acknowledges task coverage without assigning a grade or mastery label.
 6. Student sees the original response, answers the prompt, and locks a revision.
 7. Original work is hidden. Student completes the plant seed-coat near-transfer explanation and confidence item.
@@ -129,7 +127,7 @@ The dashboard must answer four questions in under two minutes:
 
 After outcomes are locked, it ranks the top one or two class patterns, shows a small set of supporting response excerpts, and offers a teacher-approved two-minute response. The teacher—not the system—chooses and records one action: proceed, clarify for the whole class, regroup for temporary small-group support, or review responses when the evidence is uncertain.
 
-It must not display a student ranking, automated mastery score, condition-comparative outcomes before closure, or unsupported individual diagnosis.
+It must not display a student ranking, automated mastery score, human-scored outcomes before closure, or unsupported individual diagnosis.
 
 ## 10. Reliability and accessibility
 
@@ -149,13 +147,13 @@ With this small sample, analysis is descriptive and formative. The study can sup
 
 ## 12. Future classroom research
 
-One classroom session uses a randomized parallel-group design, approximately 15 adaptive and 15 reflection participants. Both groups receive identical initial and near-transfer tasks, timing, confidence items, and survey. The manipulation is only the middle prompt. Near-transfer responses are scored by blinded human raters using the frozen 0–8 rubric.
+One classroom session pilots the same response-specific loop with approximately 30 students. Every student receives a teacher-approved follow-up question selected for the ideas in the initial explanation. Near-transfer responses are scored by blinded human raters using the frozen 0–8 rubric.
 
 Primary exploratory outcome: blinded targeted repair—whether the pre-specified missing or incompatible relationship in the initial explanation is corrected in the revision without a new incompatible claim.
 
 Secondary outcomes: near-transfer total score, initial-to-revision score change, classifier–human agreement, clarification rate, completion and timing, student clarity/pressure/helpfulness, teacher review time, recorded instructional action, response-tag audit, and four teacher utility ratings.
 
-Because the sample is one class, report targeted-repair proportions, exact denominators, a risk difference with a 95% Newcombe-Wilson confidence interval, a risk ratio when estimable, and an exploratory two-sided Fisher exact test. Near-transfer and score changes remain secondary. Do not present a non-significant result as proof of no effect or a significant result as durable learning.
+Because this is one class with no comparison group, report targeted-repair proportions with exact numerators, denominators, and a Wilson confidence interval. Near-transfer and score changes remain secondary and descriptive. The study can examine feasibility, routing validity, and immediate revision, but it cannot establish that the adaptive question caused improvement.
 
 ## 13. MVP acceptance criteria
 

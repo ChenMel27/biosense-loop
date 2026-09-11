@@ -54,7 +54,6 @@ export async function POST(request: Request) {
     );
     const decision = await classifyForRouting({
       attemptId: bundle.attempt.id,
-      condition: bundle.attempt.condition,
       responseText: parsed.data.responseText,
     });
     await store.appendDecision(decision);
@@ -65,7 +64,7 @@ export async function POST(request: Request) {
       attemptId: bundle.attempt.id,
       eventType: "initial_locked",
       payload: {
-        condition: bundle.attempt.condition,
+        condition: "adaptive",
         displayedPromptId: decision.displayedPromptId,
         provider: decision.provider,
         fallback: Boolean(decision.fallbackReason),

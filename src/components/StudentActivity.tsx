@@ -315,7 +315,7 @@ export function StudentActivity() {
             ) : null}
             <ScaleQuestion name="clarity" label="The instructions were clear." low="Not at all" high="Very clear" value={clarity} onChange={setClarity} />
             <ScaleQuestion name="pressure" label="I felt pressure or stress during this activity." low="None" high="A lot" value={pressure} onChange={setPressure} />
-            <ScaleQuestion name="helpfulness" label="The reflection question helped me reconsider my explanation." low="Not at all" high="A lot" value={helpfulness} onChange={setHelpfulness} />
+            <ScaleQuestion name="helpfulness" label="The follow-up question helped me reconsider my explanation." low="Not at all" high="A lot" value={helpfulness} onChange={setHelpfulness} />
             <div className="field">
               <label htmlFor="student-comment">Anything else you want the research team to know? <span>(optional)</span></label>
               <textarea id="student-comment" rows={3} maxLength={1000} value={comment} onChange={(event) => setComment(event.target.value)} />
@@ -391,7 +391,7 @@ export function StudentActivity() {
             <button className="button primary submit-response" onClick={() => submit(action)} disabled={submitting || !online}>
               {submitting
                 ? activity.stage === "initial"
-                  ? "Choosing a reflection question…"
+                  ? "Choosing your follow-up question…"
                   : "Saving response…"
                 : activity.stage === "transfer"
                   ? "Submit new-situation response"

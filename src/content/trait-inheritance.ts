@@ -38,7 +38,6 @@ export interface ContentPack {
   estimatedMinutes: number;
   teacherReviewStatus: "draft" | "approved";
   initialPrompt: { id: string; title: string; text: string };
-  fixedReflectionPrompt: FollowUpPrompt;
   fallbackPrompt: FollowUpPrompt;
   followUps: FollowUpPrompt[];
   nearTransferPrompt: { id: string; title: string; text: string };
@@ -63,14 +62,6 @@ export const traitInheritancePack: ContentPack = {
     title: "Explain an inherited beetle trait",
     text:
       "Researchers study bristle shape in a fictional beetle species. Evidence card: (1) a bristle-shape gene is located at a marked position on chromosome 3; (2) each parent has gene versions B and b; (3) the offspring inherited one chromosome 3 from each parent and has b and b; and (4) beetles with b and b grow curved bristles, while beetles with at least one B grow straight bristles. Construct an explanation of how this offspring inherited curved bristles. Explain the roles of the gene and chromosomes and use at least two pieces of evidence from the card. Write 2–4 sentences.",
-  },
-  fixedReflectionPrompt: {
-    id: "control_reflection_01",
-    title: "Check your evidence and reasoning",
-    text:
-      "Read your explanation once. Make sure each scientific claim is supported by the evidence card and that you explain how information moved from both parents to the offspring. Revise one relationship so another seventh-grade student could follow your reasoning.",
-    targets: [],
-    sourceIds: ["gadoe-s7l3a", "gca-2008"],
   },
   fallbackPrompt: {
     id: "inheritance_clarify_01",
@@ -285,7 +276,7 @@ export const traitInheritancePack: ContentPack = {
     },
   ],
   surveyDisclosure:
-    "This activity uses a computer system to select a teacher-written reflection question. It is not graded. Your teacher makes instructional decisions, and research scoring is completed separately by people.",
+    "This activity uses AI to select one teacher-written follow-up question based on the ideas in your explanation. It is not graded. Your teacher makes instructional decisions, and research scoring is completed separately by people.",
 };
 
 export const contentPacks = [traitInheritancePack] as const;
@@ -299,7 +290,6 @@ export function getFollowUpPrompt(promptId: string) {
   const pack = traitInheritancePack;
   return (
     pack.followUps.find((prompt) => prompt.id === promptId) ??
-    (pack.fallbackPrompt.id === promptId ? pack.fallbackPrompt : null) ??
-    (pack.fixedReflectionPrompt.id === promptId ? pack.fixedReflectionPrompt : null)
+    (pack.fallbackPrompt.id === promptId ? pack.fallbackPrompt : null)
   );
 }

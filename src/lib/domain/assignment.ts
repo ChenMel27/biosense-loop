@@ -23,15 +23,6 @@ export function generateParticipantCode(index: number) {
   return `GEN-${String(index + 1).padStart(2, "0")}-${suffix}`;
 }
 
-export function balancedConditions(count: number, random: () => number = Math.random) {
-  const conditions: Condition[] = Array.from({ length: count }, (_, index) =>
-    index < Math.ceil(count / 2) ? "adaptive" : "reflection",
-  );
-
-  for (let index = conditions.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(random() * (index + 1));
-    [conditions[index], conditions[swapIndex]] = [conditions[swapIndex], conditions[index]];
-  }
-
-  return conditions;
+export function adaptiveConditions(count: number): Condition[] {
+  return Array.from({ length: count }, () => "adaptive");
 }

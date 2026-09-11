@@ -1,4 +1,4 @@
-export type Condition = "adaptive" | "reflection";
+export type Condition = "adaptive";
 
 export type SessionStatus = "draft" | "active" | "closed";
 

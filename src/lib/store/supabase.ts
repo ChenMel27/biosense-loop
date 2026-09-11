@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import {
-  balancedConditions,
+  adaptiveConditions,
   generateJoinCode,
   generateParticipantCode,
   hashParticipantCode,
@@ -14,7 +14,6 @@ import type {
   Attempt,
   AttemptBundle,
   AttemptStage,
-  Condition,
   DashboardSnapshot,
   Participant,
   SessionCreationResult,
@@ -46,7 +45,7 @@ interface ParticipantRow {
   session_id: string;
   participant_tag: string;
   code_hash: string;
-  assigned_condition: Condition;
+  assigned_condition: string;
   eligible: boolean;
 }
 
@@ -55,7 +54,7 @@ interface AttemptRow {
   session_id: string;
   participant_id: string;
   participant_tag: string;
-  condition: Condition;
+  condition: string;
   stage: AttemptStage;
   started_at: string;
   updated_at: string;
@@ -143,7 +142,7 @@ function mapParticipant(row: ParticipantRow): Participant {
     sessionId: row.session_id,
     participantTag: row.participant_tag,
     codeHash: row.code_hash,
-    assignedCondition: row.assigned_condition,
+    assignedCondition: "adaptive",
     eligible: row.eligible,
   };
 }
@@ -154,7 +153,7 @@ function mapAttempt(row: AttemptRow): Attempt {
     sessionId: row.session_id,
     participantId: row.participant_id,
     participantTag: row.participant_tag,
-    condition: row.condition,
+    condition: "adaptive",
     stage: row.stage,
     startedAt: row.started_at,
     updatedAt: row.updated_at,
@@ -299,7 +298,7 @@ export class SupabaseResearchStore implements ResearchStore {
         session_id: session.id,
         participant_id: participant.id,
         participant_tag: participant.participantTag,
-        condition: participant.assignedCondition,
+        condition: "adaptive",
         stage: "initial",
       })
       .select("*")
@@ -556,7 +555,7 @@ export class SupabaseResearchStore implements ResearchStore {
     const session = mapSession(
       requireData(sessionQuery.data as SessionRow | null, sessionQuery.error, "Create session"),
     );
-    const conditions = balancedConditions(input.participantCount);
+    const conditions = adaptiveConditions(input.participantCount);
     const participantCodes = Array.from({ length: input.participantCount }, (_, index) => {
       const participantCode = generateParticipantCode(index);
       return {
@@ -685,8 +684,7 @@ export class SupabaseResearchStore implements ResearchStore {
       participantCount: participants.length,
       counts,
       conditionCounts: {
-        adaptive: participants.filter((item) => item.assignedCondition === "adaptive").length,
-        reflection: participants.filter((item) => item.assignedCondition === "reflection").length,
+        adaptive: participants.length,
       },
       fallbackCount: decisions.filter((item) => item.fallbackReason).length,
       ideaCounts,
@@ -706,6 +704,8 @@ export class SupabaseResearchStore implements ResearchStore {
       .select("*")
       .eq("session_id", sessionId);
     if (error) throw new Error(error.message);
-    return (data ?? []) as Array<Record<string, string | number | boolean | null>>;
+    return (data ?? []).map((row) => ({ ...row, condition: "adaptive" })) as Array<
+      Record<string, string | number | boolean | null>
+    >;
   }
 }

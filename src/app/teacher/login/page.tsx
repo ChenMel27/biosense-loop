@@ -23,7 +23,7 @@ export default async function TeacherLoginPage({
           <h1>See class thinking without turning it into a grade.</h1>
           <p>Launch the approved activity, monitor completion, and export an auditable research record. Student-facing AI output is limited to teacher-authored prompts.</p>
           <ul className="check-list">
-            <li>Balanced assignment is frozen before students join.</li>
+            <li>Every student receives a response-specific follow-up question.</li>
             <li>Near-transfer responses remain hidden for human scoring.</li>
             <li>Low-confidence classifications use a safe fixed prompt.</li>
           </ul>

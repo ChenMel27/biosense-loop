@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { traitInheritancePack } from "@/content/trait-inheritance";
 import {
-  balancedConditions,
+  adaptiveConditions,
   generateJoinCode,
   generateParticipantCode,
   hashParticipantCode,
@@ -67,7 +67,7 @@ function buildDemoState(): MemoryState {
       sessionId: session.id,
       participantTag: `P${String(index + 1).padStart(2, "0")}`,
       codeHash: hashParticipantCode(participantCode, participantPepper()),
-      assignedCondition: index % 2 === 0 ? "adaptive" : "reflection",
+      assignedCondition: "adaptive",
       eligible: true,
     };
   });
@@ -271,7 +271,7 @@ export class MemoryResearchStore implements ResearchStore {
       launchedAt: null,
       closedAt: null,
     };
-    const conditions = balancedConditions(input.participantCount);
+    const conditions = adaptiveConditions(input.participantCount);
     const participantCodes = Array.from({ length: input.participantCount }, (_, index) => {
       const participantCode = generateParticipantCode(index);
       const participantTag = `P${String(index + 1).padStart(2, "0")}`;
@@ -354,8 +354,7 @@ export class MemoryResearchStore implements ResearchStore {
       participantCount: participants.length,
       counts,
       conditionCounts: {
-        adaptive: participants.filter((item) => item.assignedCondition === "adaptive").length,
-        reflection: participants.filter((item) => item.assignedCondition === "reflection").length,
+        adaptive: participants.length,
       },
       fallbackCount: decisions.filter((item) => item.fallbackReason).length,
       ideaCounts,

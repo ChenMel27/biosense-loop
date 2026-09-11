@@ -200,7 +200,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
             <span className="eyebrow">Live operations</span>
             <h2>Where students are</h2>
           </div>
-          <span className="small-note">Do not use this view to coach one condition differently.</span>
+          <span className="small-note">Use this view only to monitor progress while students work.</span>
         </div>
         <div className="stage-grid">
           {[
@@ -263,7 +263,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         <section className="panel stack-lg">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">Adaptive group only</span>
+              <span className="eyebrow">All student responses</span>
               <h2>Ideas detected</h2>
             </div>
             <span className="info-chip">Routing evidence, not scores</span>
@@ -315,9 +315,9 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           </p>
         </div>
         <div className="condition-balance">
-          <span>Frozen assignment</span>
-          <strong>{snapshot.conditionCounts.adaptive} / {snapshot.conditionCounts.reflection}</strong>
-          <small>adaptive / reflection</small>
+          <span>Response-specific routing</span>
+          <strong>{snapshot.conditionCounts.adaptive}</strong>
+          <small>students receive an AI-selected follow-up</small>
         </div>
       </section>
 

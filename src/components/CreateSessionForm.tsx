@@ -8,7 +8,7 @@ interface CreatedSession {
   participantCodes: Array<{
     participantTag: string;
     participantCode: string;
-    condition: "adaptive" | "reflection";
+    condition: "adaptive";
   }>;
 }
 
@@ -113,8 +113,8 @@ export function CreateSessionForm() {
         </div>
       </div>
       <div className="callout compact">
-        <strong>Balanced assignment:</strong> the system creates approximately equal adaptive and
-        reflection groups and freezes each assignment before students join.
+        <strong>Response-specific follow-up for everyone:</strong> each student receives a
+        teacher-written question selected for the ideas in their initial explanation.
       </div>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       <button className="button primary" disabled={loading}>

@@ -6,7 +6,7 @@ ExitLoop is a teacher-governed, low-stakes formative-assessment platform for Kâ€
 
 The current study is a remote usability study with two to five high school biology teachers. Teachers review and edit the diagnostic content, inspect frozen AI-generated classifier output for a simulated class of 18 researcher-written responses, use a class summary to choose an instructional next step, and complete usability measures. No students or student data are included in this study.
 
-The earlier randomized classroom study remains in the repository as a future prototype. It must not be run until the required IRB, district, school, consent, and assent approvals are in place. The draft abstract is intentionally not being revised while the advisor completes edits.
+The student-facing classroom study remains in the repository as a future prototype. Every student receives response-specific routing. It must not be run until the required IRB, district, school, consent, and assent approvals are in place.
 
 ## Demonstration content
 
@@ -24,9 +24,7 @@ The pilot does **not** assess ecosystem matter/energy, Punnett-square procedures
 2. The teacher opens the session and displays the class code.
 3. Each student joins with the class code and an assigned participant code; no name or email is requested.
 4. Every student completes the same S7L3.a evidence-supported initial explanation and confidence item.
-5. The server keeps the frozen random assignment:
-   - **Adaptive condition:** the classifier selects one teacher-authored diagnostic probe.
-   - **Reflection condition:** the student receives a time-matched general evidence-check prompt.
+5. For every student, the classifier identifies a missing or incompatible idea and selects one matching teacher-authored follow-up question. Short or uncertain responses receive the approved clarification question.
 6. Each student revises the original explanation.
 7. Each student completes the same unaided near-transfer explanation and short experience survey.
 8. The teacher reviews class-level possible misconception patterns and records an instructional next step.
@@ -37,7 +35,7 @@ The pilot does **not** assess ecosystem matter/energy, Punnett-square procedures
 - It elicits a short causal explanation rather than relying on recognition or flash-card recall.
 - Its content taxonomy is built from published genetics-education research, not generated from model guesses.
 - AI is limited to classification and routing among approved prompts; it cannot grade, label a learner, or invent classroom content.
-- The comparison condition, frozen content version, complete event trail, and exportable research data support a classroom study rather than a product demo alone.
+- The frozen content version, complete event trail, and exportable research data support later classroom research rather than a product demo alone.
 - The teacher receives short, actionable class patterns and two-minute response ideas instead of a raw transcript feed.
 
 ## Technology

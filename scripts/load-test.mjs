@@ -77,8 +77,7 @@ if (failures.length) {
   });
   if (
     dashboard.body.snapshot.counts.complete !== 30 ||
-    dashboard.body.snapshot.conditionCounts.adaptive !== 15 ||
-    dashboard.body.snapshot.conditionCounts.reflection !== 15
+    dashboard.body.snapshot.conditionCounts.adaptive !== 30
   ) {
     throw new Error(`Unexpected dashboard totals: ${JSON.stringify(dashboard.body.snapshot)}`);
   }
@@ -104,7 +103,7 @@ if (failures.length) {
       {
         ok: true,
         studentsCompleted: results.length,
-        conditionSplit: "15 adaptive / 15 reflection",
+        responseSpecificRouting: "30 of 30 students",
         researchExportRows: 30,
         teacherActionRecorded: true,
         elapsedMs: Date.now() - startedAt,

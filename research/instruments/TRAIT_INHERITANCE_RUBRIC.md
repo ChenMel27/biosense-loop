@@ -54,9 +54,9 @@ For initial-to-final analysis, add:
 
 ## Blinding and reliability
 
-1. Remove condition, prompt ID, AI tags, confidence, and timestamps from rater files.
+1. Remove prompt ID, AI tags, confidence, and timestamps from rater files.
 2. Train two raters with responses outside the analysis set.
 3. Independently double-score at least 20% of responses; for a small pilot, double-score all responses when feasible.
 4. Report dimension-level exact/weighted agreement and total-score intraclass correlation or another preselected reliability statistic appropriate to the final data.
 5. Resolve disagreements by discussion only after independent scores are saved; retain original and consensus values.
-6. Freeze clarifications to the scoring guide before comparing conditions.
+6. Freeze clarifications to the scoring guide before calculating outcomes.

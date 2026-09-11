@@ -14,7 +14,7 @@ export default function StudentPage() {
         <section className="auth-copy">
           <span className="eyebrow">Student activity</span>
           <h1>Show what you understand—then make it clearer.</h1>
-          <p>This is a short, ungraded biology activity. You will explain one situation, receive one reflection question, revise, and try the idea in a new situation.</p>
+          <p>This is a short, ungraded biology activity. You will explain one situation, receive one response-specific follow-up question, revise, and try the idea in a new situation.</p>
           <ul className="check-list">
             <li>There is no leaderboard or mastery label.</li>
             <li>Use your own words and do not include names.</li>
@@ -30,4 +30,3 @@ export default function StudentPage() {
     </div>
   );
 }
-

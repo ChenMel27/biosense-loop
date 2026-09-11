@@ -44,7 +44,7 @@ Total range: 0–8. Human raters score de-identified initial, final-revision, an
 | --- | --- | --- |
 | `session_id` | UUID/string | Groups all records from one classroom administration |
 | `participant_tag` | string | Research-facing label such as P01; not a student identity |
-| `condition` | `adaptive` or `reflection` | Frozen randomized condition |
+| `condition` | `adaptive` | Confirms that the shared response-specific routing workflow was used |
 | `content_version_id` | string | Exact approved prompt/taxonomy version |
 | `completion_state` | enum | Last completed workflow stage |
 | `started_at`, `completed_at` | server timestamps | Feasibility and completion time |
@@ -56,7 +56,7 @@ Total range: 0–8. Human raters score de-identified initial, final-revision, an
 | --- | --- |
 | `initial_text` | Common beetle evidence explanation before any follow-up |
 | `initial_confidence` | Student confidence after initial response |
-| `final_text` | Revised beetle explanation after condition-specific prompt |
+| `final_text` | Revised beetle explanation after the response-specific prompt |
 | `final_confidence` | Student confidence after revision |
 | `near_transfer_text` | Common unaided plant evidence explanation |
 | `near_transfer_confidence` | Student confidence after near transfer |
@@ -117,20 +117,20 @@ Create a separate analysis file after export with:
 - misconception-pattern human codes for classifier agreement;
 - blind rater IDs and scoring timestamps.
 
-Raters must not see condition, displayed prompt ID, AI tags, or student confidence while scoring the primary outcome.
+Raters must not see the displayed prompt ID, AI tags, or student confidence while scoring the primary outcome.
 
 ## 8. One-session analysis
 
-Primary comparison:
+Primary descriptive outcome:
 
-- targeted-repair proportion in adaptive vs reflection condition;
-- risk difference with a 95% Newcombe-Wilson confidence interval, risk ratio when estimable, and two-sided Fisher exact test;
-- exact numerator/denominator shown for each condition because n is small.
+- targeted-repair proportion across all completed participants;
+- exact numerator and denominator plus a 95% Wilson confidence interval because the sample is small;
+- no causal comparison, risk difference, or between-group significance test.
 
-Secondary descriptive comparisons:
+Secondary descriptive outcomes:
 
-- initial-to-revision total change by condition;
-- near-transfer total by condition, raw difference, standardized mean difference, and confidence interval;
+- initial-to-revision total change;
+- near-transfer score distribution;
 - classifier–human agreement for each relationship/pattern and overall agreement statistic when cell counts permit;
 - abstention, deterministic fallback, completion, missing-data, and median latency rates;
 - student experience medians/distributions;
@@ -140,10 +140,10 @@ If the class is too small or outcome distributions are sparse, emphasize descrip
 
 ## 9. Missing data and exclusions
 
-- Retain randomized participants in a flow table even if they do not finish.
+- Retain all issued participant codes in a flow table even if a student does not start or finish.
 - Define completion before looking at group outcomes.
 - Do not silently replace missing near-transfer scores with revision scores.
-- Report technical failures and fallback use by condition.
+- Report technical failures and fallback use for the full session.
 - Exclude a response from text analysis only for a predeclared reason such as no assent, accidental identifying information that cannot be safely redacted, duplicate test account, or unusable blank response.
 
 ## 10. Interpretation boundary

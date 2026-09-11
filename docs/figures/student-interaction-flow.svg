@@ -58,11 +58,11 @@
     <text x="745" y="198" class="badge">STEP 3 · ONE PROMPT</text>
     <text x="745" y="267" class="head">Reconsider</text>
     <rect x="745" y="300" width="230" height="94" rx="14" fill="#FFF6D9"/>
-    <text x="765" y="330" class="branchHead">Adaptive group</text>
+    <text x="765" y="330" class="branchHead">Every student</text>
     <text x="765" y="358" class="branchBody"><tspan x="765">Prewritten probe selected</tspan><tspan x="765" dy="23">from the fixed prompt bank</tspan></text>
     <rect x="745" y="415" width="230" height="94" rx="14" fill="#EEF5FA"/>
-    <text x="765" y="445" class="branchHead">Reflection group</text>
-    <text x="765" y="473" class="branchBody"><tspan x="765">Fixed, time-matched</tspan><tspan x="765" dy="23">general reflection prompt</tspan></text>
+    <text x="765" y="445" class="branchHead">Matching follow-up</text>
+    <text x="765" y="473" class="branchBody"><tspan x="765">Targets a missing or</tspan><tspan x="765" dy="23">incompatible science idea</tspan></text>
     <text x="745" y="545" class="small">Initial response is already locked.</text>
   </g>
 
@@ -90,6 +90,6 @@
 
   <rect x="205" y="655" width="1390" height="150" rx="26" fill="#E7F5F3" stroke="#A9D6D0" stroke-width="3"/>
   <text x="250" y="705" class="note">Research protections built into the flow</text>
-  <text x="250" y="748" class="body"><tspan x="250">Same initial and near-transfer tasks for both groups</tspan><tspan x="840">• No AI-generated scientific prose</tspan></text>
-  <text x="250" y="785" class="body"><tspan x="250">One condition-specific prompt only</tspan><tspan x="840">• Human raters score the primary outcome</tspan></text>
+  <text x="250" y="748" class="body"><tspan x="250">Same complete workflow for every student</tspan><tspan x="840">• No AI-generated scientific prose</tspan></text>
+  <text x="250" y="785" class="body"><tspan x="250">One response-specific prompt only</tspan><tspan x="840">• Human raters score the primary outcome</tspan></text>
 </svg>

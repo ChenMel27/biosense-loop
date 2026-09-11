@@ -28,9 +28,6 @@ describe("trait-inheritance frozen question bank", () => {
       adaptivePromptIds,
     );
     expect(traitInheritancePack.fallbackPrompt.id).toBe("inheritance_clarify_01");
-    expect(traitInheritancePack.fixedReflectionPrompt.id).toBe(
-      "control_reflection_01",
-    );
   });
 
   it("contains exactly the approved alternative-conception identifiers", () => {
@@ -46,7 +43,6 @@ describe("trait-inheritance frozen question bank", () => {
     const prompts = [
       ...traitInheritancePack.followUps,
       traitInheritancePack.fallbackPrompt,
-      traitInheritancePack.fixedReflectionPrompt,
     ];
 
     for (const prompt of prompts) {
