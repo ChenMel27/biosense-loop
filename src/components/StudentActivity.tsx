@@ -258,7 +258,7 @@ export function StudentActivity() {
           <p className="participant-label">Participant {activity.participantTag}</p>
         </div>
         <ol className="progress-list" aria-label="Activity progress">
-          {["Explain", "Reconsider", "New situation", "Reflect"].map((label, index) => (
+          {["Explain", "Review and revise", "New example", "Finish"].map((label, index) => (
             <li key={label} className={index < currentIndex ? "done" : index === currentIndex ? "current" : ""}>
               <span>{index < currentIndex ? "✓" : index + 1}</span>
               {label}
@@ -279,8 +279,8 @@ export function StudentActivity() {
             <span className="eyebrow">Activity complete</span>
             <h1>Your thinking has been saved.</h1>
             <p>
-              There is no score or mastery label. Your teacher will review class-level patterns and
-              decide what the class should do next.
+              There is no score. Your teacher will use the class summary to decide what the class
+              should review next.
             </p>
             <div className="callout compact">
               You may close this tab after your teacher confirms that the class is finished.
@@ -289,7 +289,7 @@ export function StudentActivity() {
         ) : activity.stage === "survey" ? (
           <section className="activity-card stack-xl">
             <div className="question-heading">
-              <span className="eyebrow">Final reflection · about 1 minute</span>
+              <span className="eyebrow">Final questions</span>
               <h1>How did the activity feel?</h1>
               <p>These answers do not affect a grade. Choose the response that fits best.</p>
             </div>
@@ -309,13 +309,13 @@ export function StudentActivity() {
                     : activity.reflectionSummary.promptTitle}.
                 </p>
                 <p>
-                  Use this recap to guide future explanations. It is not a score, grade, or mastery decision.
+                  This recap is not a score or grade. It shows which idea your follow up question asked you to review.
                 </p>
               </div>
             ) : null}
             <ScaleQuestion name="clarity" label="The instructions were clear." low="Not at all" high="Very clear" value={clarity} onChange={setClarity} />
             <ScaleQuestion name="pressure" label="I felt pressure or stress during this activity." low="None" high="A lot" value={pressure} onChange={setPressure} />
-            <ScaleQuestion name="helpfulness" label="The follow-up question helped me reconsider my explanation." low="Not at all" high="A lot" value={helpfulness} onChange={setHelpfulness} />
+            <ScaleQuestion name="helpfulness" label="The follow up question helped me review my explanation." low="Not at all" high="A lot" value={helpfulness} onChange={setHelpfulness} />
             <div className="field">
               <label htmlFor="student-comment">Anything else you want the research team to know? <span>(optional)</span></label>
               <textarea id="student-comment" rows={3} maxLength={1000} value={comment} onChange={(event) => setComment(event.target.value)} />
@@ -331,10 +331,10 @@ export function StudentActivity() {
               <div className="heading-meta">
                 <span className="eyebrow">
                   {activity.stage === "initial"
-                    ? "Step 1 · Explain"
+                    ? "Step 1 of 3: Explain"
                     : activity.stage === "revision"
-                      ? "Step 2 · Reconsider and revise"
-                      : "Step 3 · New situation"}
+                      ? "Step 2 of 3: Review and revise"
+                      : "Step 3 of 3: Try a new example"}
                 </span>
                 <span className="save-status" aria-live="polite">
                   {saved === "saving" ? "Saving draft…" : saved === "saved" ? "Draft saved" : ""}
@@ -362,7 +362,7 @@ export function StudentActivity() {
 
             {activity.stage === "transfer" ? (
               <div className="callout compact neutral">
-                Answer this new situation on your own. Your earlier response is intentionally hidden.
+                Answer this new example on your own. Your earlier response is hidden for this step.
               </div>
             ) : null}
 
@@ -379,10 +379,10 @@ export function StudentActivity() {
                   setText(event.target.value);
                   setSaved("saving");
                 }}
-                placeholder="Explain the relationship in your own words…"
+                placeholder="Write your explanation here"
                 autoFocus
               />
-              <div className="field-meta"><span>Write 2–4 sentences.</span><span>{text.length}/2000</span></div>
+              <div className="field-meta"><span>Write 2 to 4 sentences.</span><span>{text.length}/2000</span></div>
             </div>
 
             <ConfidencePicker value={confidence} onChange={setConfidence} />
@@ -391,13 +391,13 @@ export function StudentActivity() {
             <button className="button primary submit-response" onClick={() => submit(action)} disabled={submitting || !online}>
               {submitting
                 ? activity.stage === "initial"
-                  ? "Choosing your follow-up question…"
+                  ? "Choosing your next question…"
                   : "Saving response…"
                 : activity.stage === "transfer"
-                  ? "Submit new-situation response"
+                  ? "Submit new example"
                   : activity.stage === "revision"
-                    ? "Lock revision and continue"
-                    : "Lock explanation and continue"}
+                    ? "Save revision and continue"
+                    : "Submit explanation"}
             </button>
           </section>
         )}

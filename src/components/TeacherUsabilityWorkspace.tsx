@@ -248,14 +248,14 @@ export function TeacherUsabilityWorkspace({ contentPack, simulatedClass, summary
   if (step === "intro") {
     return (
       <section className="usability-intro panel stack-lg">
-        <div><span className="eyebrow">Teacher usability study</span><h1>Review a simulated class of 18 submissions</h1></div>
-        <p className="lead-copy">This study represents one completed class with 18 submissions. First, review the lesson and the template used by the AI. Next, inspect how ExitLoop analyzed the submissions and selected a follow-up question for each one. Finally, use the class summary to choose a next instructional action. Please say what you are thinking as you work.</p>
+        <div><span className="eyebrow">Teacher usability study</span><h1>Try ExitLoop with a simulated class</h1></div>
+        <p className="lead-copy">You will review the lesson setup, check the AI analysis for 18 sample responses, and use the class summary to decide what you would teach next. Please say what you are thinking as you work.</p>
         <div className="study-scope-grid">
-          <article><strong>45–60 minutes</strong><span>Remote think-aloud session</span></article>
-          <article><strong>18 submissions</strong><span>Researcher-written, not student data</span></article>
+          <article><strong>45 to 60 minutes</strong><span>Remote session with think aloud</span></article>
+          <article><strong>18 sample responses</strong><span>Written by researchers, not students</span></article>
           <article><strong>4 tasks</strong><span>Review, inspect, decide, rate</span></article>
         </div>
-        <div className="callout neutral"><strong>Study boundary:</strong> This session evaluates the teacher tools and simulated output. It does not measure student learning.</div>
+        <div className="callout neutral"><strong>What this study measures:</strong> We are evaluating the teacher tools and the simulated AI output. We are not measuring student learning.</div>
         <div className="field compact-field">
           <label htmlFor="participant-tag">Teacher study ID</label>
           <input id="participant-tag" value={participantTag} onChange={(event) => setParticipantTag(event.target.value)} placeholder="Example: T03" autoComplete="off" />
@@ -272,7 +272,7 @@ export function TeacherUsabilityWorkspace({ contentPack, simulatedClass, summary
       <section className="panel completion-card stack-lg">
         <div className="status-icon success">✓</div>
         <h1>Study response saved</h1>
-        <p>Your authoring choices, classification reviews, class-summary decision, task times, and ratings were recorded under {participantTag}.</p>
+        <p>Your lesson edits, AI reviews, class summary decision, task times, and ratings were recorded under {participantTag}.</p>
         <p className="field-note">Submission reference: {savedSubmissionId}</p>
       </section>
     );
@@ -283,7 +283,7 @@ export function TeacherUsabilityWorkspace({ contentPack, simulatedClass, summary
   return (
     <div className="usability-layout">
       <aside className="usability-sidebar">
-        <span className="eyebrow">Teacher study · {participantTag}</span>
+        <span className="eyebrow">Teacher study {participantTag}</span>
         <ol className="usability-progress">
           {taskSteps.map((item, index) => (
             <li key={item.id} className={index === currentIndex ? "current" : index < currentIndex ? "done" : ""}>
@@ -297,14 +297,14 @@ export function TeacherUsabilityWorkspace({ contentPack, simulatedClass, summary
       <section className="panel usability-task stack-lg">
         {step === "authoring" ? (
           <>
-            <div><span className="eyebrow">Task 1 · Lesson setup</span><h1>Review the lesson and AI template</h1><p className="lead-copy">Imagine this setup was prepared before class. Review the student prompt, target ideas, possible misconceptions, and allowed follow-up questions that the AI used to analyze the 18 submissions shown in the next step. Edit anything you would change.</p></div>
+            <div><span className="eyebrow">Task 1 of 4</span><h1>Review the lesson setup</h1><p className="lead-copy">Check the student question, the science ideas, the possible misconceptions, and the questions the AI is allowed to select. Edit anything you would change before using this lesson.</p></div>
             <section className="lesson-upload-preview" aria-labelledby="lesson-upload-title">
               <div className="lesson-upload-copy">
                 <span className="coming-soon-badge">Coming soon</span>
                 <h2 id="lesson-upload-title">Create a draft from lesson notes</h2>
                 <p id="lesson-upload-note">
                   Upload lesson notes or slides and let AI draft the activity prompt, target ideas,
-                  possible misconceptions, and follow-up questions. The teacher would review and
+                  possible misconceptions, and follow up questions. The teacher would review and
                   edit every field before the activity could be used.
                 </p>
               </div>
@@ -320,31 +320,31 @@ export function TeacherUsabilityWorkspace({ contentPack, simulatedClass, summary
             <div className="field"><label htmlFor="initial-prompt">Student prompt</label><textarea id="initial-prompt" rows={8} value={initialPrompt} onChange={(event) => setInitialPrompt(event.target.value)} /></div>
             <section className="authoring-section stack-md"><div><h2>Target scientific ideas</h2><p>These are the relationships the classifier can mark as present or missing.</p></div>{contentPack.ideas.map((idea) => <div className="field" key={idea.id}><label htmlFor={`idea-${idea.id}`}>{idea.label}</label><textarea id={`idea-${idea.id}`} rows={3} value={ideaDescriptions[idea.id]} onChange={(event) => setIdeaDescriptions((current) => ({ ...current, [idea.id]: event.target.value }))} /></div>)}</section>
             <section className="authoring-section stack-md"><div><h2>Possible misconceptions</h2><p>These are hypotheses for teacher review, not grades or final judgments.</p></div>{contentPack.alternativeConceptions.map((item) => <div className="field" key={item.id}><label htmlFor={`misconception-${item.id}`}>{item.label}</label><textarea id={`misconception-${item.id}`} rows={3} value={misconceptionDescriptions[item.id]} onChange={(event) => setMisconceptionDescriptions((current) => ({ ...current, [item.id]: event.target.value }))} /></div>)}</section>
-            <section className="authoring-section stack-md"><div><h2>Prewritten follow-up questions</h2><p>The system selects from this bank. It does not generate a new question for the student.</p></div>{[...contentPack.followUps, contentPack.fallbackPrompt].map((prompt) => <div className="field" key={prompt.id}><label htmlFor={`prompt-${prompt.id}`}>{prompt.title}</label><textarea id={`prompt-${prompt.id}`} rows={3} value={followUpPrompts[prompt.id]} onChange={(event) => setFollowUpPrompts((current) => ({ ...current, [prompt.id]: event.target.value }))} /><span className="field-note">Targets: {prompt.targets.map((id) => labels[id] ?? formatLabel(id)).join(", ") || "clarification"}</span></div>)}</section>
-            <div className="callout compact neutral"><strong>Study note:</strong> Your edits are saved as design feedback. To keep the study consistent across teachers, they do not rerun the frozen AI analysis shown in the next step.</div>
+            <section className="authoring-section stack-md"><div><h2>Prewritten follow up questions</h2><p>The AI selects from this list. It cannot write a new question for a student.</p></div>{[...contentPack.followUps, contentPack.fallbackPrompt].map((prompt) => <div className="field" key={prompt.id}><label htmlFor={`prompt-${prompt.id}`}>{prompt.title}</label><textarea id={`prompt-${prompt.id}`} rows={3} value={followUpPrompts[prompt.id]} onChange={(event) => setFollowUpPrompts((current) => ({ ...current, [prompt.id]: event.target.value }))} /><span className="field-note">Looks for: {prompt.targets.map((id) => labels[id] ?? formatLabel(id)).join(", ") || "a response that needs clarification"}</span></div>)}</section>
+            <div className="callout compact neutral"><strong>For this study:</strong> We save your edits as feedback. The saved AI results stay the same so every teacher reviews the same examples.</div>
             <button className="button primary" onClick={() => finishTask("authoring", "classification_review")}>Continue to 18 submissions</button>
           </>
         ) : null}
 
         {step === "classification_review" ? (
           <>
-            <div><span className="eyebrow">Task 2 · AI review</span><h1>Review the 18 student-style submissions</h1><p className="lead-copy">These researcher-written responses simulate one completed biology class. Review at least five and decide whether the AI identified the right ideas or misconceptions and selected an appropriate follow-up question.</p></div>
-            <div className="callout neutral"><strong>How this simulated class was processed:</strong> OpenAI {simulatedAiRun.resolvedModel} analyzed all 18 submissions using the lesson template you just reviewed. The results were saved on {simulatedAiRun.generatedAt}, so every teacher evaluates the same class. The results are not assumed to be correct. Your review identifies what should be kept or changed before future classroom use.</div>
-            <p className="review-count"><strong>{Object.keys(reviews).length}</strong> of {simulatedClass.length} submissions reviewed · minimum 5</p>
+            <div><span className="eyebrow">Task 2 of 4</span><h1>Check the AI results</h1><p className="lead-copy">Review at least five sample responses. For each one, decide whether the AI identified the right ideas or misconceptions and chose an appropriate question.</p></div>
+            <div className="callout neutral"><strong>Same examples for every teacher:</strong> OpenAI {simulatedAiRun.resolvedModel} analyzed these 18 responses using the lesson setup. The results were saved on {simulatedAiRun.generatedAt}. They are examples to review, not answers assumed to be correct.</div>
+            <p className="review-count"><strong>{Object.keys(reviews).length}</strong> of {simulatedClass.length} reviewed. Please review at least 5.</p>
             <div className="simulated-response-list">
               {simulatedClass.map((sample) => {
                 const review = reviews[sample.id];
                 const prompt = promptMap[sample.classification.displayedPromptId];
                 return (
                   <article className="simulated-response-card stack-md" key={sample.id}>
-                    <div className="sample-heading"><div><span className="sample-id">{sample.id}</span><strong>Simulated student submission</strong></div><span className="confidence-chip">Frozen AI confidence {Math.round(sample.classification.confidence * 100)}%</span></div>
+                    <div className="sample-heading"><div><span className="sample-id">{sample.id}</span><strong>Sample response</strong></div><span className="confidence-chip">AI confidence: {Math.round(sample.classification.confidence * 100)}%</span></div>
                     <blockquote>{sample.responseText}</blockquote>
                     <div className="classification-grid">
-                      <div><small>Ideas present</small><p>{sample.classification.demonstratedIdeaIds.map((id) => labels[id]).join(", ") || "None identified"}</p></div>
-                      <div><small>Ideas missing</small><p>{sample.classification.missingIdeaIds.map((id) => labels[id]).join(", ") || "None"}</p></div>
+                      <div><small>Found in the response</small><p>{sample.classification.demonstratedIdeaIds.map((id) => labels[id]).join(", ") || "None identified"}</p></div>
+                      <div><small>Not found</small><p>{sample.classification.missingIdeaIds.map((id) => labels[id]).join(", ") || "None"}</p></div>
                       <div><small>Possible misconception</small><p>{sample.classification.possibleAlternativeConceptionIds.map((id) => labels[id]).join(", ") || "None"}</p></div>
                     </div>
-                    <div className="routing-explanation"><strong>Why it routed here</strong><p>{sample.classification.explanation}</p><strong>Question shown</strong><p>{followUpPrompts[prompt?.id] ?? prompt?.text ?? "Clarification prompt"}</p></div>
+                    <div className="routing-explanation"><strong>Why the AI chose this</strong><p>{sample.classification.explanation}</p><strong>Question the student would see</strong><p>{followUpPrompts[prompt?.id] ?? prompt?.text ?? "Clarification prompt"}</p></div>
                     <fieldset className="review-controls"><legend>Do you agree with this output?</legend><div>{(["agree", "needs_revision", "unsure"] as const).map((judgment) => <label className={review?.judgment === judgment ? "selected" : ""} key={judgment}><input type="radio" name={`review-${sample.id}`} checked={review?.judgment === judgment} onChange={() => updateReview(sample.id, "judgment", judgment)} /><span>{judgment === "agree" ? "Agree" : judgment === "needs_revision" ? "Needs revision" : "Unsure"}</span></label>)}</div></fieldset>
                     {review?.judgment && review.judgment !== "agree" ? <div className="field"><label htmlFor={`correction-${sample.id}`}>What should change? <span>(optional)</span></label><textarea id={`correction-${sample.id}`} rows={2} value={review.correction} onChange={(event) => updateReview(sample.id, "correction", event.target.value)} /></div> : null}
                   </article>
@@ -358,21 +358,21 @@ export function TeacherUsabilityWorkspace({ contentPack, simulatedClass, summary
 
         {step === "class_summary" ? (
           <>
-            <div><span className="eyebrow">Task 3 · Decision support</span><h1>What would you do next?</h1><p className="lead-copy">Use the summary to identify the most important class pattern and plan a concrete instructional response.</p></div>
-            <div className="callout neutral"><strong>Simulated class:</strong> 18 researcher-written explanations. Counts can overlap because one explanation may omit more than one idea.</div>
-            <div className="section-heading summary-heading"><div><h2>Patterns to review first</h2><p>ExitLoop surfaces two patterns first so the teacher does not have to scan every label.</p></div><button className="text-button" type="button" onClick={() => setShowAllPatterns((shown) => !shown)}>{showAllPatterns ? "Show top two" : `Show all ${summary.length}`}</button></div>
+            <div><span className="eyebrow">Task 3 of 4</span><h1>Choose what to teach next</h1><p className="lead-copy">Use the class summary to find the most important pattern and decide how you would respond.</p></div>
+            <div className="callout neutral"><strong>About the counts:</strong> The 18 responses were written by researchers. One response can appear in more than one pattern.</div>
+            <div className="section-heading summary-heading"><div><h2>Start with these patterns</h2><p>The two most common patterns appear first. You can open the full list if needed.</p></div><button className="text-button" type="button" onClick={() => setShowAllPatterns((shown) => !shown)}>{showAllPatterns ? "Show top two" : `Show all ${summary.length}`}</button></div>
             <div className="summary-pattern-list">
               {(showAllPatterns ? summary : summary.slice(0, 2)).map((pattern, index) => (
                 <label className={primaryPatternId === pattern.id ? "selected" : ""} key={pattern.id}>
                   <input type="radio" name="primary-pattern" checked={primaryPatternId === pattern.id} onChange={() => setPrimaryPatternId(pattern.id)} />
-                  <span className="pattern-rank">{index + 1}</span><span><strong>{pattern.label}</strong><small>{pattern.kind} · examples {pattern.sampleIds.join(", ")}</small><small className="action-tip">Suggested response: {pattern.suggestedAction}</small></span><b>{pattern.count}</b>
+                  <span className="pattern-rank">{index + 1}</span><span><strong>{pattern.label}</strong><small>{pattern.count} responses. Examples: {pattern.sampleIds.join(", ")}</small><small className="action-tip">Possible next step: {pattern.suggestedAction}</small></span><b>{pattern.count}</b>
                 </label>
               ))}
             </div>
-            {selectedPattern ? <section className="supporting-examples stack-md"><div><span className="eyebrow">Evidence behind the count</span><h2>{selectedPattern.label}</h2></div>{selectedExamples.map((sample) => <blockquote key={sample.id}><strong>{sample.id}</strong>{sample.responseText}</blockquote>)}</section> : null}
+            {selectedPattern ? <section className="supporting-examples stack-md"><div><span className="eyebrow">Responses behind this pattern</span><h2>{selectedPattern.label}</h2></div>{selectedExamples.map((sample) => <blockquote key={sample.id}><strong>{sample.id}</strong>{sample.responseText}</blockquote>)}</section> : null}
             <div className="field"><label htmlFor="interpretation">What does this pattern tell you about the class?</label><textarea id="interpretation" rows={3} value={interpretation} onChange={(event) => setInterpretation(event.target.value)} /></div>
             <div className="field"><label htmlFor="next-action">What would you teach, clarify, or check next?</label><textarea id="next-action" rows={3} value={nextAction} onChange={(event) => setNextAction(event.target.value)} /></div>
-            <RatingQuestion legend="How confident are you in this next-step decision?" value={confidence} onChange={setConfidence} low="Not confident" high="Very confident" />
+            <RatingQuestion legend="How confident are you in this decision?" value={confidence} onChange={setConfidence} low="Not confident" high="Very confident" />
             {error ? <p className="form-error" role="alert">{error}</p> : null}
             <button className="button primary" onClick={continueFromSummary}>Continue to usability ratings</button>
           </>
@@ -380,11 +380,11 @@ export function TeacherUsabilityWorkspace({ contentPack, simulatedClass, summary
 
         {step === "survey" ? (
           <>
-            <div><span className="eyebrow">Task 4 · Usability ratings</span><h1>Rate your experience</h1><p className="lead-copy">Choose one response for each statement, then leave any final feedback.</p></div>
-            <div className="sus-scale-key"><span>1 · Strongly disagree</span><span>5 · Strongly agree</span></div>
+            <div><span className="eyebrow">Task 4 of 4</span><h1>Rate your experience</h1><p className="lead-copy">Choose one response for each statement, then leave any final feedback.</p></div>
+            <div className="sus-scale-key"><span>1 means strongly disagree</span><span>5 means strongly agree</span></div>
             {susStatements.map((statement, index) => <RatingQuestion key={statement} legend={`${index + 1}. ${statement}`} value={susResponses[index]} onChange={(value) => setSusResponses((current) => current.map((item, itemIndex) => itemIndex === index ? value : item))} low="Strongly disagree" high="Strongly agree" />)}
             <RatingQuestion legend="The class summary helped me identify a useful next instructional action." value={summaryUsefulness} onChange={setSummaryUsefulness} low="Strongly disagree" high="Strongly agree" />
-            <RatingQuestion legend="I felt I had enough control over the scientific content and follow-up questions." value={promptControl} onChange={setPromptControl} low="Strongly disagree" high="Strongly agree" />
+            <RatingQuestion legend="I felt I had enough control over the science content and the questions students could receive." value={promptControl} onChange={setPromptControl} low="Strongly disagree" high="Strongly agree" />
             <div className="field"><label htmlFor="open-feedback">What was most useful, confusing, or missing? <span>(optional)</span></label><textarea id="open-feedback" rows={5} maxLength={4000} value={openFeedback} onChange={(event) => setOpenFeedback(event.target.value)} /></div>
             {error ? <p className="form-error" role="alert">{error}</p> : null}
             <button className="button primary" disabled={saving} onClick={submitStudy}>{saving ? "Saving…" : "Submit study response"}</button>

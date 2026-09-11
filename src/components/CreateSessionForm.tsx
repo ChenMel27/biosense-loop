@@ -15,7 +15,7 @@ interface CreatedSession {
 export function CreateSessionForm() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("Period 3 · Trait inheritance");
+  const [title, setTitle] = useState("Period 3: Trait inheritance");
   const [participantCount, setParticipantCount] = useState(30);
   const [created, setCreated] = useState<CreatedSession | null>(null);
   const [error, setError] = useState("");
@@ -113,8 +113,8 @@ export function CreateSessionForm() {
         </div>
       </div>
       <div className="callout compact">
-        <strong>Response-specific follow-up for everyone:</strong> each student receives a
-        teacher-written question selected for the ideas in their initial explanation.
+        <strong>One focused question for every student:</strong> the AI selects an approved
+        question based on the ideas in each student&apos;s first explanation.
       </div>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       <button className="button primary" disabled={loading}>

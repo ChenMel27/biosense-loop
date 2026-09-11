@@ -13,12 +13,12 @@ export default function StudentPage() {
       <main className="auth-shell">
         <section className="auth-copy">
           <span className="eyebrow">Student activity</span>
-          <h1>Show what you understand—then make it clearer.</h1>
-          <p>This is a short, ungraded biology activity. You will explain one situation, receive one response-specific follow-up question, revise, and try the idea in a new situation.</p>
+          <h1>Explain what you know, then improve your answer.</h1>
+          <p>You will answer a biology question, receive one follow up based on your response, revise your answer, and try a similar example.</p>
           <ul className="check-list">
-            <li>There is no leaderboard or mastery label.</li>
-            <li>Use your own words and do not include names.</li>
-            <li>You may ask your teacher for help with instructions.</li>
+            <li>This activity is not graded.</li>
+            <li>Use your own words. Do not enter your name.</li>
+            <li>Ask your teacher if an instruction is unclear.</li>
           </ul>
           <Link className="back-link" href="/">← Back to home</Link>
         </section>

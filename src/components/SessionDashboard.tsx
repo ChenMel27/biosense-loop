@@ -185,12 +185,12 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         <article className="metric-card">
           <span>Working now</span>
           <strong>{started - snapshot.counts.complete}</strong>
-          <p>{snapshot.counts.transfer} on the unaided new situation</p>
+          <p>{snapshot.counts.transfer} working on the new example</p>
         </article>
         <article className="metric-card">
-          <span>Safe fallbacks</span>
+          <span>Clarification prompts</span>
           <strong>{snapshot.fallbackCount}</strong>
-          <p>Static teacher-authored prompt used</p>
+          <p>Approved clarification question used</p>
         </article>
       </section>
 
@@ -207,7 +207,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
             ["Not started", snapshot.counts.not_started],
             ["Initial explanation", snapshot.counts.initial],
             ["Revising", snapshot.counts.revision],
-            ["New situation", snapshot.counts.transfer],
+            ["New example", snapshot.counts.transfer],
             ["Short survey", snapshot.counts.survey],
             ["Complete", snapshot.counts.complete],
           ].map(([label, count]) => (
@@ -231,7 +231,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
                 <div key={`${item.kind}-${item.id}`}>
                   <span>
                     <strong>{item.label}</strong>
-                    <small>{item.kind} · {item.count} response{item.count === 1 ? "" : "s"}</small>
+                    <small>{item.count} response{item.count === 1 ? "" : "s"}. {item.kind}</small>
                     <small className="action-tip">{item.teacherAction}</small>
                     {(snapshot.patternExamples[item.id] ?? []).map((example) => (
                       <small key={`${item.id}-${example.participantTag}`} className="response-example">
@@ -251,11 +251,11 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         <section className="panel stack-lg">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">Protected research boundary</span>
-              <h2>Class patterns appear after the session closes.</h2>
+              <span className="eyebrow">Class results</span>
+              <h2>Patterns will appear after the session closes.</h2>
             </div>
           </div>
-          <p className="small-note">While students work, use only the completion and technical-status information above.</p>
+          <p className="small-note">While students work, this page only shows completion and technical information.</p>
         </section>
       )}
 
@@ -263,10 +263,10 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         <section className="panel stack-lg">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">All student responses</span>
-              <h2>Ideas detected</h2>
+              <span className="eyebrow">All responses</span>
+              <h2>Ideas the AI found</h2>
             </div>
-            <span className="info-chip">Routing evidence, not scores</span>
+            <span className="info-chip">For review, not grades</span>
           </div>
           <div className="signal-list">
             {ideaRows.map((idea) => (
@@ -284,8 +284,8 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         <section className="panel stack-lg">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">Patterns to review</span>
-              <h2>Possible alternative conceptions</h2>
+              <span className="eyebrow">Check these patterns</span>
+              <h2>Possible misconceptions</h2>
             </div>
           </div>
           <div className="signal-list warning">
@@ -306,26 +306,26 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
       <section className="research-boundary">
         <div className="boundary-icon">R</div>
         <div>
-          <span className="eyebrow">Research boundary</span>
-          <h2>Primary outcomes stay hidden until the session is closed.</h2>
+          <span className="eyebrow">Research scoring</span>
+          <h2>Learning results stay hidden until the session closes.</h2>
           <p>
-            Initial, revision, and near-transfer responses are exported for blinded human scoring.
-            ExitLoop does not generate the targeted-repair outcome, a learning score, or a mastery
+            The first explanation, revision, and new example are exported for review by a person
+            who does not know how each question was selected. ExitLoop does not generate a learning score or mastery
             label.
           </p>
         </div>
         <div className="condition-balance">
-          <span>Response-specific routing</span>
+          <span>Questions selected by AI</span>
           <strong>{snapshot.conditionCounts.adaptive}</strong>
-          <small>students receive an AI-selected follow-up</small>
+          <small>students receive a question selected by AI</small>
         </div>
       </section>
 
       {snapshot.session.status === "closed" ? <form className="panel teacher-action-form stack-lg" onSubmit={saveInstructionalAction}>
         <div className="section-heading">
           <div>
-            <span className="eyebrow">Instructional actionability</span>
-            <h2>What will you do with this evidence?</h2>
+            <span className="eyebrow">Your next step</span>
+            <h2>What will you teach or clarify next?</h2>
           </div>
           {snapshot.teacherAction ? (
             <span className="info-chip">Recorded</span>

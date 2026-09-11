@@ -50,7 +50,7 @@ function participantPepper() {
 function buildDemoState(): MemoryState {
   const session: StudySession = {
     id: "demo-session",
-    title: "Period 3 · Trait inheritance",
+    title: "Period 3: Trait inheritance",
     joinCode: "GEN7",
     contentVersionId: traitInheritancePack.versionId,
     status: "active",

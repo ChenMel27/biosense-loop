@@ -10,7 +10,7 @@ export function Brand() {
       </span>
       <span>
         <strong>ExitLoop</strong>
-        <small>Understanding loop</small>
+        <small>Formative assessment</small>
       </span>
     </Link>
   );
@@ -21,9 +21,8 @@ export function AppHeader({ compact = false }: { compact?: boolean }) {
     <header className={compact ? "site-header compact" : "site-header"}>
       <div className="shell header-inner">
         <Brand />
-        <span className="research-badge">Classroom research preview</span>
+        <span className="research-badge">Research prototype</span>
       </div>
     </header>
   );
 }
-

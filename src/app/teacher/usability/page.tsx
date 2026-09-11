@@ -24,7 +24,7 @@ export default async function TeacherUsabilityPage() {
       <main className="shell usability-main stack-xl">
         <div className="button-row">
           <Link className="back-link" href="/teacher">← Teacher workspace</Link>
-          <span className="study-boundary-chip">Researcher-created simulation · no student data</span>
+          <span className="study-boundary-chip">Simulated responses. No student data.</span>
         </div>
         <TeacherUsabilityWorkspace
           contentPack={traitInheritancePack}

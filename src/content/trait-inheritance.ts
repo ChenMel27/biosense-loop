@@ -276,7 +276,7 @@ export const traitInheritancePack: ContentPack = {
     },
   ],
   surveyDisclosure:
-    "This activity uses AI to select one teacher-written follow-up question based on the ideas in your explanation. It is not graded. Your teacher makes instructional decisions, and research scoring is completed separately by people.",
+    "AI selects one follow up question from a list approved by your teacher, based on the ideas in your explanation. The activity is not graded. Your teacher decides what the class should review next.",
 };
 
 export const contentPacks = [traitInheritancePack] as const;

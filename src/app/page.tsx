@@ -9,28 +9,28 @@ export default function Home() {
       <main>
         <section className="hero shell">
           <div className="hero-copy">
-            <span className="eyebrow">Before the bell rings</span>
-            <h1>Turn a quick check into a second chance to understand.</h1>
+            <span className="eyebrow">A clearer exit ticket</span>
+            <h1>Find gaps in understanding before class ends.</h1>
             <p>
-              ExitLoop is designed for K–12 classrooms. This first seventh-grade biology pilot helps
-              students explain an idea, reconsider one teacher-defined relationship, and revise—while
-              teachers see patterns they can act on.
+              Students explain what they understand and receive one follow up question based on
+              their response. They revise their answer while teachers get a clear view of the ideas
+              the class may need to revisit.
             </p>
             <div className="button-row">
               <Link className="button primary large" href="/student">Join as a student</Link>
               <Link className="button secondary large" href="/teacher/login">Teacher workspace</Link>
             </div>
             <div className="trust-row">
-              <span><b>Low-stakes</b> and ungraded</span>
-              <span><b>Teacher-authored</b> prompts</span>
-              <span><b>Human-scored</b> research outcomes</span>
+              <span><b>Low pressure</b> and ungraded</span>
+              <span><b>Questions approved</b> by teachers</span>
+              <span><b>Research results</b> scored by people</span>
             </div>
           </div>
           <div className="hero-visual" aria-label="ExitLoop activity loop illustration">
             <div className="loop-orbit">
-              <div className="loop-center"><span>One class</span><strong>idea</strong><small>made visible</small></div>
+              <div className="loop-center"><span>One class</span><strong>check</strong><small>made useful</small></div>
               <div className="orbit-step step-one"><b>1</b><span>Explain</span></div>
-              <div className="orbit-step step-two"><b>2</b><span>Reconsider</span></div>
+              <div className="orbit-step step-two"><b>2</b><span>Review</span></div>
               <div className="orbit-step step-three"><b>3</b><span>Revise</span></div>
               <div className="orbit-step step-four"><b>4</b><span>Apply</span></div>
             </div>
@@ -38,20 +38,20 @@ export default function Home() {
         </section>
         <section className="problem-band">
           <div className="shell problem-grid">
-            <div><span className="eyebrow light">The classroom problem</span><h2>A one-response exit ticket often ends when the useful evidence begins.</h2></div>
-            <p>Biology ideas build on one another. ExitLoop closes a short formative-assessment loop inside the lesson without turning the final minutes into another graded quiz.</p>
+            <div><span className="eyebrow light">The classroom problem</span><h2>One answer rarely shows exactly what a student misunderstood.</h2></div>
+            <p>Biology concepts build on one another. ExitLoop gives students a chance to work through one gap while the lesson is still fresh.</p>
           </div>
         </section>
         <section className="shell feature-section">
-          <div className="section-heading centered"><span className="eyebrow">Designed for a real classroom</span><h2>Focused enough for twelve minutes. Rigorous enough for research.</h2></div>
+          <div className="section-heading centered"><span className="eyebrow">Designed for a real classroom</span><h2>Built for the last twelve minutes of class.</h2></div>
           <div className="feature-grid">
-            <article><span>01</span><h3>Teacher-governed</h3><p>The teacher owns the target ideas, possible misconceptions, and every prompt a student can see.</p></article>
-            <article><span>02</span><h3>Explanation-centered</h3><p>Students construct and revise scientific relationships instead of selecting a flashcard answer.</p></article>
-            <article><span>03</span><h3>Auditable by design</h3><p>Initial, revised, and near-transfer responses remain versioned for human scoring and analysis.</p></article>
+            <article><span>01</span><h3>Teacher controlled</h3><p>Teachers review the science ideas, possible misconceptions, and every question students can receive.</p></article>
+            <article><span>02</span><h3>Based on explanations</h3><p>Students explain their reasoning in their own words, then revise it after one focused question.</p></article>
+            <article><span>03</span><h3>Easy to review</h3><p>The class summary shows common patterns and links each count to the responses behind it.</p></article>
           </div>
         </section>
       </main>
-      <footer className="site-footer"><div className="shell"><span>ExitLoop · Research prototype</span><span>AI supports routing; teachers retain authority.</span></div></footer>
+      <footer className="site-footer"><div className="shell"><span>ExitLoop research prototype</span><span>AI selects questions. Teachers make decisions.</span></div></footer>
     </div>
   );
 }
