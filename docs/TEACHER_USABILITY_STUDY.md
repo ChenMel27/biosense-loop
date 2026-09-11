@@ -2,7 +2,7 @@
 
 ## Current research scope
 
-This cycle evaluates the teacher-facing design tools, not student learning. Two to five high school biology teachers will use ExitLoop remotely for approximately 45–60 minutes. They will think aloud while completing four tasks, then answer usability questions and take part in a short interview.
+This cycle evaluates the teacher-facing design tools, not student learning. The study will aim for five secondary science teachers and may include up to ten. Each teacher will use ExitLoop remotely for approximately 45–60 minutes, think aloud while completing four tasks, answer usability questions, and take part in a short interview.
 
 No students participate in this study. The class shown in ExitLoop contains 18 researcher-written examples. These examples are system-demonstration data only. They cannot be reported as evidence that students learned or that the intervention was effective.
 
@@ -66,9 +66,11 @@ The writing is intentionally varied so teachers can judge whether the labels, fo
 
 The software does not collect a teacher name, student data, or claims of student learning in this study. Think-aloud and interview recording procedures must follow the approved IRB protocol before data collection begins.
 
+A separate IRB-approved demographics questionnaire will record relevant teaching background and experience. Abeera will prepare and manage that questionnaire, so those fields are not collected by ExitLoop.
+
 ## Analysis plan
 
-With only two to five teachers, results are formative and descriptive. Report each participant's task completion, task times, System Usability Scale score, ExitLoop-specific ratings, classification-review judgments, selected pattern, and next action. Summarize medians and ranges only when useful; show individual results when the small sample would make an average misleading.
+With five to ten teachers, results remain formative and descriptive. Report each participant's task completion, task times, System Usability Scale score, ExitLoop-specific ratings, classification-review judgments, selected pattern, and next action. Summarize medians and ranges only when useful; show individual results when the small sample would make an average misleading.
 
 Analyze think-aloud, correction, and interview responses for recurring usability problems, trust concerns, desired teacher controls, and information needed for instructional decisions. Keep claims limited to usability, interpretability, and design feasibility. Do not claim student learning, classroom effectiveness, or general usability across all biology teachers.
 

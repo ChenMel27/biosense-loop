@@ -2,7 +2,7 @@
 
 ## Current study boundary
 
-The current research cycle collects data from two to five high school biology teachers using the teacher usability workspace. It does not collect student data. The simulated explanations are researcher-written system-demonstration content.
+The current research cycle aims to collect data from five secondary science teachers and may include up to ten. Participants use the teacher usability workspace. The study does not collect student data, and the simulated explanations are researcher-written system-demonstration content.
 
 Current teacher-study fields are stored in `teacher_usability_submissions`:
 
