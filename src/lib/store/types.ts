@@ -11,6 +11,8 @@ import type {
   StudySession,
   StudentSurvey,
   TeacherInstructionalAction,
+  TeacherActivityConfiguration,
+  TeacherContentDraft,
   TeacherUsabilityEvent,
   TeacherUsabilitySubmission,
 } from "@/lib/domain/types";
@@ -20,11 +22,13 @@ export interface CreateSessionInput {
   participantCount: number;
   durationMinutes: number;
   contentVersionId: string;
+  contentDraft?: TeacherContentDraft;
 }
 
 export interface ResearchStore {
   getSessionByJoinCode(joinCode: string): Promise<StudySession | null>;
   getSession(sessionId: string): Promise<StudySession | null>;
+  getTeacherActivityConfiguration(sessionId: string): Promise<TeacherActivityConfiguration | null>;
   getParticipantByCodeHash(
     sessionId: string,
     codeHash: string,

@@ -317,7 +317,7 @@ export function StudentActivity() {
             <ScaleQuestion name="pressure" label="I felt pressure or stress during this activity." low="None" high="A lot" value={pressure} onChange={setPressure} />
             <ScaleQuestion name="helpfulness" label="The follow up question helped me review my explanation." low="Not at all" high="A lot" value={helpfulness} onChange={setHelpfulness} />
             <div className="field">
-              <label htmlFor="student-comment">Anything else you want the research team to know? <span>(optional)</span></label>
+              <label htmlFor="student-comment">Anything else you want your teacher to know? <span>(optional)</span></label>
               <textarea id="student-comment" rows={3} maxLength={1000} value={comment} onChange={(event) => setComment(event.target.value)} />
             </div>
             {error ? <p className="form-error" role="alert">{error}</p> : null}

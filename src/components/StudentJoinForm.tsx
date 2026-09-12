@@ -3,10 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function StudentJoinForm() {
+export function StudentJoinForm({
+  initialJoinCode = "",
+  initialParticipantCode = "",
+}: {
+  initialJoinCode?: string;
+  initialParticipantCode?: string;
+}) {
   const router = useRouter();
-  const [joinCode, setJoinCode] = useState("");
-  const [participantCode, setParticipantCode] = useState("");
+  const [joinCode, setJoinCode] = useState(initialJoinCode);
+  const [participantCode, setParticipantCode] = useState(initialParticipantCode);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 

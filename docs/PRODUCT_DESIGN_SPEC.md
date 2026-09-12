@@ -2,7 +2,7 @@
 
 ## 1. Product decision
 
-ExitLoop is designed as a K–12 formative-assessment platform. The current MVP evaluates the teacher-facing design tools with five to ten secondary science teachers and a simulated class. It uses trait inheritance as demonstration content, but the product direction can expand to other documented biology concepts after the diagnostic workflow is usable. The MVP uses a fixed, research-grounded question bank. It does not allow the classifier to write student-facing questions, grade work, or determine mastery.
+ExitLoop is designed as a K–12 formative-assessment platform. The current MVP evaluates the teacher-facing design tools with two to five secondary science teachers and a simulated class. It uses trait inheritance as demonstration content, but the product direction can expand to other documented biology concepts after the diagnostic workflow is usable. The MVP uses a fixed, research-grounded question bank. It does not allow the classifier to write student-facing questions, grade work, or determine mastery.
 
 The S7L3.a student workflow remains a future classroom phase. It is not the current study and cannot begin without the required IRB and district approvals. Every student in that workflow receives a response-specific follow-up question.
 
@@ -23,7 +23,8 @@ Genetics-education research shows that students often struggle to coordinate the
 
 ### Teacher
 
-- Review and edit the activity prompt, target ideas, possible misconceptions, and follow-up questions.
+- Start with an empty activity form or optionally upload lesson notes, slides, or a handout for an AI-created first draft.
+- Add, remove, rename, and edit the activity prompt, target ideas, possible misconceptions, and follow-up questions. For each response-specific question, select the missing ideas or possible misconceptions that should route to it.
 - Inspect the response text and reasoning behind a classification rather than accepting a hidden label.
 - Review a short class-level summary of possible patterns, not a raw transcript dump.
 - Receive a content-specific response idea for each visible pattern.
@@ -47,14 +48,17 @@ Out of scope: ecosystem matter/energy, Punnett-square procedures, inheritance pr
 ## 5. Current teacher usability flow
 
 1. A teacher signs in with a pseudonymous study ID and begins a remote think-aloud session.
-2. The teacher reviews and may edit the demonstration prompt, target ideas, possible misconceptions, and prewritten follow-up questions.
-3. The teacher inspects at least five of 18 researcher-written explanations with frozen AI-generated labels, routing reasons, confidence values, and selected questions.
-4. For each inspected example, the teacher records agree, needs revision, or unsure and may describe a correction.
-5. The teacher sees the top two patterns first, can inspect supporting response excerpts or open the full list, selects the most important pattern, explains what it means, and records a next instructional action and confidence rating.
-6. The teacher completes the ten-item System Usability Scale, two ExitLoop-specific ratings, and open feedback.
-7. The system stores task times and exports the teacher study data as CSV or JSON.
+2. The teacher can start with an empty activity form. Uploading lesson material is an optional shortcut: AI organizes the material into the same editable form, but the teacher remains responsible for checking its science, sources, age level, and questions.
+3. The teacher reviews and may edit the shared demonstration prompt, target ideas, possible misconceptions, and prewritten follow-up questions. The teacher also reviews which ideas and misconceptions route to each question. The interface identifies trait inheritance as one worked example, not a universal template.
+4. The teacher creates a session and receives a class code. The researcher joins with the reserved live participant code and completes the student activity.
+5. ExitLoop uses the edited content to analyze the researcher's response and select an approved follow-up question. It combines that response with 18 researcher-written simulations.
+6. The teacher inspects the combined class, reviews at least five AI outputs, and records agree, needs revision, or unsure.
+7. The teacher sees the top two patterns first, can inspect the responses behind each count, selects the most important pattern, and records a next instructional action and confidence rating.
+8. The teacher completes the ten-item System Usability Scale, two ExitLoop-specific ratings, and open feedback. The system stores task times and exports the study data as CSV or JSON.
 
-The simulation is not student data and cannot be used as evidence of student learning.
+The live response is entered by the researcher, not a student. The full demonstration class cannot be used as evidence of student learning.
+
+The uploaded lesson draft and the shared inheritance demonstration are intentionally separate in the current study. The 18 frozen responses only make sense with the shared inheritance content. A later product iteration will version and save teacher-approved generated content packs before they can open a live session.
 
 ## 6. Future classroom flow
 
@@ -115,6 +119,15 @@ The model is a router, not a tutor or grader.
 - `store: false` and a hashed attempt safety identifier.
 - Deterministic fallback whenever AI is disabled, unapproved, timed out, invalid, or below threshold.
 - Teacher-authored prompts and teacher-reviewed content pack are versioned and frozen before data collection.
+
+### Lesson-draft authoring
+
+- Input: a teacher-uploaded instructional file and optional pasted context. Student work and identifying information are prohibited.
+- Manual alternative: a teacher can open the same form without uploading anything and enter every field directly.
+- Output: editable lesson title, student context, explanation prompt, three to five target ideas, candidate misconceptions, a follow-up bank, source notes, and a teacher-review checklist.
+- The API uses direct file input, strict structured output, a 4 MB application limit, and `store: false`.
+- The model may only name source support present in the uploaded material. Otherwise it marks the misconception as needing research or teacher confirmation.
+- Generated content is a draft. It is not automatically approved, published, or used to classify student work.
 
 ## 9. Teacher summary requirements
 

@@ -30,7 +30,7 @@ export default async function TeacherLoginPage({
           <Link className="back-link" href="/">← Back to home</Link>
         </section>
         <section className="auth-card">
-          <div><span className="eyebrow">Teacher access</span><h2>Sign in</h2><p>Enter the password provided for this study.</p></div>
+          <div><span className="eyebrow">Teacher access</span><h2>Sign in</h2><p>Enter the teacher password.</p></div>
           <TeacherLoginForm redirectTo={redirectTo} />
         </section>
       </main>

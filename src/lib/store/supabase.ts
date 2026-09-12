@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { traitInheritancePack } from "@/content/trait-inheritance";
+
 import {
   adaptiveConditions,
   generateJoinCode,
@@ -22,6 +24,7 @@ import type {
   StudySession,
   StudentSurvey,
   TeacherInstructionalAction,
+  TeacherActivityConfiguration,
   TeacherUsabilityEvent,
   TeacherUsabilitySubmission,
 } from "@/lib/domain/types";
@@ -267,6 +270,20 @@ export class SupabaseResearchStore implements ResearchStore {
       .maybeSingle();
     if (error) throw new Error(error.message);
     return data ? mapSession(data as SessionRow) : null;
+  }
+
+  async getTeacherActivityConfiguration(sessionId: string) {
+    const { data, error } = await this.client
+      .from("events")
+      .select("payload")
+      .eq("session_id", sessionId)
+      .eq("event_type", "teacher_activity_configured")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    const payload = data?.payload as Record<string, unknown> | undefined;
+    return (payload?.configuration as TeacherActivityConfiguration | undefined) ?? null;
   }
 
   async getParticipantByCodeHash(sessionId: string, codeHash: string) {
@@ -577,6 +594,20 @@ export class SupabaseResearchStore implements ResearchStore {
     }));
     const participantQuery = await this.client.from("participants").insert(rows);
     if (participantQuery.error) throw new Error(participantQuery.error.message);
+    if (input.contentDraft) {
+      const configuration: TeacherActivityConfiguration = {
+        mode: "teacher_authored",
+        contentDraft: input.contentDraft,
+      };
+      const configurationQuery = await this.client.from("events").insert({
+        id: randomUUID(),
+        session_id: session.id,
+        attempt_id: null,
+        event_type: "teacher_activity_configured",
+        payload: { configuration },
+      });
+      if (configurationQuery.error) throw new Error(configurationQuery.error.message);
+    }
     return { session, participantCodes };
   }
 
@@ -615,6 +646,7 @@ export class SupabaseResearchStore implements ResearchStore {
     if (teacherActionQuery.error) throw new Error(teacherActionQuery.error.message);
     const participants = ((participantQuery.data ?? []) as ParticipantRow[]).map(mapParticipant);
     const attempts = ((attemptQuery.data ?? []) as AttemptRow[]).map(mapAttempt);
+    const activityConfiguration = await this.getTeacherActivityConfiguration(sessionId);
     const counts: DashboardSnapshot["counts"] = {
       not_started: participants.length - attempts.length,
       initial: 0,
@@ -649,7 +681,8 @@ export class SupabaseResearchStore implements ResearchStore {
         (id) => (misconceptionCounts[id] = (misconceptionCounts[id] ?? 0) + 1),
       );
     });
-    if (session.status === "closed" && attempts.length) {
+    let responses: StudyResponse[] = [];
+    if (attempts.length) {
       const responseQuery = await this.client
         .from("response_stages")
         .select("*")
@@ -659,7 +692,9 @@ export class SupabaseResearchStore implements ResearchStore {
         )
         .eq("stage", "initial");
       if (responseQuery.error) throw new Error(responseQuery.error.message);
-      const responses = ((responseQuery.data ?? []) as ResponseRow[]).map(mapResponse);
+      responses = ((responseQuery.data ?? []) as ResponseRow[]).map(mapResponse);
+    }
+    if (session.status === "closed" && attempts.length) {
       for (const decision of decisions) {
         const attempt = attempts.find((item) => item.id === decision.attemptId);
         const response = responses.find((item) => item.attemptId === decision.attemptId);
@@ -679,18 +714,40 @@ export class SupabaseResearchStore implements ResearchStore {
         }
       }
     }
+    const submissionRows: DashboardSnapshot["submissionRows"] = attempts
+      .map((attempt) => {
+        const response = responses.find((item) => item.attemptId === attempt.id);
+        const decision = decisions.find((item) => item.attemptId === attempt.id);
+        return {
+          participantTag: attempt.participantTag,
+          stage: attempt.stage,
+          responseText: response?.responseText ?? null,
+          demonstratedIdeaIds: decision?.demonstratedIdeaIds ?? [],
+          missingIdeaIds: decision?.missingIdeaIds ?? [],
+          possibleAlternativeConceptionIds:
+            decision?.possibleAlternativeConceptionIds ?? [],
+          classificationConfidence: decision?.classificationConfidence ?? null,
+          displayedPromptId: decision?.displayedPromptId ?? null,
+          provider: decision?.provider ?? null,
+        };
+      })
+      .sort((a, b) => a.participantTag.localeCompare(b.participantTag));
     return {
       session,
+      activityConfiguration,
       participantCount: participants.length,
       counts,
       conditionCounts: {
         adaptive: participants.length,
       },
-      fallbackCount: decisions.filter((item) => item.fallbackReason).length,
+      fallbackCount: decisions.filter(
+        (item) => item.displayedPromptId === traitInheritancePack.fallbackPrompt.id,
+      ).length,
       ideaCounts,
       missingIdeaCounts,
       misconceptionCounts,
       patternExamples,
+      submissionRows,
       recentEvents: ((eventQuery.data ?? []) as EventRow[]).map(mapEvent),
       teacherAction: teacherActionQuery.data
         ? mapTeacherAction(teacherActionQuery.data as TeacherActionRow)
@@ -704,7 +761,12 @@ export class SupabaseResearchStore implements ResearchStore {
       .select("*")
       .eq("session_id", sessionId);
     if (error) throw new Error(error.message);
-    return (data ?? []).map((row) => ({ ...row, condition: "adaptive" })) as Array<
+    return (data ?? []).map((row) => {
+      const cleaned = { ...row } as Record<string, string | number | boolean | null>;
+      delete cleaned.teacher_study_run_id;
+      delete cleaned.response_source;
+      return { ...cleaned, condition: "adaptive" };
+    }) as Array<
       Record<string, string | number | boolean | null>
     >;
   }

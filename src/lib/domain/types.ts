@@ -125,6 +125,7 @@ export interface AttemptBundle {
 
 export interface DashboardSnapshot {
   session: StudySession;
+  activityConfiguration: TeacherActivityConfiguration | null;
   participantCount: number;
   counts: Record<"not_started" | AttemptStage, number>;
   conditionCounts: Record<Condition, number>;
@@ -140,6 +141,17 @@ export interface DashboardSnapshot {
       displayedPromptId: string;
     }>
   >;
+  submissionRows: Array<{
+    participantTag: string;
+    stage: AttemptStage;
+    responseText: string | null;
+    demonstratedIdeaIds: string[];
+    missingIdeaIds: string[];
+    possibleAlternativeConceptionIds: string[];
+    classificationConfidence: number | null;
+    displayedPromptId: string | null;
+    provider: AiDecision["provider"] | null;
+  }>;
   recentEvents: StudyEvent[];
   teacherAction: TeacherInstructionalAction | null;
 }
@@ -167,6 +179,32 @@ export interface TeacherUsabilityTaskMetric {
   completed: boolean;
 }
 
+export interface TeacherContentDraft {
+  title?: string;
+  gradeBand?: string;
+  scopeBoundary?: string;
+  initialPrompt: string;
+  nearTransferPrompt?: string;
+  completionPromptId?: string;
+  ideaIds?: string[];
+  ideaLabels?: Record<string, string>;
+  ideaDescriptions: Record<string, string>;
+  ideaTeacherActions?: Record<string, string>;
+  misconceptionIds?: string[];
+  misconceptionLabels?: Record<string, string>;
+  misconceptionDescriptions: Record<string, string>;
+  misconceptionTeacherActions?: Record<string, string>;
+  followUpIds?: string[];
+  followUpTitles?: Record<string, string>;
+  followUpPrompts: Record<string, string>;
+  followUpTargetIds?: Record<string, string[]>;
+}
+
+export interface TeacherActivityConfiguration {
+  mode: "teacher_authored";
+  contentDraft: TeacherContentDraft;
+}
+
 export interface TeacherUsabilitySubmission {
   id: string;
   runId: string;
@@ -174,12 +212,7 @@ export interface TeacherUsabilitySubmission {
   contentVersionId: string;
   startedAt: string;
   completedAt: string;
-  authoringDraft: {
-    initialPrompt: string;
-    ideaDescriptions: Record<string, string>;
-    misconceptionDescriptions: Record<string, string>;
-    followUpPrompts: Record<string, string>;
-  };
+  authoringDraft: TeacherContentDraft;
   reviews: TeacherUsabilityReview[];
   classSummary: {
     primaryPatternId: string;

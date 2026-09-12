@@ -23,7 +23,7 @@ export default function Home() {
             <div className="trust-row">
               <span><b>Low pressure</b> and ungraded</span>
               <span><b>Questions approved</b> by teachers</span>
-              <span><b>Research results</b> scored by people</span>
+              <span><b>Teacher review</b> before classroom use</span>
             </div>
           </div>
           <div className="hero-visual" aria-label="ExitLoop activity loop illustration">
@@ -51,7 +51,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="site-footer"><div className="shell"><span>ExitLoop research prototype</span><span>AI selects questions. Teachers make decisions.</span></div></footer>
+      <footer className="site-footer"><div className="shell"><span>ExitLoop is a research-informed educational prototype.</span><span>AI selects questions. Teachers make decisions.</span></div></footer>
     </div>
   );
 }

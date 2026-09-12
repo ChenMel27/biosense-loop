@@ -3,7 +3,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AppHeader } from "@/components/Brand";
-import { CreateSessionForm } from "@/components/CreateSessionForm";
 import { getTeacherIdentity } from "@/lib/auth/guards";
 import { getStore, isDemoMode } from "@/lib/store";
 
@@ -18,22 +17,21 @@ export default async function TeacherPage() {
       <AppHeader compact />
       <main className="shell teacher-main stack-xl">
         <section className="workspace-heading">
-          <div><span className="eyebrow">Teacher workspace</span><h1>Review ExitLoop</h1><p>Start the current teacher study or open the future classroom demo.</p></div>
-          <div className="workspace-actions"><CreateSessionForm /><form action="/api/teacher/logout" method="post"><button className="button ghost">Sign out</button></form></div>
+          <div><span className="eyebrow">Teacher workspace</span><h1>Build an activity and check class understanding</h1><p>Start with your lesson material, review the AI draft, and open a session for students.</p></div>
+          <div className="workspace-actions"><form action="/api/teacher/logout" method="post"><button className="button ghost">Sign out</button></form></div>
         </section>
         {isDemoMode() ? <div className="demo-banner"><strong>Local demonstration mode</strong><span>Data is stored in server memory and resets when the server restarts. Connect Supabase before classroom use.</span></div> : null}
         <section className="teacher-study-card">
           <div className="stack-md">
-            <span className="eyebrow">Current research phase</span>
-            <h2>Review a simulated class</h2>
-            <p>Check the lesson setup and AI results for 18 sample responses. Then choose what you would teach next and rate the tool. The examples were written by researchers, so no student data is collected.</p>
+            <span className="eyebrow">New activity</span>
+            <h2>Create from lesson notes or slides</h2>
+            <p>AI prepares an editable first draft of the student question, target ideas, possible misconceptions, and follow-up questions. Nothing reaches students until you review it.</p>
           </div>
           <div className="button-row">
-            <Link className="button primary" href="/teacher/usability">Start teacher study</Link>
-            <a className="button secondary" href="/api/teacher/usability/export?format=csv">Download study CSV</a>
+            <Link className="button primary" href="/teacher/activity-builder">Build an activity</Link>
           </div>
         </section>
-        <div className="section-heading"><div><span className="eyebrow">Future work</span><h2>Classroom prototype</h2></div><p className="small-note">The student classroom study is planned for a later approval cycle. It is not part of the current teacher study.</p></div>
+        <div className="section-heading"><div><span className="eyebrow">Classroom sessions</span><h2>Recent sessions</h2></div><p className="small-note">Open a session to monitor progress, review responses, or export the data.</p></div>
         <section className="session-list">
           {sessions.map((session) => (
             <Link key={session.id} href={`/teacher/session/${session.id}`} className="session-row">
@@ -44,7 +42,6 @@ export default async function TeacherPage() {
             </Link>
           ))}
         </section>
-        <section className="readiness-card"><div><span className="eyebrow">Future classroom research</span><h2>Classroom testing will need separate approval</h2></div><ol><li>Teacher and content review</li><li>IRB and district approval</li><li>Permission and assent</li><li>Device rehearsal and load test</li></ol></section>
       </main>
     </div>
   );

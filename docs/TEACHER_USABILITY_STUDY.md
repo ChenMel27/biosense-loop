@@ -2,36 +2,36 @@
 
 ## Current research scope
 
-This cycle evaluates the teacher-facing design tools, not student learning. The study will aim for five secondary science teachers and may include up to ten. Each teacher will use ExitLoop remotely for approximately 45–60 minutes, think aloud while completing four tasks, answer usability questions, and take part in a short interview.
+This cycle evaluates the teacher-facing design tools, not student learning. The study will aim for two to five secondary science teachers. Each teacher will use ExitLoop remotely for approximately 45–60 minutes, think aloud while completing four tasks, answer usability questions, and take part in a short interview.
 
-No students participate in this study. The class shown in ExitLoop contains 18 researcher-written examples. These examples are system-demonstration data only. They cannot be reported as evidence that students learned or that the intervention was effective.
+No students participate in this study. The class shown in ExitLoop contains 18 researcher-written examples plus one live response entered by the researcher while demonstrating the student view. All 19 responses are system-demonstration data. They cannot be reported as evidence that students learned or that the intervention was effective.
 
 A student-facing classroom study remains planned future work. Every student would receive a response-specific follow-up question. The study would require separate IRB, district, school, consent, and assent approvals before any student data are collected.
 
 ## Study tasks
 
-### 1. Review and edit the diagnostic activity
+### 1. Review, edit, and launch the diagnostic activity
 
-The teacher reviews the student prompt, target scientific ideas, possible misconceptions, and prewritten follow-up questions. The teacher may edit the draft language to make it scientifically accurate, understandable, and instructionally useful.
+The teacher reviews the student prompt, target scientific ideas, possible misconceptions, and prewritten follow-up questions. The teacher may add, remove, or edit these items and select which missing ideas or possible misconceptions should route to each response-specific question. A completion question and clarification question remain required because they cover complete and uncertain responses. The teacher then creates a session and receives a class code. The researcher opens the student page with the session's live participant code and completes the activity while the teacher watches. Teacher edits are used in this live demonstration. The 18 frozen examples do not change.
 
 ### 2. Inspect classification and routing
 
-The teacher reviews at least five of the 18 simulated student explanations. Each example shows:
+The teacher reviews the live demonstration response with the 18 simulated explanations and checks at least five outputs. Each response shows:
 
-* the simulated response
+* the response text
 * target ideas marked present or missing
 * any possible misconception identified
 * the reason for the route
 * the prewritten follow-up question selected
-* the frozen classifier confidence
+* the classifier confidence
 
 The teacher records whether they agree, think the output needs revision, or are unsure. They may explain what should change.
 
-OpenAI `gpt-5.6-sol` classified all 18 researcher-written responses on September 9, 2026 using the constrained schema, current content bank, and `store: false`. Those outputs are frozen for comparability, so every participant reviews the same responses and system output. The outputs are not treated as correct by default. Teacher judgments are the evaluation data.
+OpenAI `gpt-5.6-sol` classified all 18 researcher-written responses on September 9, 2026 using the constrained schema, current content bank, and `store: false`. Those outputs are frozen for comparability, so every participant reviews the same comparison set. The researcher's live response is classified during the session to demonstrate the complete student flow. None of the outputs are treated as correct by default. Teacher judgments are the evaluation data.
 
 ### 3. Use the class summary
 
-The teacher first sees the two most common missing ideas or possible misconceptions so the interface does not become another data-heavy dashboard. They can open the full list when needed. The summary shows the number of examples linked to each pattern, two supporting response excerpts, and a short teacher-authored instructional response. The teacher selects the most important pattern, explains what it means, records what they would teach or check next, and rates their confidence.
+The teacher first sees the two most common missing ideas or possible misconceptions across the combined 19-response demonstration. They can open the full list when needed. The summary shows the number of responses linked to each pattern, supporting response excerpts, and a short teacher-authored instructional response. The teacher selects the most important pattern, explains what it means, records what they would teach or check next, and rates their confidence.
 
 ### 4. Rate the system
 
@@ -70,7 +70,7 @@ A separate IRB-approved demographics questionnaire will record relevant teaching
 
 ## Analysis plan
 
-With five to ten teachers, results remain formative and descriptive. Report each participant's task completion, task times, System Usability Scale score, ExitLoop-specific ratings, classification-review judgments, selected pattern, and next action. Summarize medians and ranges only when useful; show individual results when the small sample would make an average misleading.
+With two to five teachers, results remain formative and descriptive. Report each participant's task completion, task times, System Usability Scale score, ExitLoop-specific ratings, classification-review judgments, selected pattern, and next action. Summarize medians and ranges only when useful; show individual results when the small sample would make an average misleading.
 
 Analyze think-aloud, correction, and interview responses for recurring usability problems, trust concerns, desired teacher controls, and information needed for instructional decisions. Keep claims limited to usability, interpretability, and design feasibility. Do not claim student learning, classroom effectiveness, or general usability across all biology teachers.
 
@@ -80,7 +80,7 @@ The live student prototype calls `classifyForRouting` after every student submit
 
 The server validates this structured output. If confidence is below 0.55 or the model abstains, ExitLoop selects the clarification prompt. Otherwise, code uses the returned ID to look up the prewritten question. The model does not write the student-facing question, assign a score, determine mastery, or create a new misconception label. If external routing is disabled, unavailable, invalid, or below the accepted boundary, deterministic code selects an approved prompt.
 
-The teacher-usability study does not rerun the classifier for each participant. The model was run once on the 18 simulated samples and its outputs were saved in `src/content/simulated-class.ts`. This uses the actual AI classifier while preventing model variation from giving different teachers different study materials. Teacher judgments can be used to revise the taxonomy, question bank, classifier instructions, and future test cases.
+The 18 simulated samples are not reclassified for each teacher. Their outputs are saved in `src/content/simulated-class.ts`, which prevents model variation from giving teachers different comparison sets. The researcher's live demonstration response does make a new classifier call so the teacher can see the real product flow. Teacher judgments can be used to revise the taxonomy, question bank, classifier instructions, and future test cases.
 
 ## Data export
 

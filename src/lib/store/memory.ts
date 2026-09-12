@@ -21,6 +21,7 @@ import type {
   StudySession,
   StudentSurvey,
   TeacherInstructionalAction,
+  TeacherActivityConfiguration,
   TeacherUsabilityEvent,
   TeacherUsabilitySubmission,
 } from "@/lib/domain/types";
@@ -128,6 +129,17 @@ export class MemoryResearchStore implements ResearchStore {
 
   async getSession(sessionId: string) {
     return this.state.sessions.find((session) => session.id === sessionId) ?? null;
+  }
+
+  async getTeacherActivityConfiguration(sessionId: string) {
+    const event = [...this.state.events]
+      .reverse()
+      .find(
+        (item) =>
+          item.sessionId === sessionId &&
+          item.eventType === "teacher_activity_configured",
+      );
+    return (event?.payload.configuration as TeacherActivityConfiguration | undefined) ?? null;
   }
 
   async getParticipantByCodeHash(sessionId: string, codeHash: string) {
@@ -287,6 +299,20 @@ export class MemoryResearchStore implements ResearchStore {
       return { participantTag, participantCode, condition: conditions[index] };
     });
     this.state.sessions.push(session);
+    if (input.contentDraft) {
+      const configuration: TeacherActivityConfiguration = {
+        mode: "teacher_authored",
+        contentDraft: input.contentDraft,
+      };
+      this.state.events.push({
+        id: randomUUID(),
+        sessionId: session.id,
+        attemptId: null,
+        eventType: "teacher_activity_configured",
+        payload: { configuration },
+        createdAt: now(),
+      });
+    }
     return { session, participantCodes };
   }
 
@@ -315,6 +341,7 @@ export class MemoryResearchStore implements ResearchStore {
     const decisions = this.state.decisions.filter((decision) =>
       attempts.some((attempt) => attempt.id === decision.attemptId),
     );
+    const activityConfiguration = await this.getTeacherActivityConfiguration(sessionId);
     const ideaCounts: Record<string, number> = {};
     const missingIdeaCounts: Record<string, number> = {};
     const misconceptionCounts: Record<string, number> = {};
@@ -349,18 +376,42 @@ export class MemoryResearchStore implements ResearchStore {
         }
       }
     }
+    const submissionRows: DashboardSnapshot["submissionRows"] = attempts
+      .map((attempt) => {
+        const response = this.state.responses.find(
+          (item) => item.attemptId === attempt.id && item.stage === "initial",
+        );
+        const decision = decisions.find((item) => item.attemptId === attempt.id);
+        return {
+          participantTag: attempt.participantTag,
+          stage: attempt.stage,
+          responseText: response?.responseText ?? null,
+          demonstratedIdeaIds: decision?.demonstratedIdeaIds ?? [],
+          missingIdeaIds: decision?.missingIdeaIds ?? [],
+          possibleAlternativeConceptionIds:
+            decision?.possibleAlternativeConceptionIds ?? [],
+          classificationConfidence: decision?.classificationConfidence ?? null,
+          displayedPromptId: decision?.displayedPromptId ?? null,
+          provider: decision?.provider ?? null,
+        };
+      })
+      .sort((a, b) => a.participantTag.localeCompare(b.participantTag));
     return {
       session,
+      activityConfiguration,
       participantCount: participants.length,
       counts,
       conditionCounts: {
         adaptive: participants.length,
       },
-      fallbackCount: decisions.filter((item) => item.fallbackReason).length,
+      fallbackCount: decisions.filter(
+        (item) => item.displayedPromptId === traitInheritancePack.fallbackPrompt.id,
+      ).length,
       ideaCounts,
       missingIdeaCounts,
       misconceptionCounts,
       patternExamples,
+      submissionRows,
       recentEvents: this.state.events
         .filter((item) => item.sessionId === sessionId)
         .slice(-20)

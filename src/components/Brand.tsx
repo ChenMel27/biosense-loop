@@ -21,7 +21,6 @@ export function AppHeader({ compact = false }: { compact?: boolean }) {
     <header className={compact ? "site-header compact" : "site-header"}>
       <div className="shell header-inner">
         <Brand />
-        <span className="research-badge">Research prototype</span>
       </div>
     </header>
   );

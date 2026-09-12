@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { traitInheritancePack } from "@/content/trait-inheritance";
+import { applyTeacherContentDraft } from "@/content/teacher-draft";
 import type { DashboardSnapshot, StudySession } from "@/lib/domain/types";
 
 const actionOptions = [
@@ -22,6 +23,34 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
   >(initialSnapshot.teacherAction?.actionType ?? "");
   const [actionNote, setActionNote] = useState(initialSnapshot.teacherAction?.note ?? "");
   const [savingAction, setSavingAction] = useState(false);
+  const [showAllResponses, setShowAllResponses] = useState(false);
+
+  const contentPack = useMemo(
+    () =>
+      applyTeacherContentDraft(
+        traitInheritancePack,
+        snapshot.activityConfiguration?.contentDraft,
+      ),
+    [snapshot.activityConfiguration?.contentDraft],
+  );
+  const contentLabels = useMemo(
+    () =>
+      Object.fromEntries([
+        ...contentPack.ideas.map((item) => [item.id, item.label]),
+        ...contentPack.alternativeConceptions.map((item) => [item.id, item.label]),
+      ]),
+    [contentPack],
+  );
+  const prompts = useMemo(
+    () =>
+      Object.fromEntries(
+        [...contentPack.followUps, contentPack.fallbackPrompt].map((item) => [
+          item.id,
+          item,
+        ]),
+      ),
+    [contentPack],
+  );
 
   useEffect(() => {
     const timer = window.setInterval(async () => {
@@ -46,28 +75,28 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
     : 0;
   const ideaRows = useMemo(
     () =>
-      traitInheritancePack.ideas.map((idea) => ({
+      contentPack.ideas.map((idea) => ({
         ...idea,
         count: snapshot.ideaCounts[idea.id] ?? 0,
       })),
-    [snapshot.ideaCounts],
+    [contentPack.ideas, snapshot.ideaCounts],
   );
   const misconceptionRows = useMemo(
     () =>
-      traitInheritancePack.alternativeConceptions.map((idea) => ({
+      contentPack.alternativeConceptions.map((idea) => ({
         ...idea,
         count: snapshot.misconceptionCounts[idea.id] ?? 0,
       })),
-    [snapshot.misconceptionCounts],
+    [contentPack.alternativeConceptions, snapshot.misconceptionCounts],
   );
   const missingRows = useMemo(
     () =>
-      traitInheritancePack.ideas.map((idea) => ({
+      contentPack.ideas.map((idea) => ({
         ...idea,
         count: snapshot.missingIdeaCounts[idea.id] ?? 0,
         kind: "Missing relationship" as const,
       })),
-    [snapshot.missingIdeaCounts],
+    [contentPack.ideas, snapshot.missingIdeaCounts],
   );
   const priorityRows = useMemo(
     () =>
@@ -216,6 +245,67 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         </div>
       </section>
 
+      <section className="panel stack-lg">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">Responses received</span>
+            <h2>Student responses and selected questions</h2>
+          </div>
+          <span className="small-note">
+            {snapshot.submissionRows.filter((row) => row.responseText).length} of {snapshot.participantCount} initial responses
+          </span>
+        </div>
+        <div className="dashboard-response-list">
+          {(showAllResponses
+            ? snapshot.submissionRows
+            : snapshot.submissionRows.slice(0, 5)
+          ).map((row) => {
+            const prompt = row.displayedPromptId ? prompts[row.displayedPromptId] : null;
+            return (
+              <article className="dashboard-response" key={row.participantTag}>
+                <div className="dashboard-response-heading">
+                  <div>
+                    <span className="sample-id">{row.participantTag}</span>
+                    <strong>Participant {row.participantTag}</strong>
+                  </div>
+                  <span className="confidence-chip">
+                    {row.classificationConfidence === null
+                      ? row.stage === "initial"
+                        ? "Waiting for explanation"
+                        : "Waiting for AI result"
+                      : `${row.provider === "openai" ? "OpenAI" : "Fallback"} confidence ${Math.round(row.classificationConfidence * 100)}%`}
+                  </span>
+                </div>
+                <p className="dashboard-response-text">
+                  {row.responseText ?? "This participant has not submitted an initial explanation."}
+                </p>
+                {prompt ? (
+                  <div className="dashboard-routing-summary">
+                    <div>
+                      <small>Ideas not found</small>
+                      <span>{row.missingIdeaIds.map((id) => contentLabels[id] ?? id).join(", ") || "None"}</span>
+                    </div>
+                    <div>
+                      <small>Possible misconception</small>
+                      <span>{row.possibleAlternativeConceptionIds.map((id) => contentLabels[id] ?? id).join(", ") || "None"}</span>
+                    </div>
+                    <div>
+                      <small>Question selected</small>
+                      <span>{prompt.text}</span>
+                    </div>
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+        {snapshot.submissionRows.length > 5 ? (
+          <button className="button ghost" type="button" onClick={() => setShowAllResponses((shown) => !shown)}>
+            {showAllResponses ? "Show fewer responses" : `Show all ${snapshot.submissionRows.length} responses`}
+          </button>
+        ) : null}
+      </section>
+
       {snapshot.session.status === "closed" ? (
         <section className="panel stack-lg">
           <div className="section-heading">
@@ -304,15 +394,11 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
       </div> : null}
 
       <section className="research-boundary">
-        <div className="boundary-icon">R</div>
+        <div className="boundary-icon">T</div>
         <div>
-          <span className="eyebrow">Research scoring</span>
-          <h2>Learning results stay hidden until the session closes.</h2>
-          <p>
-            The first explanation, revision, and new example are exported for review by a person
-            who does not know how each question was selected. ExitLoop does not generate a learning score or mastery
-            label.
-          </p>
+          <span className="eyebrow">Teacher review</span>
+          <h2>The AI identifies patterns. The teacher decides what they mean.</h2>
+          <p>ExitLoop does not grade students or assign mastery. Open the responses behind each pattern before deciding what to clarify next.</p>
         </div>
         <div className="condition-balance">
           <span>Questions selected by AI</span>

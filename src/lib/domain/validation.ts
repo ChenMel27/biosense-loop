@@ -47,7 +47,7 @@ export const joinSchema = z.object({
 
 export const teacherSessionSchema = z.object({
   title: z.string().trim().min(4).max(120),
-  participantCount: z.number().int().min(2).max(40),
+  participantCount: z.number().int().min(1).max(40),
   durationMinutes: z.number().int().min(8).max(25).default(15),
 });
 
@@ -67,19 +67,48 @@ export const teacherUsabilityEventSchema = z.object({
   payload: z.record(z.string(), z.unknown()).default({}),
 });
 
+export const teacherContentDraftSchema = z.object({
+  title: z.string().trim().min(2).max(160).optional(),
+  gradeBand: z.string().trim().min(2).max(160).optional(),
+  scopeBoundary: z.string().trim().min(10).max(2_000).optional(),
+  initialPrompt: z.string().trim().min(20).max(4_000),
+  nearTransferPrompt: z.string().trim().min(20).max(4_000).optional(),
+  completionPromptId: z.string().trim().min(2).max(120).optional(),
+  ideaIds: z.array(z.string().trim().min(2).max(120)).min(1).max(10).optional(),
+  ideaLabels: z.record(z.string(), z.string().trim().min(2).max(160)).default({}),
+  ideaDescriptions: z.record(z.string(), z.string().trim().min(4).max(1_000)),
+  ideaTeacherActions: z.record(z.string(), z.string().trim().max(1_000)).default({}),
+  misconceptionIds: z.array(z.string().trim().min(2).max(120)).max(12).optional(),
+  misconceptionLabels: z.record(z.string(), z.string().trim().min(2).max(160)).default({}),
+  misconceptionDescriptions: z.record(
+    z.string(),
+    z.string().trim().min(4).max(1_000),
+  ),
+  misconceptionTeacherActions: z.record(z.string(), z.string().trim().max(1_000)).default({}),
+  followUpIds: z.array(z.string().trim().min(2).max(120)).min(1).max(20).optional(),
+  followUpTitles: z.record(z.string(), z.string().trim().min(2).max(160)).default({}),
+  followUpPrompts: z.record(z.string(), z.string().trim().min(4).max(2_000)),
+  followUpTargetIds: z.record(
+    z.string(),
+    z.array(z.string().trim().min(2).max(120)).min(1).max(22),
+  ).default({}),
+});
+
+export const teacherAuthoredSessionSchema = teacherSessionSchema.extend({
+  authoringDraft: teacherContentDraftSchema,
+});
+
+export const teacherDemoSessionSchema = z.object({
+  runId: z.string().uuid(),
+  participantTag: participantTagSchema,
+  authoringDraft: teacherContentDraftSchema,
+});
+
 export const teacherUsabilitySubmissionSchema = z.object({
   runId: z.string().uuid(),
   participantTag: participantTagSchema,
   startedAt: z.string().datetime(),
-  authoringDraft: z.object({
-    initialPrompt: z.string().trim().min(20).max(4_000),
-    ideaDescriptions: z.record(z.string(), z.string().trim().min(4).max(1_000)),
-    misconceptionDescriptions: z.record(
-      z.string(),
-      z.string().trim().min(4).max(1_000),
-    ),
-    followUpPrompts: z.record(z.string(), z.string().trim().min(4).max(2_000)),
-  }),
+  authoringDraft: teacherContentDraftSchema,
   reviews: z.array(z.object({
     sampleId: z.string().trim().min(2).max(24),
     judgment: z.enum(["agree", "needs_revision", "unsure"]),

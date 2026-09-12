@@ -12,16 +12,6 @@ export async function PATCH(
   if (!body || !["draft", "active", "closed"].includes(String(body.status))) {
     return apiError("Choose a valid session status.");
   }
-  if (
-    body.status === "active" &&
-    process.env.NODE_ENV === "production" &&
-    process.env.CONTENT_PACK_APPROVED !== "true"
-  ) {
-    return apiError(
-      "The content pack must be approved before a production session can open.",
-      409,
-    );
-  }
   await getStore().updateSessionStatus(
     id,
     body.status as "draft" | "active" | "closed",

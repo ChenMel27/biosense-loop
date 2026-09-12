@@ -38,6 +38,7 @@ export interface ContentPack {
   estimatedMinutes: number;
   teacherReviewStatus: "draft" | "approved";
   initialPrompt: { id: string; title: string; text: string };
+  completionPromptId: string;
   fallbackPrompt: FollowUpPrompt;
   followUps: FollowUpPrompt[];
   nearTransferPrompt: { id: string; title: string; text: string };
@@ -63,6 +64,7 @@ export const traitInheritancePack: ContentPack = {
     text:
       "Researchers study bristle shape in a fictional beetle species. Evidence card: (1) a bristle-shape gene is located at a marked position on chromosome 3; (2) each parent has gene versions B and b; (3) the offspring inherited one chromosome 3 from each parent and has b and b; and (4) beetles with b and b grow curved bristles, while beetles with at least one B grow straight bristles. Construct an explanation of how this offspring inherited curved bristles. Explain the roles of the gene and chromosomes and use at least two pieces of evidence from the card. Write 2–4 sentences.",
   },
+  completionPromptId: "inheritance_complete_check_01",
   fallbackPrompt: {
     id: "inheritance_clarify_01",
     title: "Trace the inherited information",

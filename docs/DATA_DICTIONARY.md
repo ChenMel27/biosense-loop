@@ -2,7 +2,7 @@
 
 ## Current study boundary
 
-The current research cycle aims to collect data from five secondary science teachers and may include up to ten. Participants use the teacher usability workspace. The study does not collect student data, and the simulated explanations are researcher-written system-demonstration content.
+The current research cycle aims to collect data from two to five secondary science teachers. Participants use the teacher usability workspace. The study does not collect student data. Its class contains 18 researcher-written simulations plus one live response entered by the researcher to demonstrate the student flow.
 
 Current teacher-study fields are stored in `teacher_usability_submissions`:
 
@@ -20,6 +20,8 @@ Current teacher-study fields are stored in `teacher_usability_submissions`:
 | `task_metrics` | Completion and elapsed time for each of four study tasks |
 
 Task events are also written to `teacher_usability_events` to preserve task-level timing if a participant does not submit the final survey. CSV and JSON exports are available from `/api/teacher/usability/export` after teacher sign-in.
+
+The demonstration session stores the same `run_id` in its configuration event. Its session export marks each response as `simulated` or `live_demo`, allowing the researcher's live routing result to be matched with the teacher's usability record without collecting a name.
 
 The sections below document the deferred classroom research data model. They are not part of the current teacher usability study.
 

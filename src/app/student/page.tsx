@@ -6,7 +6,12 @@ import { StudentJoinForm } from "@/components/StudentJoinForm";
 
 export const metadata: Metadata = { title: "Student sign-in" };
 
-export default function StudentPage() {
+export default async function StudentPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ classCode?: string; participantCode?: string }>;
+}) {
+  const query = await searchParams;
   return (
     <div className="auth-page">
       <AppHeader compact />
@@ -24,7 +29,10 @@ export default function StudentPage() {
         </section>
         <section className="auth-card">
           <div><span className="eyebrow">Class access</span><h2>Enter your codes</h2><p>Both codes are on the card from your teacher.</p></div>
-          <StudentJoinForm />
+          <StudentJoinForm
+            initialJoinCode={query.classCode?.toUpperCase() ?? ""}
+            initialParticipantCode={query.participantCode?.toUpperCase() ?? ""}
+          />
         </section>
       </main>
     </div>

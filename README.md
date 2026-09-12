@@ -4,13 +4,19 @@ ExitLoop is a teacher-governed, low-stakes formative-assessment platform for Kâ€
 
 ## Current research phase
 
-The current study is a remote usability study with five to ten secondary science teachers. Teachers review and edit the diagnostic content, inspect frozen AI-generated classifier output for a simulated class of 18 researcher-written responses, use a class summary to choose an instructional next step, and complete usability measures. No students or student data are included in this study.
+The current study is a remote usability study with two to five secondary science teachers. A teacher reviews and edits the diagnostic content, creates a coded session, and watches the researcher complete one live demonstration from the student view. ExitLoop combines that response with 18 researcher-written simulations. The teacher checks the AI routing, uses the class summary to choose an instructional next step, and completes the usability measures. No students or student data are included in this study.
 
 The student-facing classroom study remains in the repository as a future prototype. Every student receives response-specific routing. It must not be run until the required IRB, district, school, consent, and assent approvals are in place.
 
 ## Demonstration content
 
-The frozen pilot content pack is aligned only to Georgia Standards of Excellence **S7L3.a**:
+The teacher workspace now has three clear authoring paths:
+
+1. **Shared study example.** The teacher usability study uses one frozen trait-inheritance activity so every participant reviews the same 18 simulated responses.
+2. **Empty activity form.** A teacher who does not have lesson notes can enter the lesson title, student context, prompt, target ideas, possible misconceptions, and follow-up questions manually. Items can be added, removed, renamed, and edited. Each response-specific question can be linked to one or more missing ideas or possible misconceptions.
+3. **Optional lesson upload.** A signed-in teacher can upload a PDF, Word, PowerPoint, or text file, or paste lesson context. OpenAI returns the same editable form with a first draft of the student prompt, target ideas, possible misconceptions, follow-up questions, source notes, and teacher checks. ExitLoop does not save the uploaded file. This generated draft is not yet used to replace the frozen study example.
+
+The shared study example is aligned only to Georgia Standards of Excellence **S7L3.a**:
 
 > Construct an explanation supported with scientific evidence of the role of genes and chromosomes in the process of inheriting a specific trait.
 
@@ -43,6 +49,7 @@ The pilot does **not** assess ecosystem matter/energy, Punnett-square procedures
 - Next.js 16 App Router, React 19, and TypeScript
 - Supabase Postgres for shared production storage
 - OpenAI Responses API with strict structured output for optional constrained routing
+- OpenAI file input and strict structured output for the teacher lesson-draft preview
 - Deterministic local fallback when AI is disabled, times out, or returns low-confidence evidence
 - Vercel-compatible deployment
 
@@ -74,6 +81,8 @@ Live AI routing requires `AI_ROUTING_ENABLED=true`, an OpenAI API key, and one a
 2. For an approved study involving minors, set `MINOR_DATA_SAFEGUARDS_CONFIRMED=true` only after the required research, school, and data safeguards are confirmed.
 
 The system sends only redacted response text to the model, uses `store: false`, and uses an attempt-derived safety identifier. If neither use context is approved, the deterministic teacher-authored fallback remains available.
+
+Lesson drafting also requires `OPENAI_API_KEY`. The route accepts instructional files up to 4 MB and uses `store: false`. Teachers are told not to upload student work or identifying information. AI-generated target ideas, misconceptions, sources, and questions remain unapproved until a teacher reviews them.
 
 ## Verification
 
