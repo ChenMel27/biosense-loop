@@ -124,21 +124,27 @@ export function TeacherActivityBuilder() {
       <section className="workspace-heading">
         <div>
           <span className="eyebrow">Activity builder</span>
-          <h1>Turn a lesson into an ExitLoop activity</h1>
-          <p>Upload the lesson, review every AI suggestion, then open a session for students.</p>
+          <h1>Create an ExitLoop activity</h1>
+          <p>Prepare a response-based formative check, review the content, and open it for your class.</p>
         </div>
       </section>
 
-      <section className="panel stack-lg">
+      <ol className="builder-progress" aria-label="Activity setup progress">
+        <li className={!draft ? "current" : "complete"}><span>1</span><div><strong>Add materials</strong><small>Upload or enter lesson content</small></div></li>
+        <li className={created ? "complete" : draft ? "current" : ""}><span>2</span><div><strong>Review activity</strong><small>Check prompts and routing</small></div></li>
+        <li className={created ? "current" : ""}><span>3</span><div><strong>Open session</strong><small>Share student access codes</small></div></li>
+      </ol>
+
+      <section className="activity-builder-panel">
         <LessonDraftGenerator onDraftChange={handleDraftChange} />
       </section>
 
       {draft && !created ? (
-        <form className="panel stack-lg" onSubmit={startSession}>
+        <form className="panel session-setup-panel stack-lg" onSubmit={startSession}>
           <div>
-            <span className="eyebrow">Step 2</span>
-            <h2>Start the classroom session</h2>
-            <p>The reviewed version above will be locked to this session.</p>
+            <span className="eyebrow">Session setup</span>
+            <h2>Open this activity for students</h2>
+            <p>Choose the number of access codes and the expected completion time.</p>
           </div>
           <div className="form-grid">
             <div className="field">
@@ -146,20 +152,21 @@ export function TeacherActivityBuilder() {
               <input id="activity-session-title" value={title} onChange={(event) => setTitle(event.target.value)} />
             </div>
             <div className="field">
-              <label htmlFor="activity-participant-count">Student codes</label>
+              <label htmlFor="activity-participant-count">Number of students</label>
               <input id="activity-participant-count" type="number" min={1} max={40} value={participantCount} onChange={(event) => setParticipantCount(Number(event.target.value))} />
             </div>
             <div className="field">
-              <label htmlFor="activity-duration">Estimated minutes</label>
+              <label htmlFor="activity-duration">Time limit</label>
               <input id="activity-duration" type="number" min={8} max={25} value={durationMinutes} onChange={(event) => setDurationMinutes(Number(event.target.value))} />
             </div>
           </div>
           <div className="callout compact neutral">
-            The AI will compare each response only with the ideas and misconceptions you reviewed, then select only from your question bank.
+            Students enter a class code and a private access code. ExitLoop uses the reviewed ideas,
+            misconceptions, and follow-up questions for every response in this session.
           </div>
           {error ? <p className="form-error" role="alert">{error}</p> : null}
           <button className="button primary" disabled={creating}>
-            {creating ? "Starting session…" : "Start classroom session"}
+            {creating ? "Opening session…" : "Open session"}
           </button>
         </form>
       ) : null}
@@ -167,19 +174,20 @@ export function TeacherActivityBuilder() {
       {created ? (
         <section className="notice-card success stack-lg">
           <div>
-            <span className="eyebrow">Session open</span>
+            <span className="eyebrow">Session ready</span>
             <h2>{created.session.title}</h2>
             <p>Class code: <strong className="join-code">{created.session.joinCode}</strong></p>
           </div>
           {firstCode ? (
             <div className="callout compact neutral">
-              For this demo, use student code <strong>{firstCode.participantCode}</strong>. The dashboard is empty until that student submits a response.
+              Preview the student experience with access code <strong>{firstCode.participantCode}</strong>.
+              The dashboard will update after the first response is submitted.
             </div>
           ) : null}
           <div className="button-row">
-            <Link className="button primary" href={studentUrl} target="_blank">Open student view</Link>
-            <Link className="button secondary" href={`/teacher/session/${created.session.id}`}>Open live dashboard</Link>
-            <button className="button ghost" type="button" onClick={downloadCodes}>Download all student codes</button>
+            <Link className="button primary" href={studentUrl} target="_blank">Preview student activity</Link>
+            <Link className="button secondary" href={`/teacher/session/${created.session.id}`}>View live dashboard</Link>
+            <button className="button ghost" type="button" onClick={downloadCodes}>Download access codes</button>
           </div>
         </section>
       ) : null}

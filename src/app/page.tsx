@@ -12,7 +12,7 @@ export default function Home() {
             <span className="eyebrow">A clearer exit ticket</span>
             <h1>Find gaps in understanding before class ends.</h1>
             <p>
-              Students explain what they understand and receive one follow up question based on
+              Students explain what they understand and receive one follow-up question based on
               their response. They revise their answer while teachers get a clear view of the ideas
               the class may need to revisit.
             </p>
@@ -51,7 +51,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="site-footer"><div className="shell"><span>ExitLoop is a research-informed educational prototype.</span><span>AI selects questions. Teachers make decisions.</span></div></footer>
+      <footer className="site-footer"><div className="shell"><span>ExitLoop is a Georgia Tech educational research prototype.</span><span>AI selects questions. Teachers make decisions.</span></div></footer>
     </div>
   );
 }

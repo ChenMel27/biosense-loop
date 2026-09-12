@@ -12,7 +12,7 @@ export default async function TeacherLoginPage({
   searchParams: Promise<{ next?: string | string[] }>;
 }) {
   const requestedNext = (await searchParams).next;
-  const redirectTo = requestedNext === "/teacher/usability" ? requestedNext : "/teacher";
+  const redirectTo = requestedNext === "/teacher/activity-builder" ? requestedNext : "/teacher";
 
   return (
     <div className="auth-page teacher-auth">
@@ -20,8 +20,8 @@ export default async function TeacherLoginPage({
       <main className="auth-shell">
         <section className="auth-copy">
           <span className="eyebrow">Teacher workspace</span>
-          <h1>See what your class understands before choosing what to teach next.</h1>
-          <p>Launch an activity, watch completion, and review common patterns. The AI can only select questions that a teacher has approved.</p>
+          <h1>See what students understand before choosing what to teach next.</h1>
+          <p>Create an activity, monitor completion, and review common patterns. ExitLoop only uses ideas and questions that you have reviewed.</p>
           <ul className="check-list">
             <li>Every student receives a question based on their response.</li>
             <li>Teachers can inspect the responses behind each pattern.</li>

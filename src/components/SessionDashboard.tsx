@@ -14,6 +14,12 @@ const actionOptions = [
   ["other", "Another response"],
 ] as const;
 
+const statusLabels: Record<StudySession["status"], string> = {
+  draft: "Draft",
+  active: "Open",
+  closed: "Closed",
+};
+
 export function SessionDashboard({ initialSnapshot }: { initialSnapshot: DashboardSnapshot }) {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [updating, setUpdating] = useState(false);
@@ -112,6 +118,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         .slice(0, 2),
     [missingRows, misconceptionRows],
   );
+  const submittedRows = snapshot.submissionRows.filter((row) => row.responseText);
 
   async function setStatus(status: StudySession["status"]) {
     setUpdating(true);
@@ -177,12 +184,12 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
       <section className="session-hero">
         <div>
           <div className="session-meta-row">
-            <span className={`status-pill ${snapshot.session.status}`}>{snapshot.session.status}</span>
-            <span>Refreshes every 5 seconds</span>
+            <span className={`status-pill ${snapshot.session.status}`}>{statusLabels[snapshot.session.status]}</span>
+            <span>Live updates every 5 seconds</span>
           </div>
           <h1>{snapshot.session.title}</h1>
           <p>
-            Student class code <strong className="join-code">{snapshot.session.joinCode}</strong>
+            Class code <strong className="join-code">{snapshot.session.joinCode}</strong>
           </p>
         </div>
         <div className="session-actions">
@@ -212,12 +219,12 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           <p>{snapshot.counts.not_started} not started</p>
         </article>
         <article className="metric-card">
-          <span>Working now</span>
+          <span>In progress</span>
           <strong>{started - snapshot.counts.complete}</strong>
           <p>{snapshot.counts.transfer} working on the new example</p>
         </article>
         <article className="metric-card">
-          <span>Clarification prompts</span>
+          <span>Needs clarification</span>
           <strong>{snapshot.fallbackCount}</strong>
           <p>Approved clarification question used</p>
         </article>
@@ -226,10 +233,10 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
       <section className="panel stack-lg">
         <div className="section-heading">
           <div>
-            <span className="eyebrow">Live operations</span>
-            <h2>Where students are</h2>
+            <span className="eyebrow">Student progress</span>
+            <h2>Activity progress</h2>
           </div>
-          <span className="small-note">Use this view only to monitor progress while students work.</span>
+          <span className="small-note">This view updates automatically while students work.</span>
         </div>
         <div className="stage-grid">
           {[
@@ -248,18 +255,15 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
       <section className="panel stack-lg">
         <div className="section-heading">
           <div>
-            <span className="eyebrow">Responses received</span>
-            <h2>Student responses and selected questions</h2>
+            <span className="eyebrow">Response review</span>
+            <h2>Responses and follow-up questions</h2>
           </div>
           <span className="small-note">
-            {snapshot.submissionRows.filter((row) => row.responseText).length} of {snapshot.participantCount} initial responses
+            {submittedRows.length} of {snapshot.participantCount} initial responses
           </span>
         </div>
-        <div className="dashboard-response-list">
-          {(showAllResponses
-            ? snapshot.submissionRows
-            : snapshot.submissionRows.slice(0, 5)
-          ).map((row) => {
+        {submittedRows.length ? <div className="dashboard-response-list">
+          {(showAllResponses ? submittedRows : submittedRows.slice(0, 5)).map((row) => {
             const prompt = row.displayedPromptId ? prompts[row.displayedPromptId] : null;
             return (
               <article className="dashboard-response" key={row.participantTag}>
@@ -270,10 +274,10 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
                   </div>
                   <span className="confidence-chip">
                     {row.classificationConfidence === null
-                      ? row.stage === "initial"
-                        ? "Waiting for explanation"
-                        : "Waiting for AI result"
-                      : `${row.provider === "openai" ? "OpenAI" : "Fallback"} confidence ${Math.round(row.classificationConfidence * 100)}%`}
+                      ? "Analyzing response"
+                      : row.provider === "openai"
+                        ? `OpenAI · ${Math.round(row.classificationConfidence * 100)}% confidence`
+                        : "Rule-based routing"}
                   </span>
                 </div>
                 <p className="dashboard-response-text">
@@ -282,15 +286,15 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
                 {prompt ? (
                   <div className="dashboard-routing-summary">
                     <div>
-                      <small>Ideas not found</small>
+                      <small>Target ideas not identified</small>
                       <span>{row.missingIdeaIds.map((id) => contentLabels[id] ?? id).join(", ") || "None"}</span>
                     </div>
                     <div>
-                      <small>Possible misconception</small>
+                      <small>Misconception to review</small>
                       <span>{row.possibleAlternativeConceptionIds.map((id) => contentLabels[id] ?? id).join(", ") || "None"}</span>
                     </div>
                     <div>
-                      <small>Question selected</small>
+                      <small>Follow-up shown</small>
                       <span>{prompt.text}</span>
                     </div>
                   </div>
@@ -298,10 +302,15 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
               </article>
             );
           })}
-        </div>
-        {snapshot.submissionRows.length > 5 ? (
+        </div> : (
+          <div className="empty-dashboard-state">
+            <strong>No responses yet</strong>
+            <p>Share the class code and access codes. Responses will appear here after students submit their first explanation.</p>
+          </div>
+        )}
+        {submittedRows.length > 5 ? (
           <button className="button ghost" type="button" onClick={() => setShowAllResponses((shown) => !shown)}>
-            {showAllResponses ? "Show fewer responses" : `Show all ${snapshot.submissionRows.length} responses`}
+            {showAllResponses ? "Show fewer responses" : `Show all ${submittedRows.length} responses`}
           </button>
         ) : null}
       </section>
@@ -310,10 +319,10 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         <section className="panel stack-lg">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">Suggested review order</span>
-              <h2>Start with these class patterns</h2>
+              <span className="eyebrow">Class patterns</span>
+              <h2>Review these patterns first</h2>
             </div>
-            <span className="small-note">The system suggests; you decide.</span>
+            <span className="small-note">Counts are signals for review, not grades.</span>
           </div>
           {priorityRows.length ? (
             <div className="signal-list warning">
@@ -334,7 +343,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
               ))}
             </div>
           ) : (
-            <p className="small-note">No routed missing or incompatible relationship is available for review.</p>
+            <p className="small-note left">No common gaps were identified. Review individual responses before deciding what to do next.</p>
           )}
         </section>
       ) : (
@@ -354,7 +363,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           <div className="section-heading">
             <div>
               <span className="eyebrow">All responses</span>
-              <h2>Ideas the AI found</h2>
+              <h2>Target ideas identified</h2>
             </div>
             <span className="info-chip">For review, not grades</span>
           </div>
@@ -375,7 +384,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           <div className="section-heading">
             <div>
               <span className="eyebrow">Check these patterns</span>
-              <h2>Possible misconceptions</h2>
+              <h2>Misconceptions to review</h2>
             </div>
           </div>
           <div className="signal-list warning">
@@ -401,9 +410,9 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           <p>ExitLoop does not grade students or assign mastery. Open the responses behind each pattern before deciding what to clarify next.</p>
         </div>
         <div className="condition-balance">
-          <span>Questions selected by AI</span>
-          <strong>{snapshot.conditionCounts.adaptive}</strong>
-          <small>students receive a question selected by AI</small>
+          <span>AI follow-up routing</span>
+          <strong>On</strong>
+          <small>Uses the approved question bank</small>
         </div>
       </section>
 
@@ -416,7 +425,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           {snapshot.teacherAction ? (
             <span className="info-chip">Recorded</span>
           ) : (
-            <span className="small-note">Complete after reviewing the locked class summary.</span>
+            <span className="small-note">Available after the session is closed.</span>
           )}
         </div>
         <fieldset className="action-options">
