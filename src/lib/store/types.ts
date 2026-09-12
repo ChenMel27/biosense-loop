@@ -45,6 +45,7 @@ export interface ResearchStore {
   listSessions(): Promise<StudySession[]>;
   createSession(input: CreateSessionInput): Promise<SessionCreationResult>;
   updateSessionStatus(sessionId: string, status: StudySession["status"]): Promise<void>;
+  deleteSession(sessionId: string): Promise<boolean>;
   getDashboardSnapshot(sessionId: string): Promise<DashboardSnapshot | null>;
   exportSession(sessionId: string): Promise<Array<Record<string, string | number | boolean | null>>>;
   saveTeacherUsabilityEvent(event: TeacherUsabilityEvent): Promise<void>;

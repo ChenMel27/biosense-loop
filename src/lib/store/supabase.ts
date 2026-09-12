@@ -620,6 +620,16 @@ export class SupabaseResearchStore implements ResearchStore {
     if (error) throw new Error(error.message);
   }
 
+  async deleteSession(sessionId: string) {
+    const { data, error } = await this.client
+      .from("sessions")
+      .delete()
+      .eq("id", sessionId)
+      .select("id");
+    if (error) throw new Error(error.message);
+    return Boolean(data?.length);
+  }
+
   async getDashboardSnapshot(sessionId: string): Promise<DashboardSnapshot | null> {
     const session = await this.getSession(sessionId);
     if (!session) return null;

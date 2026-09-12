@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AppHeader } from "@/components/Brand";
+import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 import { getTeacherIdentity } from "@/lib/auth/guards";
 import { getStore, isDemoMode } from "@/lib/store";
 
@@ -34,12 +35,15 @@ export default async function TeacherPage() {
         <div className="section-heading"><div><span className="eyebrow">Classroom sessions</span><h2>Recent sessions</h2></div><p className="small-note">Monitor progress, review responses, or export session data.</p></div>
         <section className="session-list">
           {sessions.length ? sessions.map((session) => (
-            <Link key={session.id} href={`/teacher/session/${session.id}`} className="session-row">
-              <span className={`status-dot ${session.status}`} />
-              <span><strong>{session.title}</strong><small>Created {new Date(session.createdAt).toLocaleDateString()}</small></span>
-              <span><small>Class code</small><strong className="join-code small">{session.joinCode}</strong></span>
-              <span className={`status-pill ${session.status}`}>{session.status === "active" ? "Open" : session.status === "closed" ? "Closed" : "Draft"}</span><span aria-hidden="true">→</span>
-            </Link>
+            <div className="session-row" key={session.id}>
+              <Link href={`/teacher/session/${session.id}`} className="session-row-link">
+                <span className={`status-dot ${session.status}`} />
+                <span><strong>{session.title}</strong><small>Created {new Date(session.createdAt).toLocaleDateString()}</small></span>
+                <span><small>Class code</small><strong className="join-code small">{session.joinCode}</strong></span>
+                <span className={`status-pill ${session.status}`}>{session.status === "active" ? "Open" : session.status === "closed" ? "Closed" : "Draft"}</span><span aria-hidden="true">→</span>
+              </Link>
+              <DeleteSessionButton compact sessionId={session.id} sessionTitle={session.title} />
+            </div>
           )) : <div className="empty-session-list"><strong>No sessions yet</strong><span>Create an activity to open your first classroom session.</span></div>}
         </section>
       </main>

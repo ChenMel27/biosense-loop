@@ -193,11 +193,20 @@ code { padding: 2px 5px; border-radius: 5px; background: #eaf1ee; color: var(--t
 .demo-banner { display: flex; gap: 12px; align-items: center; padding: 13px 16px; border: 1px solid #e6d18f; border-radius: 10px; background: #fff8df; color: #69551b; font-size: .82rem; }
 .demo-banner span { color: #806c34; }
 .session-list { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: white; box-shadow: var(--shadow-sm); }
-.session-row { display: grid; grid-template-columns: 12px 1fr auto auto 20px; gap: 16px; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); transition: background .15s; }
+.session-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; border-bottom: 1px solid var(--line); transition: background .15s; }
 .session-row:last-child { border-bottom: 0; }
 .session-row:hover { background: var(--mint-light); }
-.session-row > span { display: grid; }
-.session-row small { color: var(--ink-soft); font-size: .72rem; }
+.session-row-link { display: grid; grid-template-columns: 12px 1fr auto auto 20px; gap: 16px; align-items: center; min-width: 0; padding: 18px 20px; }
+.session-row-link > span { display: grid; }
+.session-row-link small { color: var(--ink-soft); font-size: .72rem; }
+.session-delete-button { align-self: center; margin-right: 18px; padding: 7px 9px; border: 0; border-radius: 8px; background: transparent; color: var(--danger); cursor: pointer; font-size: .75rem; font-weight: 750; }
+.session-delete-button:hover { background: var(--danger-light); }
+.dialog-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(17, 43, 44, .52); backdrop-filter: blur(3px); }
+.confirmation-dialog { width: min(470px, 100%); padding: 28px; border: 1px solid var(--line); border-radius: 18px; background: white; box-shadow: var(--shadow); }
+.confirmation-dialog h2 { margin: 10px 0 12px; font-family: Georgia, serif; font-size: 2rem; font-weight: 500; }
+.confirmation-dialog > p:not(.form-error) { color: var(--ink-soft); line-height: 1.65; }
+.confirmation-dialog .form-error { margin-top: 16px; }
+.dialog-actions { justify-content: flex-end; margin-top: 24px; }
 .empty-session-list { display: grid; justify-items: center; gap: 5px; padding: 42px 20px; color: var(--ink-soft); text-align: center; }
 .empty-session-list strong { color: var(--ink); }
 .empty-session-list span { font-size: .8rem; }
@@ -444,8 +453,10 @@ code { padding: 2px 5px; border-radius: 5px; background: #eaf1ee; color: var(--t
   .confidence-grid { grid-template-columns: 1fr; }
   .heading-meta { display: grid; }
   .form-grid, .readiness-card ol { grid-template-columns: 1fr; }
-  .session-row { grid-template-columns: 10px 1fr auto; }
-  .session-row > span:nth-child(3), .session-row > span:nth-child(4) { display: none; }
+  .session-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .session-row-link { grid-template-columns: 10px 1fr auto; padding-right: 10px; }
+  .session-row-link > span:nth-child(3), .session-row-link > span:nth-child(4) { display: none; }
+  .session-delete-button { margin-right: 10px; }
   .stage-grid { grid-template-columns: repeat(2, 1fr); }
   .research-boundary { grid-template-columns: 1fr; }
   .action-options { grid-template-columns: 1fr; }

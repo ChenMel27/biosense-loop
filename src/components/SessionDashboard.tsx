@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { traitInheritancePack } from "@/content/trait-inheritance";
 import { applyTeacherContentDraft } from "@/content/teacher-draft";
 import type { DashboardSnapshot, StudySession } from "@/lib/domain/types";
+import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 
 const actionOptions = [
   ["proceed", "Proceed to the next lesson"],
@@ -202,6 +203,11 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           )}
           <a className="button secondary" href={`/api/teacher/sessions/${snapshot.session.id}/export?format=csv`}>Export CSV</a>
           <a className="button ghost" href={`/api/teacher/sessions/${snapshot.session.id}/export?format=json`}>Export JSON</a>
+          <DeleteSessionButton
+            returnToWorkspace
+            sessionId={snapshot.session.id}
+            sessionTitle={snapshot.session.title}
+          />
         </div>
       </section>
       {error ? <p className="form-error" role="alert">{error}</p> : null}

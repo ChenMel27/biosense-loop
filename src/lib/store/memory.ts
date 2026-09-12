@@ -101,6 +101,12 @@ function getState() {
   return globalThis.__exitloopMemoryState;
 }
 
+function removeWhere<T>(items: T[], predicate: (item: T) => boolean) {
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    if (predicate(items[index])) items.splice(index, 1);
+  }
+}
+
 export function resetMemoryStore() {
   const state = getState();
   const fresh = buildDemoState();
@@ -322,6 +328,27 @@ export class MemoryResearchStore implements ResearchStore {
     session.status = status;
     if (status === "active" && !session.launchedAt) session.launchedAt = now();
     if (status === "closed") session.closedAt = now();
+  }
+
+  async deleteSession(sessionId: string) {
+    const session = this.state.sessions.find((item) => item.id === sessionId);
+    if (!session) return false;
+
+    const attemptIds = new Set(
+      this.state.attempts
+        .filter((item) => item.sessionId === sessionId)
+        .map((item) => item.id),
+    );
+
+    removeWhere(this.state.responses, (item) => attemptIds.has(item.attemptId));
+    removeWhere(this.state.decisions, (item) => attemptIds.has(item.attemptId));
+    removeWhere(this.state.surveys, (item) => attemptIds.has(item.attemptId));
+    removeWhere(this.state.attempts, (item) => item.sessionId === sessionId);
+    removeWhere(this.state.participants, (item) => item.sessionId === sessionId);
+    removeWhere(this.state.events, (item) => item.sessionId === sessionId);
+    removeWhere(this.state.teacherActions, (item) => item.sessionId === sessionId);
+    removeWhere(this.state.sessions, (item) => item.id === sessionId);
+    return true;
   }
 
   async getDashboardSnapshot(sessionId: string): Promise<DashboardSnapshot | null> {

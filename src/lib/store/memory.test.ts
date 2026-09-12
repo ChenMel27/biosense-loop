@@ -115,6 +115,34 @@ describe("memory research store", () => {
     ]);
   });
 
+  it("deletes a session and its related classroom data", async () => {
+    const store = new MemoryResearchStore();
+    const session = (await store.getSessionByJoinCode("GEN7"))!;
+    const participant = (await store.getParticipantByCodeHash(
+      session.id,
+      hashParticipantCode("GEN-001", "development-only-pepper"),
+    ))!;
+    const attempt = await store.getOrCreateAttempt(session, participant);
+    await store.appendResponse({
+      id: randomUUID(),
+      attemptId: attempt.id,
+      stage: "initial",
+      promptId: "inheritance_initial_01",
+      responseText: "The offspring received one gene version from each beetle parent.",
+      confidenceChoice: "somewhat_sure",
+      clientTimestamp: null,
+      serverTimestamp: new Date().toISOString(),
+      contentVersionId: session.contentVersionId,
+    });
+
+    await expect(store.deleteSession(session.id)).resolves.toBe(true);
+    await expect(store.deleteSession(session.id)).resolves.toBe(false);
+    await expect(store.getSessionByJoinCode("GEN7")).resolves.toBeNull();
+    await expect(store.getDashboardSnapshot(session.id)).resolves.toBeNull();
+    await expect(store.getAttemptBundle(attempt.id)).resolves.toBeNull();
+    await expect(store.listSessions()).resolves.toHaveLength(0);
+  });
+
   it("stores and replaces a teacher usability submission by run ID", async () => {
     const store = new MemoryResearchStore();
     const runId = randomUUID();
