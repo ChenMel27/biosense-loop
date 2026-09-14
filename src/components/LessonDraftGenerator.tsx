@@ -309,9 +309,9 @@ export function LessonDraftGenerator({
                 <span className="section-meta">3 prompts</span>
               </summary>
               <div className="authoring-section-body stack-md">
-                <div className="field"><label htmlFor="draft-context">Information students will read</label><textarea id="draft-context" rows={5} value={draft.studentContext} onChange={(event) => updateDraft("studentContext", event.target.value)} /></div>
-                <div className="field"><label htmlFor="draft-prompt">First explanation question</label><textarea id="draft-prompt" rows={4} value={draft.studentPrompt} onChange={(event) => updateDraft("studentPrompt", event.target.value)} /></div>
-                <div className="field"><label htmlFor="draft-transfer">Related example after revision</label><textarea id="draft-transfer" rows={4} value={draft.nearTransferPrompt} onChange={(event) => updateDraft("nearTransferPrompt", event.target.value)} /><span className="field-note">This should use the same scientific reasoning in a new but familiar situation.</span></div>
+                <div className="field"><label htmlFor="draft-context">Information students will read</label><textarea id="draft-context" rows={5} value={draft.studentContext} placeholder="For example: A plant is placed in sunlight with water and carbon dioxide. Its leaves contain chloroplasts, and the plant produces glucose and oxygen." onChange={(event) => updateDraft("studentContext", event.target.value)} /></div>
+                <div className="field"><label htmlFor="draft-prompt">First explanation question</label><textarea id="draft-prompt" rows={4} value={draft.studentPrompt} placeholder="For example: Explain how the plant uses light, water, and carbon dioxide to produce glucose. Use two details from the information above." onChange={(event) => updateDraft("studentPrompt", event.target.value)} /></div>
+                <div className="field"><label htmlFor="draft-transfer">Related example after revision</label><textarea id="draft-transfer" rows={4} value={draft.nearTransferPrompt} placeholder="For example: A similar plant is kept in darkness. Explain how this change would affect glucose production using the same scientific ideas." onChange={(event) => updateDraft("nearTransferPrompt", event.target.value)} /><span className="field-note">This should use the same scientific reasoning in a new but familiar situation.</span></div>
               </div>
             </details>
 

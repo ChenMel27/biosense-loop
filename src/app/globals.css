@@ -118,6 +118,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .field label, fieldset legend { color: var(--ink); font-size: .86rem; font-weight: 800; }
 .field label span { color: var(--ink-soft); font-weight: 500; }
 .field input, .field textarea, .field select { width: 100%; border: 1px solid #bacac3; border-radius: 10px; background: white; color: var(--ink); padding: 12px 13px; transition: border .18s, box-shadow .18s; }
+.field input::placeholder, .field textarea::placeholder { color: #76837e; opacity: 1; }
 .field input { min-height: 48px; }
 .field select { min-height: 48px; }
 .field textarea { resize: vertical; line-height: 1.6; }
