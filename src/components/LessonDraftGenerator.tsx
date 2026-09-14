@@ -140,90 +140,111 @@ export function LessonDraftGenerator({
         <div className="lesson-source-setup stack-lg">
           <div className="lesson-source-heading">
             <div>
-              <span className="eyebrow">Step 1 · Lesson materials</span>
-              <h2 id="lesson-draft-title">Create an activity from your lesson</h2>
+              <span className="eyebrow">Step 1 · Choose a starting point</span>
+              <h2 id="lesson-draft-title">How would you like to begin?</h2>
               <p>
-                Upload a lesson file or paste your notes. ExitLoop uses the material to prepare an
-                editable activity draft. You review every part before students can access it.
+                Let ExitLoop prepare a draft from your lesson materials, or complete the same
+                structured activity template yourself.
               </p>
             </div>
-            <a className="sample-material-link" href="/demo/exitloop-trait-inheritance-lesson-notes.pdf" download>
-              Download sample lesson
-            </a>
           </div>
 
-          <div className="lesson-source-grid">
-            <div className="source-option">
-              <span className="source-option-number">Option 1</span>
-              <h3>Upload a lesson file</h3>
-              <p>Use slides, a lesson plan, or class notes you already have.</p>
-              <label className={`file-dropzone ${lessonFile ? "selected" : ""}`} htmlFor="lesson-file">
-                <span className="file-upload-icon" aria-hidden="true">↑</span>
-                <span>
-                  <strong>{lessonFile?.name || "Choose a file"}</strong>
-                  <small>{lessonFile ? "File ready to use" : "PDF, Word, PowerPoint, or text · Up to 4 MB"}</small>
-                </span>
-                <span className="file-action">{lessonFile ? "Change" : "Browse"}</span>
-              </label>
-              <input
-                className="sr-only"
-                id="lesson-file"
-                type="file"
-                accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md,.rtf,.odt"
-                onChange={(event) => setLessonFile(event.target.files?.[0] ?? null)}
-              />
-            </div>
-
-            <div className="source-divider" aria-hidden="true"><span>or</span></div>
-
-            <div className="source-option">
-              <span className="source-option-number">Option 2</span>
-              <h3>Paste lesson notes</h3>
-              <p>Paste learning goals, key concepts, or the explanation task you use.</p>
-              <div className="field">
-                <label className="sr-only" htmlFor="lesson-notes">Lesson notes</label>
-                <textarea
-                  id="lesson-notes"
-                  rows={7}
-                  value={lessonNotes}
-                  onChange={(event) => setLessonNotes(event.target.value)}
-                  placeholder="Paste at least a few sentences from your lesson..."
-                />
-                <span className="field-meta">
-                  <span>Minimum 40 characters</span>
-                  <span>{lessonNotes.trim().length.toLocaleString()} characters</span>
-                </span>
+          <div className="start-method-grid">
+            <section className="start-method-card recommended-method">
+              <div className="method-card-heading">
+                <span className="method-icon" aria-hidden="true">✦</span>
+                <span className="method-tag">Recommended</span>
               </div>
-            </div>
-          </div>
+              <h3>Create from lesson materials</h3>
+              <p>ExitLoop uses AI to turn your existing material into an editable first draft.</p>
 
-          <div className="field teacher-context-field">
-            <label htmlFor="teacher-context">Class context <span>(optional)</span></label>
-            <input
-              id="teacher-context"
-              value={teacherContext}
-              onChange={(event) => setTeacherContext(event.target.value)}
-              placeholder="Example: 10th-grade biology after a photosynthesis lesson"
-            />
-            <span className="field-note">Add the course, grade, or lesson timing if it is not clear from the material.</span>
-          </div>
+              <div className="material-inputs">
+                <label className={`file-dropzone ${lessonFile ? "selected" : ""}`} htmlFor="lesson-file">
+                  <span className="file-upload-icon" aria-hidden="true">↑</span>
+                  <span>
+                    <strong>{lessonFile?.name || "Upload a lesson file"}</strong>
+                    <small>{lessonFile ? "File ready to use" : "PDF, Word, PowerPoint, or text · Up to 4 MB"}</small>
+                  </span>
+                  <span className="file-action">{lessonFile ? "Change" : "Browse"}</span>
+                </label>
+                <input
+                  className="sr-only"
+                  id="lesson-file"
+                  type="file"
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md,.rtf,.odt"
+                  onChange={(event) => setLessonFile(event.target.files?.[0] ?? null)}
+                />
 
-          <div className="privacy-note privacy-note-row">
-            <span aria-hidden="true">✓</span>
-            <div>
-              <strong>Use instructional materials only</strong>
-              <p>Files are sent to OpenAI to create the draft and are not stored by ExitLoop. Do not upload student work or identifying information.</p>
-            </div>
-          </div>
-          {error ? <p className="form-error" role="alert">{error}</p> : null}
-          <div className="source-actions">
-            <button className="button primary large" type="button" disabled={generating} onClick={generateDraft}>
-              {generating ? "Creating your draft…" : "Create activity draft"}
-            </button>
-            <div>
-              <span>Prefer to start without AI?</span>
-              <button className="text-button" type="button" disabled={generating} onClick={startBlankDraft}>Start with a blank activity</button>
-            </div>
+                <div className="input-divider"><span>or paste lesson notes</span></div>
+                <div className="field">
+                  <label className="sr-only" htmlFor="lesson-notes">Lesson notes</label>
+                  <textarea
+                    id="lesson-notes"
+                    rows={5}
+                    value={lessonNotes}
+                    onChange={(event) => setLessonNotes(event.target.value)}
+                    placeholder="Paste learning goals, key concepts, or an explanation task..."
+                  />
+                  <span className="field-meta">
+                    <span>Minimum 40 characters</span>
+                    <span>{lessonNotes.trim().length.toLocaleString()} characters</span>
+                  </span>
+                </div>
+
+                <div className="field teacher-context-field">
+                  <label htmlFor="teacher-context">Class context <span>(optional)</span></label>
+                  <input
+                    id="teacher-context"
+                    value={teacherContext}
+                    onChange={(event) => setTeacherContext(event.target.value)}
+                    placeholder="Example: 10th-grade biology after a photosynthesis lesson"
+                  />
+                  <span className="field-note">Add the course or grade if it is not clear from the material.</span>
+                </div>
+
+                <div className="privacy-note privacy-note-row">
+                  <span aria-hidden="true">✓</span>
+                  <div>
+                    <strong>Use instructional materials only</strong>
+                    <p>Files are sent to OpenAI to create the draft and are not stored by ExitLoop. Do not upload student work or identifying information.</p>
+                  </div>
+                </div>
+              </div>
+
+              {error ? <p className="form-error" role="alert">{error}</p> : null}
+              <div className="method-card-actions">
+                <button className="button primary large full" type="button" disabled={generating} onClick={generateDraft}>
+                  {generating ? "Creating your draft…" : "Create activity draft"}
+                </button>
+                <a className="sample-material-link" href="/demo/exitloop-trait-inheritance-lesson-notes.pdf" download>
+                  Download a sample lesson to try
+                </a>
+              </div>
+            </section>
+
+            <section className="start-method-card guided-method">
+              <div className="method-card-heading">
+                <span className="method-icon neutral" aria-hidden="true">✎</span>
+                <span className="method-tag neutral">Guided setup</span>
+              </div>
+              <h3>Build with a guided template</h3>
+              <p>Start with an organized form and write each part of the activity yourself.</p>
+              <div className="guided-template-preview">
+                <strong>The template includes</strong>
+                <ul>
+                  <li>Activity and student prompts</li>
+                  <li>Target scientific ideas</li>
+                  <li>Possible misconceptions</li>
+                  <li>Follow-up question rules</li>
+                </ul>
+              </div>
+              <div className="method-card-actions">
+                <button className="button secondary large full" type="button" disabled={generating} onClick={startBlankDraft}>
+                  Use guided template
+                </button>
+                <span className="method-note">You can edit, add, or remove every section.</span>
+              </div>
+            </section>
           </div>
         </div>
       ) : (
