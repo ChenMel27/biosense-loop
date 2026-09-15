@@ -1,3 +1,5 @@
+import type { Course, GradeLevel } from "@/lib/domain/curriculum";
+
 export type Condition = "adaptive";
 
 export type SessionStatus = "draft" | "active" | "closed";
@@ -184,6 +186,8 @@ export interface TeacherUsabilityTaskMetric {
 export interface TeacherContentDraft {
   title?: string;
   gradeBand?: string;
+  gradeLevel?: GradeLevel;
+  course?: Course;
   scopeBoundary?: string;
   collectStudentNames?: boolean;
   initialPrompt: string;

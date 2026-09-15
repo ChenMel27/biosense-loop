@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import type { EditableLessonDraft } from "@/lib/ai/lesson-draft";
+import { courseOptions, gradeLevelOptions } from "@/lib/domain/curriculum";
 
 interface DraftResponse {
   error?: string;
@@ -48,7 +49,8 @@ function emptyLessonDraft(): EditableLessonDraft {
   const misconception = emptyMisconception();
   return {
     lessonTitle: "",
-    gradeBand: "",
+    gradeLevel: "",
+    course: "Biology",
     topic: "",
     scopeBoundary: "Evaluate only the target ideas and misconceptions reviewed for this activity.",
     studentContext: "",
@@ -289,13 +291,25 @@ export function LessonDraftGenerator({
             <details className="authoring-section" open>
               <summary className="authoring-section-summary">
                 <span className="section-number">1</span>
-                <span><strong>Activity details</strong><small>Title, course, topic, and response focus</small></span>
-                <span className="section-meta">4 fields</span>
+                <span><strong>Activity details</strong><small>Title, grade, course, topic, and response focus</small></span>
+                <span className="section-meta">5 fields</span>
               </summary>
               <div className="authoring-section-body stack-md">
                 <div className="draft-input-grid">
                   <div className="field"><label htmlFor="draft-title">Activity title</label><input id="draft-title" value={draft.lessonTitle} onChange={(event) => updateDraft("lessonTitle", event.target.value)} /></div>
-                  <div className="field"><label htmlFor="draft-grade">Grade or course</label><input id="draft-grade" value={draft.gradeBand} onChange={(event) => updateDraft("gradeBand", event.target.value)} /></div>
+                  <div className="field">
+                    <label htmlFor="draft-grade">Grade</label>
+                    <select id="draft-grade" value={draft.gradeLevel} onChange={(event) => updateDraft("gradeLevel", event.target.value as EditableLessonDraft["gradeLevel"])} required>
+                      <option value="">Select a grade</option>
+                      {gradeLevelOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label htmlFor="draft-course">Course</label>
+                    <select id="draft-course" value={draft.course} onChange={(event) => updateDraft("course", event.target.value as EditableLessonDraft["course"])}>
+                      {courseOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                    </select>
+                  </div>
                 </div>
                 <div className="field"><label htmlFor="draft-topic">Biology topic</label><input id="draft-topic" value={draft.topic} onChange={(event) => updateDraft("topic", event.target.value)} /></div>
                 <div className="field"><label htmlFor="draft-scope">What should ExitLoop look for?</label><textarea id="draft-scope" rows={3} value={draft.scopeBoundary} onChange={(event) => updateDraft("scopeBoundary", event.target.value)} /><span className="field-note">Define what the AI should evaluate and anything it should ignore.</span></div>

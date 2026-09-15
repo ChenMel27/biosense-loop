@@ -11,7 +11,8 @@ describe("teacher content draft", () => {
   it("turns an uploaded lesson draft into the content used by a classroom session", () => {
     const contentDraft = lessonDraftToContentDraft({
       lessonTitle: "Cell transport",
-      gradeBand: "Grade 10 biology",
+      gradeLevel: "Grade 10",
+      course: "Biology",
       topic: "Osmosis",
       scopeBoundary: "Evaluate only water movement and membrane evidence.",
       studentContext: "A cell is placed in salt water.",
@@ -28,6 +29,7 @@ describe("teacher content draft", () => {
     const pack = applyTeacherContentDraft(traitInheritancePack, contentDraft);
 
     expect(pack.title).toBe("Cell transport");
+    expect(pack.gradeBand).toBe("Grade 10 Biology");
     expect(pack.initialPrompt.text).toContain("A cell is placed in salt water.");
     expect(pack.nearTransferPrompt.text).toContain("fresh water");
     expect(pack.completionPromptId).toBe(TEACHER_COMPLETION_PROMPT_ID);

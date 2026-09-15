@@ -1,5 +1,6 @@
 import { traitInheritancePack, type ContentPack } from "@/content/trait-inheritance";
 import type { EditableLessonDraft } from "@/lib/ai/lesson-draft";
+import { formatGradeCourse } from "@/lib/domain/curriculum";
 import type { TeacherContentDraft } from "@/lib/domain/types";
 
 export const TEACHER_COMPLETION_PROMPT_ID = "teacher_complete_review";
@@ -13,7 +14,9 @@ export function lessonDraftToContentDraft(draft: EditableLessonDraft): TeacherCo
 
   return {
     title: draft.lessonTitle,
-    gradeBand: draft.gradeBand,
+    gradeLevel: draft.gradeLevel || undefined,
+    course: draft.course,
+    gradeBand: formatGradeCourse(draft.gradeLevel, draft.course),
     scopeBoundary: draft.scopeBoundary,
     initialPrompt: [draft.studentContext.trim(), draft.studentPrompt.trim()]
       .filter(Boolean)
@@ -84,7 +87,10 @@ export function applyTeacherContentDraft(
   return {
     ...pack,
     title: draft.title || pack.title,
-    gradeBand: draft.gradeBand || pack.gradeBand,
+    gradeBand:
+      draft.gradeBand ||
+      formatGradeCourse(draft.gradeLevel, draft.course) ||
+      pack.gradeBand,
     scopeBoundary: draft.scopeBoundary || pack.scopeBoundary,
     completionPromptId,
     initialPrompt: {

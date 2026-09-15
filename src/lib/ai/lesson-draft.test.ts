@@ -8,7 +8,7 @@ import {
 
 const modelDraft = {
   lesson_title: "Cell transport",
-  grade_band: "High school biology",
+  grade_band: "10th-grade biology",
   topic: "Diffusion and osmosis",
   scope_boundary: "Classify only the cell transport relationships covered in these notes.",
   student_context: "A cell is placed in a concentrated solution.",
@@ -52,6 +52,8 @@ describe("lesson draft authoring", () => {
       targetKind: "target_idea",
       targetId: "target_idea_01",
     });
+    expect(draft.gradeLevel).toBe("Grade 10");
+    expect(draft.course).toBe("Biology");
     expect(draft.teacherReviewChecks.at(-1)).toContain("Confirm the science content");
   });
 

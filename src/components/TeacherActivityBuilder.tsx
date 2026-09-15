@@ -18,6 +18,7 @@ interface CreatedSession {
 
 function validateDraft(draft: EditableLessonDraft) {
   if (!draft.lessonTitle.trim()) return "Add a lesson title.";
+  if (!draft.gradeLevel) return "Select a grade.";
   if (draft.studentContext.trim().length < 20 || draft.studentPrompt.trim().length < 20) {
     return "Complete the student reading and first explanation question.";
   }

@@ -4,6 +4,12 @@ import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
+import {
+  normalizeGradeLevel,
+  type Course,
+  type GradeLevel,
+} from "@/lib/domain/curriculum";
+
 export const MAX_LESSON_FILE_BYTES = 4_000_000;
 
 const acceptedExtensions = new Set([
@@ -71,7 +77,8 @@ export type LessonDraftModelOutput = z.infer<typeof lessonDraftModelSchema>;
 
 export interface EditableLessonDraft {
   lessonTitle: string;
-  gradeBand: string;
+  gradeLevel: GradeLevel | "";
+  course: Course;
   topic: string;
   scopeBoundary: string;
   studentContext: string;
@@ -154,7 +161,8 @@ export function toEditableLessonDraft(raw: LessonDraftModelOutput): EditableLess
 
   return {
     lessonTitle: cleanLine(raw.lesson_title, "Untitled lesson"),
-    gradeBand: cleanLine(raw.grade_band, "Teacher review needed"),
+    gradeLevel: normalizeGradeLevel(raw.grade_band),
+    course: "Biology",
     topic: cleanLine(raw.topic, "Teacher review needed"),
     scopeBoundary: cleanLine(
       raw.scope_boundary,
@@ -201,7 +209,7 @@ export function validateLessonDraftInput(file: File | null, lessonNotes: string)
 function authoringInstructions() {
   return `You help a biology teacher turn lesson materials into an editable ExitLoop activity draft. The draft is for teacher review, not automatic classroom use.
 
-Use only information in the supplied lesson material and teacher context. Write clear, age-appropriate language. Create one short explanation task that students can complete after the lesson. Create a related transfer prompt that checks the same reasoning in a new example without requiring new content. State a short scope boundary for what the classifier should and should not evaluate. Identify three to five scientific relationships that a strong explanation should state. Identify three to six possible misconceptions that are directly relevant to the lesson. Do not call a misconception research-based unless the supplied materials include a supporting source. In source_support, name the exact source or section found in the supplied materials; otherwise write "Needs research or teacher confirmation." Create at least one focused follow-up question for each target idea and each possible misconception. A follow-up should help the student explain the missing or incompatible relationship without giving away a final answer. Create one completion question for a response that already includes every target idea and one clarification question for short, unclear, or off-topic responses.
+Use only information in the supplied lesson material and teacher context. Write clear, age-appropriate language. Return one specific grade from Kindergarten through Grade 12 when the material states or strongly supports it; otherwise leave grade_band empty for teacher review. Create one short explanation task that students can complete after the lesson. Create a related transfer prompt that checks the same reasoning in a new example without requiring new content. State a short scope boundary for what the classifier should and should not evaluate. Identify three to five scientific relationships that a strong explanation should state. Identify three to six possible misconceptions that are directly relevant to the lesson. Do not call a misconception research-based unless the supplied materials include a supporting source. In source_support, name the exact source or section found in the supplied materials; otherwise write "Needs research or teacher confirmation." Create at least one focused follow-up question for each target idea and each possible misconception. A follow-up should help the student explain the missing or incompatible relationship without giving away a final answer. Create one completion question for a response that already includes every target idea and one clarification question for short, unclear, or off-topic responses.
 
 Do not grade students, assign mastery, invent citations, or create facts that are not supported by the lesson materials. Include a short checklist of items the teacher still needs to verify. Return only the requested structured data.`;
 }

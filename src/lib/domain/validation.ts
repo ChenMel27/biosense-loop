@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+import { gradeLevelOptions, type GradeLevel } from "@/lib/domain/curriculum";
+
+const gradeLevelSchema = z.custom<GradeLevel>(
+  (value) => gradeLevelOptions.some((option) => option.value === value),
+  "Choose a valid K–12 grade.",
+);
+
 export const confidenceChoiceSchema = z.enum([
   "not_sure",
   "somewhat_sure",
@@ -71,6 +78,8 @@ export const teacherUsabilityEventSchema = z.object({
 export const teacherContentDraftSchema = z.object({
   title: z.string().trim().min(2).max(160).optional(),
   gradeBand: z.string().trim().min(2).max(160).optional(),
+  gradeLevel: gradeLevelSchema.optional(),
+  course: z.literal("Biology").optional(),
   scopeBoundary: z.string().trim().min(10).max(2_000).optional(),
   collectStudentNames: z.boolean().default(false),
   initialPrompt: z.string().trim().min(20).max(4_000),
