@@ -55,6 +55,7 @@ export function TeacherActivityBuilder() {
   const [draft, setDraft] = useState<EditableLessonDraft | null>(null);
   const [title, setTitle] = useState("");
   const [participantCount, setParticipantCount] = useState(1);
+  const [studentIdentityMode, setStudentIdentityMode] = useState<"names" | "codes">("codes");
   const [durationMinutes, setDurationMinutes] = useState(15);
   const [created, setCreated] = useState<CreatedSession | null>(null);
   const [creating, setCreating] = useState(false);
@@ -97,7 +98,10 @@ export function TeacherActivityBuilder() {
           title: title || draft.lessonTitle,
           participantCount,
           durationMinutes,
-          authoringDraft: lessonDraftToContentDraft(draft),
+          authoringDraft: {
+            ...lessonDraftToContentDraft(draft),
+            collectStudentNames: studentIdentityMode === "names",
+          },
         }),
       });
       const result = (await response.json()) as CreatedSession & { error?: string };
@@ -122,9 +126,7 @@ export function TeacherActivityBuilder() {
     if (!created) return;
     const rows = [
       "participant_tag,participant_code",
-      ...created.participantCodes.map(
-        (row) => `${row.participantTag},${row.participantCode}`,
-      ),
+      ...created.participantCodes.map((row) => `${row.participantTag},${row.participantCode}`),
     ];
     const url = URL.createObjectURL(new Blob([rows.join("\n")], { type: "text/csv" }));
     const anchor = document.createElement("a");
@@ -187,6 +189,36 @@ export function TeacherActivityBuilder() {
               <input id="activity-duration" type="number" min={8} max={25} value={durationMinutes} onChange={(event) => setDurationMinutes(Number(event.target.value))} />
             </div>
           </div>
+          <fieldset className="identity-setting">
+            <legend>How should students appear on the dashboard?</legend>
+            <div className="identity-options">
+              <label className={studentIdentityMode === "names" ? "identity-option selected" : "identity-option"}>
+                <input
+                  type="radio"
+                  name="student-identity-mode"
+                  value="names"
+                  checked={studentIdentityMode === "names"}
+                  onChange={() => setStudentIdentityMode("names")}
+                />
+                <span className="radio-dot" aria-hidden="true" />
+                <strong>Student-entered names</strong>
+                <small>Students enter their name when they join. Names appear only in the teacher dashboard.</small>
+              </label>
+              <label className={studentIdentityMode === "codes" ? "identity-option selected" : "identity-option"}>
+                <input
+                  type="radio"
+                  name="student-identity-mode"
+                  value="codes"
+                  checked={studentIdentityMode === "codes"}
+                  onChange={() => setStudentIdentityMode("codes")}
+                />
+                <span className="radio-dot" aria-hidden="true" />
+                <strong>Participant codes only</strong>
+                <small>Students stay identified as P01, P02, and so on.</small>
+              </label>
+            </div>
+            <p className="field-note">Each student still receives a private access code so responses can be resumed safely. Names are not sent to OpenAI or included in research exports.</p>
+          </fieldset>
           {draftProblem ? (
             <div className="review-blocker" role="status">
               <strong>One item still needs attention</strong>

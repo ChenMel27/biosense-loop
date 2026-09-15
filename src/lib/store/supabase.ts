@@ -633,7 +633,7 @@ export class SupabaseResearchStore implements ResearchStore {
   async getDashboardSnapshot(sessionId: string): Promise<DashboardSnapshot | null> {
     const session = await this.getSession(sessionId);
     if (!session) return null;
-    const [participantQuery, attemptQuery, eventQuery, teacherActionQuery] = await Promise.all([
+    const [participantQuery, attemptQuery, eventQuery, nameEventQuery, teacherActionQuery] = await Promise.all([
       this.client.from("participants").select("*").eq("session_id", sessionId),
       this.client.from("attempts").select("*").eq("session_id", sessionId),
       this.client
@@ -642,6 +642,12 @@ export class SupabaseResearchStore implements ResearchStore {
         .eq("session_id", sessionId)
         .order("created_at", { ascending: false })
         .limit(20),
+      this.client
+        .from("events")
+        .select("*")
+        .eq("session_id", sessionId)
+        .eq("event_type", "student_joined")
+        .order("created_at", { ascending: true }),
       this.client
         .from("teacher_actions")
         .select("*")
@@ -653,10 +659,18 @@ export class SupabaseResearchStore implements ResearchStore {
     if (participantQuery.error) throw new Error(participantQuery.error.message);
     if (attemptQuery.error) throw new Error(attemptQuery.error.message);
     if (eventQuery.error) throw new Error(eventQuery.error.message);
+    if (nameEventQuery.error) throw new Error(nameEventQuery.error.message);
     if (teacherActionQuery.error) throw new Error(teacherActionQuery.error.message);
     const participants = ((participantQuery.data ?? []) as ParticipantRow[]).map(mapParticipant);
     const attempts = ((attemptQuery.data ?? []) as AttemptRow[]).map(mapAttempt);
     const activityConfiguration = await this.getTeacherActivityConfiguration(sessionId);
+    const displayNamesByAttempt = new Map<string, string>();
+    for (const event of (nameEventQuery.data ?? []) as EventRow[]) {
+      const displayName = event.payload.displayName;
+      if (event.attempt_id && typeof displayName === "string" && displayName.trim()) {
+        displayNamesByAttempt.set(event.attempt_id, displayName.trim());
+      }
+    }
     const counts: DashboardSnapshot["counts"] = {
       not_started: participants.length - attempts.length,
       initial: 0,
@@ -717,6 +731,7 @@ export class SupabaseResearchStore implements ResearchStore {
           if (patternExamples[id].length < 3) {
             patternExamples[id].push({
               participantTag: attempt.participantTag,
+              displayName: displayNamesByAttempt.get(attempt.id) ?? null,
               responseText: response.responseText,
               displayedPromptId: decision.displayedPromptId,
             });
@@ -730,6 +745,7 @@ export class SupabaseResearchStore implements ResearchStore {
         const decision = decisions.find((item) => item.attemptId === attempt.id);
         return {
           participantTag: attempt.participantTag,
+          displayName: displayNamesByAttempt.get(attempt.id) ?? null,
           stage: attempt.stage,
           responseText: response?.responseText ?? null,
           demonstratedIdeaIds: decision?.demonstratedIdeaIds ?? [],

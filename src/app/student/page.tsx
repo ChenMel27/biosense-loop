@@ -22,7 +22,7 @@ export default async function StudentPage({
           <p>You will answer a biology question, receive one follow up based on your response, revise your answer, and try a similar example.</p>
           <ul className="check-list">
             <li>This activity is not graded.</li>
-            <li>Use your own words. Do not enter your name.</li>
+            <li>Use your own words and enter only the information requested.</li>
             <li>Ask your teacher if an instruction is unclear.</li>
           </ul>
           <Link className="back-link" href="/">← Back to home</Link>

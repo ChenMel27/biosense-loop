@@ -22,6 +22,51 @@ describe("memory research store", () => {
     expect(resumed.id).toBe(first.id);
   });
 
+  it("shows a student-entered name to teachers but leaves it out of research exports", async () => {
+    const store = new MemoryResearchStore();
+    const created = await store.createSession({
+      title: "Student name display test",
+      participantCount: 2,
+      durationMinutes: 15,
+      contentVersionId: "test-content-v1",
+      contentDraft: {
+        collectStudentNames: true,
+        initialPrompt: "Explain the scientific relationship using the information provided.",
+        ideaDescriptions: { idea: "Test idea" },
+        misconceptionDescriptions: {},
+        followUpPrompts: { prompt: "Explain that relationship more clearly." },
+      },
+    });
+
+    const participant = await store.getParticipantByCodeHash(
+      created.session.id,
+      hashParticipantCode(
+        created.participantCodes[0].participantCode,
+        "development-only-pepper",
+      ),
+    );
+    const attempt = await store.getOrCreateAttempt(created.session, participant!);
+    await store.appendEvent({
+      id: randomUUID(),
+      sessionId: created.session.id,
+      attemptId: attempt.id,
+      eventType: "student_joined",
+      payload: { resumed: false, displayName: "Avery Johnson" },
+      createdAt: new Date().toISOString(),
+    });
+    const snapshot = await store.getDashboardSnapshot(created.session.id);
+    expect(snapshot?.submissionRows[0]).toEqual(
+      expect.objectContaining({
+        participantTag: attempt.participantTag,
+        displayName: "Avery Johnson",
+      }),
+    );
+
+    const exported = await store.exportSession(created.session.id);
+    expect(exported[0]).not.toHaveProperty("display_name");
+    expect(exported[0]).not.toHaveProperty("student_name");
+  });
+
   it("locks one response per research stage", async () => {
     const store = new MemoryResearchStore();
     const session = (await store.getSessionByJoinCode("GEN7"))!;

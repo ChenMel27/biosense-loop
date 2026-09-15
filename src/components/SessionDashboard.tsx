@@ -187,6 +187,11 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           <div className="session-meta-row">
             <span className={`status-pill ${snapshot.session.status}`}>{statusLabels[snapshot.session.status]}</span>
             <span>Live updates every 5 seconds</span>
+            <span>
+              {snapshot.activityConfiguration?.contentDraft.collectStudentNames
+                ? "Student names enabled"
+                : "Participant codes only"}
+            </span>
           </div>
           <h1>{snapshot.session.title}</h1>
           <p>
@@ -276,7 +281,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
                 <div className="dashboard-response-heading">
                   <div>
                     <span className="sample-id">{row.participantTag}</span>
-                    <strong>Participant {row.participantTag}</strong>
+                    <strong>{row.displayName ?? `Participant ${row.participantTag}`}</strong>
                   </div>
                   <span className="confidence-chip">
                     {row.classificationConfidence === null
@@ -340,7 +345,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
                     <small className="action-tip">{item.teacherAction}</small>
                     {(snapshot.patternExamples[item.id] ?? []).map((example) => (
                       <small key={`${item.id}-${example.participantTag}`} className="response-example">
-                        {example.participantTag}: “{example.responseText}”
+                        {example.displayName ?? example.participantTag}: “{example.responseText}”
                       </small>
                     ))}
                   </span>

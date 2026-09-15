@@ -410,6 +410,15 @@ code { padding: 2px 5px; border-radius: 5px; background: #eaf1ee; color: var(--t
 .draft-footer-actions > span { color: var(--ink-soft); font-size: .72rem; }
 .session-setup-panel h2 { margin: 7px 0 6px; font-family: Georgia, serif; font-size: 1.9rem; font-weight: 500; }
 .session-setup-heading p { color: var(--ink-soft); }
+.identity-setting { display: grid; gap: 12px; margin: 0; padding: 0; border: 0; }
+.identity-setting legend { margin-bottom: 10px; }
+.identity-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.identity-option { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: 10px; row-gap: 4px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: white; cursor: pointer; }
+.identity-option input { position: absolute; opacity: 0; }
+.identity-option.selected { border-color: var(--teal); background: var(--mint-light); box-shadow: 0 0 0 2px rgba(13,114,109,.1); }
+.identity-option .radio-dot { grid-row: 1 / 3; }
+.identity-option strong { font-size: .86rem; }
+.identity-option small { color: var(--ink-soft); font-size: .73rem; line-height: 1.5; }
 .readiness-status { flex: none; padding: 7px 10px; border-radius: 999px; font-size: .68rem; font-weight: 850; }
 .readiness-status.ready { background: var(--mint); color: var(--teal-dark); }
 .readiness-status.needs-review { background: #fff2d4; color: #775a12; }
@@ -538,7 +547,7 @@ code { padding: 2px 5px; border-radius: 5px; background: #eaf1ee; color: var(--t
   .condition-balance { padding: 18px 0 0; border-left: 0; border-top: 1px solid #405c59; text-align: left; }
   .demo-banner { align-items: flex-start; flex-direction: column; }
   .study-scope-grid, .classification-grid { grid-template-columns: 1fr; }
-  .draft-input-grid, .study-example-heading, .prompt-settings-grid { grid-template-columns: 1fr; }
+  .draft-input-grid, .study-example-heading, .prompt-settings-grid, .identity-options { grid-template-columns: 1fr; }
   .lesson-source-heading, .generated-draft-heading, .session-setup-heading, .source-complete-bar, .draft-footer-actions { align-items: flex-start; flex-direction: column; }
   .start-method-grid { grid-template-columns: 1fr; }
   .start-method-card { padding: 20px; }

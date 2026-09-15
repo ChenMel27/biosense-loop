@@ -26,15 +26,15 @@ The pilot does **not** assess ecosystem matter/energy, Punnett-square procedures
 
 ## Future classroom workflow
 
-1. The teacher creates a 15-minute session and downloads pseudonymous participant codes.
+1. The teacher creates a 15-minute session, chooses whether students will enter their names or remain identified by participant codes, and downloads the private access codes.
 2. The teacher opens the session and displays the class code.
-3. Each student joins with the class code and an assigned participant code; no name or email is requested.
+3. Each student joins with the class code and an assigned participant code. If the teacher enabled names, the student also enters their own name.
 4. Every student completes the same S7L3.a evidence-supported initial explanation and confidence item.
 5. For every student, the classifier identifies a missing or incompatible idea and selects one matching teacher-authored follow-up question. Short or uncertain responses receive the approved clarification question.
 6. Each student revises the original explanation.
 7. Each student completes the same unaided near-transfer explanation and short experience survey.
-8. The teacher reviews class-level possible misconception patterns and records an instructional next step.
-9. The research team exports de-identified responses for blinded human scoring with the frozen rubric.
+8. The teacher reviews individual submissions, class-level possible misconception patterns, and the responses behind each pattern before recording an instructional next step. The dashboard shows student-entered names only when the teacher enabled them.
+9. The research team exports de-identified responses for blinded human scoring. Student names are excluded from research exports.
 
 ## What makes the tool distinct
 
@@ -114,6 +114,7 @@ pnpm load-test
 ## Safety and interpretation boundaries
 
 - Possible misconception tags are routing hypotheses, not diagnoses or permanent student labels.
+- When enabled by the teacher, student-entered names are visible only in authenticated teacher views. They are not sent to OpenAI or included in research exports.
 - The teacher remains responsible for instructional decisions.
 - Primary research outcomes are scored later by blinded human raters, not by the routing classifier.
 - The simulated class is system-demonstration data, not evidence of student learning.

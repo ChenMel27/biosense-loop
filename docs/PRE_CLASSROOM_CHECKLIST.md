@@ -7,8 +7,9 @@ Do not run the student session until every required item is complete.
 - [ ] Advisor and classroom teacher have approved the one-session protocol.
 - [ ] The school and research team have confirmed whether IRB review, district permission, parental permission, and student assent are required.
 - [ ] Participation and alternatives are explained without grade pressure or coercion.
-- [ ] Participant-code cards contain no student names, emails, or student IDs.
-- [ ] The code-to-student distribution list, if the teacher needs one operationally, is kept outside ExitLoop and is not exported with research data.
+- [ ] If student-entered names are enabled, the school and research team have approved their storage and teacher-only display.
+- [ ] Students receive only their own access code and do not see the class roster.
+- [ ] Research exports have been checked to confirm that student names, emails, and student IDs are absent.
 - [ ] Data retention, deletion, access, and incident-response responsibilities are documented.
 
 ## Content validity
@@ -24,6 +25,7 @@ Do not run the student session until every required item is complete.
 
 - [ ] The production deployment uses Supabase, not the in-memory demo store.
 - [ ] Database migration `001_initial.sql` has been applied.
+- [ ] Database migration `002_teacher_usability.sql` has been applied.
 - [ ] Production secrets are strong, unique, and unavailable to students.
 - [ ] The health endpoint reports the expected storage and classifier configuration.
 - [ ] A 30-student load test has passed against the exact deployment build.

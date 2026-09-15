@@ -137,12 +137,14 @@ export interface DashboardSnapshot {
     string,
     Array<{
       participantTag: string;
+      displayName: string | null;
       responseText: string;
       displayedPromptId: string;
     }>
   >;
   submissionRows: Array<{
     participantTag: string;
+    displayName: string | null;
     stage: AttemptStage;
     responseText: string | null;
     demonstratedIdeaIds: string[];
@@ -183,6 +185,7 @@ export interface TeacherContentDraft {
   title?: string;
   gradeBand?: string;
   scopeBoundary?: string;
+  collectStudentNames?: boolean;
   initialPrompt: string;
   nearTransferPrompt?: string;
   completionPromptId?: string;

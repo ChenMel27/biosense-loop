@@ -28,6 +28,13 @@ export async function POST(request: Request) {
   if (!session || session.status !== "active") {
     return apiError("That class session is not open. Check the class code with your teacher.", 404);
   }
+  const activityConfiguration = await store.getTeacherActivityConfiguration(session.id);
+  const collectStudentNames = Boolean(
+    activityConfiguration?.contentDraft.collectStudentNames,
+  );
+  if (collectStudentNames && !parsed.data.displayName) {
+    return apiError("Enter your name to join this activity.");
+  }
   const pepper = process.env.PARTICIPANT_CODE_PEPPER ||
     (process.env.NODE_ENV === "production" ? "" : "development-only-pepper");
   if (!pepper) return apiError("Participant access is not configured.", 503);
@@ -42,7 +49,10 @@ export async function POST(request: Request) {
     sessionId: session.id,
     attemptId: attempt.id,
     eventType: "student_joined",
-    payload: { resumed: attempt.stage !== "initial" },
+    payload: {
+      resumed: attempt.stage !== "initial",
+      ...(collectStudentNames ? { displayName: parsed.data.displayName } : {}),
+    },
     createdAt: new Date().toISOString(),
   });
   const response = NextResponse.json({ ok: true, redirect: "/student/activity" });

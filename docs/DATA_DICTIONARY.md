@@ -27,7 +27,7 @@ The sections below document the deferred classroom research data model. They are
 
 ## 1. Data-minimization rule
 
-ExitLoop stores a session-scoped participant tag and hashed participant code, not a student name, email, school ID, birth date, or demographic profile. The same participant can resume within one session. Long-term progress tracking is intentionally deferred; a future longitudinal study would require a separate consented linkage design.
+For classroom operation, the teacher can choose student-entered names or participant codes only. ExitLoop always stores a session-scoped participant tag and hashed participant code so each student can resume within one session. When names are enabled, the name is stored in the student join event and shown only in authenticated teacher views. Names are not sent to OpenAI and are excluded from research exports. ExitLoop does not collect student email, school ID, birth date, or a demographic profile. Long-term progress tracking is intentionally deferred; a future longitudinal study would require a separate consented linkage design.
 
 ## 2. Frozen outcome instrument
 

@@ -302,7 +302,11 @@ export class MemoryResearchStore implements ResearchStore {
         eligible: true,
       };
       this.state.participants.push(participant);
-      return { participantTag, participantCode, condition: conditions[index] };
+      return {
+        participantTag,
+        participantCode,
+        condition: conditions[index],
+      };
     });
     this.state.sessions.push(session);
     if (input.contentDraft) {
@@ -369,6 +373,19 @@ export class MemoryResearchStore implements ResearchStore {
       attempts.some((attempt) => attempt.id === decision.attemptId),
     );
     const activityConfiguration = await this.getTeacherActivityConfiguration(sessionId);
+    const displayNamesByAttempt = new Map<string, string>();
+    for (const event of this.state.events) {
+      const displayName = event.payload.displayName;
+      if (
+        event.sessionId === sessionId &&
+        event.eventType === "student_joined" &&
+        event.attemptId &&
+        typeof displayName === "string" &&
+        displayName.trim()
+      ) {
+        displayNamesByAttempt.set(event.attemptId, displayName.trim());
+      }
+    }
     const ideaCounts: Record<string, number> = {};
     const missingIdeaCounts: Record<string, number> = {};
     const misconceptionCounts: Record<string, number> = {};
@@ -395,6 +412,7 @@ export class MemoryResearchStore implements ResearchStore {
             if (patternExamples[id].length < 3) {
               patternExamples[id].push({
                 participantTag: attempt.participantTag,
+                displayName: displayNamesByAttempt.get(attempt.id) ?? null,
                 responseText: response.responseText,
                 displayedPromptId: decision.displayedPromptId,
               });
@@ -411,6 +429,7 @@ export class MemoryResearchStore implements ResearchStore {
         const decision = decisions.find((item) => item.attemptId === attempt.id);
         return {
           participantTag: attempt.participantTag,
+          displayName: displayNamesByAttempt.get(attempt.id) ?? null,
           stage: attempt.stage,
           responseText: response?.responseText ?? null,
           demonstratedIdeaIds: decision?.demonstratedIdeaIds ?? [],
