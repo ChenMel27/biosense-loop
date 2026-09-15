@@ -29,10 +29,12 @@ export async function GET() {
   const initiallyCovered = bundle.decision?.demonstratedIdeaIds
     .map((id) => ideaById.get(id))
     .filter((label): label is string => Boolean(label)) ?? [];
-  const revisionFocus = [
-    ...(bundle.decision?.missingIdeaIds ?? []).map((id) => ideaById.get(id)),
-    ...(bundle.decision?.possibleAlternativeConceptionIds ?? []).map((id) => patternById.get(id)),
-  ].filter((label): label is string => Boolean(label));
+  const missingIdeas = bundle.decision?.missingIdeaIds
+    .map((id) => ideaById.get(id))
+    .filter((label): label is string => Boolean(label)) ?? [];
+  const possibleMisconceptions = bundle.decision?.possibleAlternativeConceptionIds
+    .map((id) => patternById.get(id))
+    .filter((label): label is string => Boolean(label)) ?? [];
   return Response.json({
     ok: true,
     activity: {
@@ -47,11 +49,13 @@ export async function GET() {
       initialPrompt: pack.initialPrompt,
       nearTransferPrompt: pack.nearTransferPrompt,
       followUp,
-      reflectionSummary: bundle.decision
+      learningSummary: bundle.decision
         ? {
             initiallyCovered,
-            revisionFocus,
+            missingIdeas,
+            possibleMisconceptions,
             promptTitle: followUp?.title ?? "Use evidence to strengthen your explanation",
+            uncertain: bundle.decision.abstain,
           }
         : null,
       initialResponse: initialResponse?.responseText ?? null,

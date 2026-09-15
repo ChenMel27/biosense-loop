@@ -60,7 +60,7 @@ Total range: 0–8. Human raters score de-identified initial, final-revision, an
 | `initial_confidence` | Student confidence after initial response |
 | `final_text` | Revised beetle explanation after the response-specific prompt |
 | `final_confidence` | Student confidence after revision |
-| `near_transfer_text` | Common unaided plant evidence explanation |
+| `near_transfer_text` | Common plant evidence explanation completed after the automated initial-response summary |
 | `near_transfer_confidence` | Student confidence after near transfer |
 | response server/client timestamps | Stage duration and technical auditing; server time is authoritative |
 | prompt and content IDs | Reproduces exactly what the student saw |

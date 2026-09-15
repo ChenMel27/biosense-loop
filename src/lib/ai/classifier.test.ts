@@ -91,4 +91,27 @@ describe("teacher-approved prompt mappings", () => {
     expect(result.recommendedPromptId).toBe(addedQuestionId);
     expect(result.abstain).toBe(false);
   });
+
+  it("records multiple patterns but selects one question using the reviewed list order", () => {
+    const result = normalizeClassificationResult({
+      demonstrated_idea_ids: [],
+      missing_idea_ids: ["evidence_linked_explanation", "gene_on_chromosome"],
+      possible_alternative_conception_ids: [
+        "one_parent_determines_trait",
+        "gene_is_the_trait",
+      ],
+      classification_confidence: 0.91,
+      recommended_prompt_id: "inheritance_both_parents_probe_01",
+      abstain: false,
+      reason_codes: ["contradictory_statement", "missing_relationship"],
+    }, traitInheritancePack);
+
+    expect(result.possibleAlternativeConceptionIds).toHaveLength(2);
+    expect(result.demonstratedIdeaIds).not.toContain("gene_trait_information");
+    expect(result.missingIdeaIds).toEqual(expect.arrayContaining([
+      "gene_trait_information",
+      "both_parent_contributions",
+    ]));
+    expect(result.recommendedPromptId).toBe("inheritance_gene_trait_probe_01");
+  });
 });

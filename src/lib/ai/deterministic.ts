@@ -115,6 +115,25 @@ export function deterministicClassify(response: string): ClassificationResult {
     possibleAlternativeConceptionIds.push("acquired_trait_is_inherited");
   }
 
+  const contradictedIdeas: Record<string, string[]> = {
+    gene_is_the_trait: ["gene_trait_information"],
+    genes_lack_hereditary_information: ["gene_trait_information"],
+    genes_and_chromosomes_unrelated: ["gene_on_chromosome"],
+    one_parent_determines_trait: ["both_parent_contributions"],
+    parents_contribute_different_traits: ["both_parent_contributions"],
+    acquired_trait_is_inherited: ["gene_trait_information"],
+  };
+  const invalidatedIdeaIds = new Set(
+    possibleAlternativeConceptionIds.flatMap(
+      (id) => contradictedIdeas[id] ?? [],
+    ),
+  );
+  for (let index = demonstratedIdeaIds.length - 1; index >= 0; index -= 1) {
+    if (invalidatedIdeaIds.has(demonstratedIdeaIds[index])) {
+      demonstratedIdeaIds.splice(index, 1);
+    }
+  }
+
   const allIdeaIds = traitInheritancePack.ideas.map((idea) => idea.id);
   const missingIdeaIds = allIdeaIds.filter((id) => !demonstratedIdeaIds.includes(id));
 
@@ -125,10 +144,10 @@ export function deterministicClassify(response: string): ClassificationResult {
     recommendedPromptId = "inheritance_gene_information_probe_01";
   } else if (possibleAlternativeConceptionIds.includes("genes_and_chromosomes_unrelated")) {
     recommendedPromptId = "inheritance_chromosome_probe_01";
-  } else if (possibleAlternativeConceptionIds.includes("parents_contribute_different_traits")) {
-    recommendedPromptId = "inheritance_same_trait_both_parents_probe_01";
   } else if (possibleAlternativeConceptionIds.includes("one_parent_determines_trait")) {
     recommendedPromptId = "inheritance_both_parents_probe_01";
+  } else if (possibleAlternativeConceptionIds.includes("parents_contribute_different_traits")) {
+    recommendedPromptId = "inheritance_same_trait_both_parents_probe_01";
   } else if (possibleAlternativeConceptionIds.includes("acquired_trait_is_inherited")) {
     recommendedPromptId = "inheritance_acquired_trait_probe_01";
   } else if (missingIdeaIds.includes("gene_trait_information")) {

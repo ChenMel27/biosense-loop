@@ -23,10 +23,12 @@ interface ActivityState {
   initialPrompt: Prompt;
   nearTransferPrompt: Prompt;
   followUp: Prompt | null;
-  reflectionSummary: {
+  learningSummary: {
     initiallyCovered: string[];
-    revisionFocus: string[];
+    missingIdeas: string[];
+    possibleMisconceptions: string[];
     promptTitle: string;
+    uncertain: boolean;
   } | null;
   initialResponse: string | null;
   finalResponse: string | null;
@@ -116,6 +118,7 @@ export function StudentActivity() {
   const [saved, setSaved] = useState<"idle" | "saving" | "saved">("idle");
   const [online, setOnline] = useState(true);
   const [clock, setClock] = useState(0);
+  const [showTransferQuestion, setShowTransferQuestion] = useState(false);
 
   const loadState = useCallback(async () => {
     const response = await fetch("/api/student/state", { cache: "no-store" });
@@ -219,6 +222,7 @@ export function StudentActivity() {
         window.localStorage.removeItem(`exitloop-draft:${activity.attemptKey}:${activity.stage}`);
       }
       await loadState();
+      setShowTransferQuestion(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Your response could not be saved.");
@@ -293,26 +297,6 @@ export function StudentActivity() {
               <h1>How did the activity feel?</h1>
               <p>These answers do not affect a grade. Choose the response that fits best.</p>
             </div>
-            {activity.reflectionSummary ? (
-              <div className="callout neutral stack-sm">
-                <strong>Your activity recap</strong>
-                {activity.reflectionSummary.initiallyCovered.length ? (
-                  <p>
-                    <b>Ideas you included at the start:</b>{" "}
-                    {activity.reflectionSummary.initiallyCovered.join("; ")}.
-                  </p>
-                ) : null}
-                <p>
-                  <b>Your revision focused on:</b>{" "}
-                  {activity.reflectionSummary.revisionFocus.length
-                    ? activity.reflectionSummary.revisionFocus.join("; ")
-                    : activity.reflectionSummary.promptTitle}.
-                </p>
-                <p>
-                  This recap is not a score or grade. It shows which idea your follow up question asked you to review.
-                </p>
-              </div>
-            ) : null}
             <ScaleQuestion name="clarity" label="The instructions were clear." low="Not at all" high="Very clear" value={clarity} onChange={setClarity} />
             <ScaleQuestion name="pressure" label="I felt pressure or stress during this activity." low="None" high="A lot" value={pressure} onChange={setPressure} />
             <ScaleQuestion name="helpfulness" label="The follow up question helped me review my explanation." low="Not at all" high="A lot" value={helpfulness} onChange={setHelpfulness} />
@@ -323,6 +307,55 @@ export function StudentActivity() {
             {error ? <p className="form-error" role="alert">{error}</p> : null}
             <button className="button primary" onClick={() => submit("survey")} disabled={submitting}>
               {submitting ? "Saving…" : "Finish activity"}
+            </button>
+          </section>
+        ) : activity.stage === "transfer" && !showTransferQuestion ? (
+          <section className="activity-card stack-xl">
+            <div className="question-heading">
+              <span className="eyebrow">Feedback before the new example</span>
+              <h1>Review what ExitLoop noticed</h1>
+              <p>Your revision has been saved. This summary is based on your first explanation.</p>
+            </div>
+            {activity.learningSummary?.uncertain ? (
+              <div className="callout neutral stack-sm">
+                <strong>Your explanation needed clarification</strong>
+                <p>ExitLoop did not have enough evidence to confidently identify one specific gap. The follow-up question asked you to make your reasoning clearer.</p>
+              </div>
+            ) : (
+              <div className="learning-feedback-grid">
+                <article>
+                  <span>Ideas you explained clearly</span>
+                  {activity.learningSummary?.initiallyCovered.length ? (
+                    <ul>{activity.learningSummary.initiallyCovered.map((idea) => <li key={idea}>{idea}</li>)}</ul>
+                  ) : (
+                    <p>No target idea was identified clearly in the first explanation.</p>
+                  )}
+                </article>
+                <article>
+                  <span>Ideas to strengthen</span>
+                  {activity.learningSummary?.missingIdeas.length ? (
+                    <ul>{activity.learningSummary.missingIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul>
+                  ) : (
+                    <p>No missing target ideas were identified.</p>
+                  )}
+                </article>
+                <article>
+                  <span>Possible misconceptions to reconsider</span>
+                  {activity.learningSummary?.possibleMisconceptions.length ? (
+                    <ul>{activity.learningSummary.possibleMisconceptions.map((idea) => <li key={idea}>{idea}</li>)}</ul>
+                  ) : (
+                    <p>No possible misconceptions were identified.</p>
+                  )}
+                </article>
+              </div>
+            )}
+            <div className="callout compact neutral">
+              <strong>Your follow-up focused on:</strong>{" "}
+              {activity.learningSummary?.promptTitle ?? "Strengthening your explanation"}
+            </div>
+            <p className="ai-disclosure">This is automated, low-stakes feedback, not a grade or mastery decision. Your teacher can review the result.</p>
+            <button className="button primary submit-response" type="button" onClick={() => setShowTransferQuestion(true)}>
+              Continue to the new example
             </button>
           </section>
         ) : (

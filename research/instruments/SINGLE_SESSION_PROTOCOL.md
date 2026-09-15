@@ -12,7 +12,7 @@ This is an exploratory feasibility and signal-detection study, not a test of ret
 - Expected sample: approximately 30 students who meet the approved participation requirements.
 - Design: one-group feasibility pilot in which every student receives response-specific routing.
 - Duration: 12–15 minutes during one class session.
-- Common tasks: beetle initial explanation, beetle revision, plant near-transfer explanation, experience survey.
+- Common tasks: beetle initial explanation, targeted follow-up and revision, automated summary of the initial response, plant near-transfer explanation, experience survey.
 - Follow-up: the classifier selects one teacher-approved question for each initial explanation.
 - Primary outcome: blinded targeted repair from initial explanation to revision.
 - Secondary student outcome: blinded plant near-transfer total, 0–8.
@@ -41,14 +41,15 @@ Use additional language required by the approved permission/assent process.
 | 1:30–4:30 | Read beetle evidence card; write initial explanation; choose confidence | Monitor completion and technical status |
 | 4:30–6:30 | Answer the response-specific follow-up | Use the same neutral support for all students |
 | 6:30–9:00 | Revise the complete beetle explanation | Do not provide science coaching |
-| 9:00–11:30 | Complete unaided plant near-transfer explanation | Hide the earlier response and prompt |
-| 11:30–12:30 | Complete clarity, pressure, and helpfulness items | Confirm submissions and show a neutral completion screen |
+| 9:00–9:30 | Review the automated summary of the initial explanation | Remind students that the summary is not a grade |
+| 9:30–12:00 | Complete the plant near-transfer explanation | Hide the earlier response and prompt |
+| 12:00–13:00 | Complete clarity, pressure, and helpfulness items | Confirm submissions and show a neutral completion screen |
 
 If the schedule slips, preserve the same task order for everyone and record deviations.
 
 ## Response-specific routing
 
-The constrained classifier processes the locked initial response and selects one prompt from the frozen bank based only on explicit evidence. A short, unclear, or out-of-scope response receives `inheritance_clarify_01`. A response evidencing all four target relationships with no incompatible claim receives `inheritance_complete_check_01`, which acknowledges task coverage without assigning a grade or mastery label.
+The constrained classifier processes the locked initial response and records every supported target-idea and possible-alternative-conception label. It displays only one prompt to keep the activity brief. An explicit possible alternative conception takes priority over an omitted target idea. When several labels in the same category apply, the frozen content-bank order determines the primary target. The system accepts the model's recommended prompt only when it is an approved question linked to that target; otherwise the server selects the first approved matching question. A short, unclear, or out-of-scope response receives `inheritance_clarify_01`. A response evidencing all four target relationships with no incompatible claim receives `inheritance_complete_check_01`, which acknowledges task coverage without assigning a grade or mastery label. After the revision is locked, students see all initial-response labels as automated feedback before the near-transfer task. The summary does not reclassify the revision or claim that an idea was repaired.
 
 ## Primary targeted-repair outcome
 

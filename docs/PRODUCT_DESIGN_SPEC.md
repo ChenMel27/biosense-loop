@@ -76,9 +76,10 @@ The uploaded lesson draft and the shared inheritance demonstration are intention
 4. The response is locked. The constrained classifier identifies evidenced or missing relationships and possible alternative-conception language, then selects one approved prompt.
 5. A short, unclear, or out-of-scope response receives a clarification question. If all four target relationships are present and no incompatible claim is identified, the student receives a completion review question. It states that the key ideas are present and lets the student continue without forcing an unnecessary revision.
 6. Student sees the original response, answers the prompt, and locks a revision.
-7. Original work is hidden. Student completes the plant seed-coat near-transfer explanation and confidence item.
-8. Student rates clarity, pressure, and helpfulness and may leave an optional comment.
-9. Completion screen shows no score or diagnostic label.
+7. ExitLoop summarizes the target ideas identified in the first explanation, ideas that were missing, and any possible misconceptions. The summary is automated feedback, not a grade, and does not claim the revision is correct.
+8. Original work is hidden. Student completes the plant seed-coat near-transfer explanation and confidence item after viewing the summary.
+9. Student rates clarity, pressure, and helpfulness and may leave an optional comment.
+10. Completion screen shows no score or mastery label.
 
 ### Teacher closeout
 

@@ -1,6 +1,6 @@
 # ExitLoop
 
-ExitLoop is a teacher-governed, low-stakes formative-assessment platform for K–12 classrooms. Its first prototype uses trait inheritance to demonstrate a short **explain → targeted probe → revise → near-transfer** loop. The software does not grade students or generate new questions during class. A constrained classifier selects only from a teacher-reviewed prompt bank, abstains when evidence is weak, and shows class-level patterns for teacher review.
+ExitLoop is a teacher-governed, low-stakes formative-assessment platform for K–12 classrooms. Its first prototype uses trait inheritance to demonstrate a short **explain → targeted probe → revise → feedback → near-transfer** loop. The software does not grade students or generate new questions during class. A constrained classifier selects only from a teacher-reviewed prompt bank, abstains when evidence is weak, and shows class-level patterns for teacher review.
 
 ## Current research phase
 
@@ -20,7 +20,7 @@ The shared study example is aligned only to Georgia Standards of Excellence **S7
 
 > Construct an explanation supported with scientific evidence of the role of genes and chromosomes in the process of inheriting a specific trait.
 
-Students use a fictional beetle evidence card to explain how a bristle-shape gene located on a chromosome is inherited from both parents and relates to the offspring's trait. The unaided near-transfer task uses a fictional plant seed-coat trait.
+Students use a fictional beetle evidence card to explain how a bristle-shape gene located on a chromosome is inherited from both parents and relates to the offspring's trait. After revision and automated feedback, the near-transfer task uses a fictional plant seed-coat trait.
 
 The pilot does **not** assess ecosystem matter/energy, Punnett-square procedures, probability calculations, memorized meiosis or mitosis stages, DNA replication, protein synthesis, or complex human inheritance. See [Georgia standards alignment](docs/GEORGIA_STANDARDS_ALIGNMENT.md).
 
@@ -32,9 +32,10 @@ The pilot does **not** assess ecosystem matter/energy, Punnett-square procedures
 4. Every student completes the same S7L3.a evidence-supported initial explanation and confidence item.
 5. For every student, the classifier identifies a missing or incompatible idea and selects one matching teacher-authored follow-up question. Short or uncertain responses receive the approved clarification question.
 6. Each student revises the original explanation.
-7. Each student completes the same unaided near-transfer explanation and short experience survey.
-8. The teacher reviews individual submissions, class-level possible misconception patterns, and the responses behind each pattern before recording an instructional next step. The dashboard shows student-entered names only when the teacher enabled them.
-9. The research team exports de-identified responses for blinded human scoring. Student names are excluded from research exports.
+7. ExitLoop shows a low-stakes summary of the target ideas identified in the first explanation, missing ideas, and possible misconceptions. It does not claim that the revision is correct.
+8. Each student applies the reasoning to the same near-transfer example and completes a short experience survey.
+9. The teacher reviews individual submissions, class-level possible misconception patterns, and the responses behind each pattern before recording an instructional next step. The dashboard shows student-entered names only when the teacher enabled them.
+10. The research team exports de-identified responses for blinded human scoring. Student names are excluded from research exports.
 
 ## What makes the tool distinct
 

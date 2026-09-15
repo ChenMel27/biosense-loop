@@ -47,7 +47,7 @@ describe("deterministic safe fallback", () => {
 
   it("routes different-traits-by-parent reasoning", () => {
     const result = deterministicClassify(
-      "The mother gives bristle shape and father gives a different trait, so only the mother matters for this gene.",
+      "The mother gives bristle shape and father gives a different trait, because each parent gives a different trait.",
     );
     expect(result.possibleAlternativeConceptionIds).toContain(
       "parents_contribute_different_traits",
@@ -55,6 +55,21 @@ describe("deterministic safe fallback", () => {
     expect(result.recommendedPromptId).toBe(
       "inheritance_same_trait_both_parents_probe_01",
     );
+  });
+
+  it("records multiple misconceptions but routes one using the approved priority order", () => {
+    const result = deterministicClassify(
+      "Only the mother determines this trait because each parent gives a different trait, and the father gives something unrelated.",
+    );
+    expect(result.possibleAlternativeConceptionIds).toEqual(
+      expect.arrayContaining([
+        "one_parent_determines_trait",
+        "parents_contribute_different_traits",
+      ]),
+    );
+    expect(result.demonstratedIdeaIds).not.toContain("both_parent_contributions");
+    expect(result.missingIdeaIds).toContain("both_parent_contributions");
+    expect(result.recommendedPromptId).toBe("inheritance_both_parents_probe_01");
   });
 
   it("abstains on insufficient evidence", () => {

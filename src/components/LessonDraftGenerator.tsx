@@ -377,7 +377,7 @@ export function LessonDraftGenerator({
                 <span className="section-meta">{draft.followUpQuestions.length} {draft.followUpQuestions.length === 1 ? "question" : "questions"}</span>
               </summary>
               <div className="authoring-section-body stack-md">
-                <p className="section-help">ExitLoop selects from this list. It does not write a new question for the student.</p>
+                <p className="section-help">ExitLoop shows one approved question. If several response patterns are identified, it prioritizes a possible misconception and then uses the order of the reviewed idea and misconception lists. It does not write a new question during the activity.</p>
                 {draft.followUpQuestions.map((question, index) => {
                   const targets = question.targetKind === "target_idea" ? draft.targetIdeas : draft.possibleMisconceptions;
                   const target = targets.find((item) => item.id === question.targetId);
