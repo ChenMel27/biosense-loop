@@ -39,6 +39,7 @@ const confidenceOptions: Array<{ value: Confidence; label: string; note: string 
 ];
 
 const stageOrder: Stage[] = ["initial", "revision", "transfer", "survey", "complete"];
+const pasteBlockedMessage = "Pasting is turned off for this activity. Please write your response in your own words.";
 
 function ConfidencePicker({ value, onChange }: { value: Confidence | ""; onChange: (value: Confidence) => void }) {
   return (
@@ -434,11 +435,16 @@ export function StudentActivity() {
                 onChange={(event) => {
                   setText(event.target.value);
                   setSaved("saving");
+                  if (error === pasteBlockedMessage) setError("");
+                }}
+                onPaste={(event) => {
+                  event.preventDefault();
+                  setError(pasteBlockedMessage);
                 }}
                 placeholder="Write your explanation here"
                 autoFocus
               />
-              <div className="field-meta"><span>Write 2 to 4 sentences.</span><span>{text.length}/2000</span></div>
+              <div className="field-meta"><span>Write 2 to 4 sentences in your own words. Pasting is turned off.</span><span>{text.length}/2000</span></div>
             </div>
 
             <ConfidencePicker value={confidence} onChange={setConfidence} />
