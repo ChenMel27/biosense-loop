@@ -2,25 +2,10 @@ import { randomUUID } from "node:crypto";
 
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { hashParticipantCode } from "@/lib/domain/assignment";
 import { MemoryResearchStore, resetMemoryStore } from "@/lib/store/memory";
 
 describe("memory research store", () => {
   beforeEach(() => resetMemoryStore());
-
-  it("resumes the same attempt for a participant", async () => {
-    const store = new MemoryResearchStore();
-    const session = await store.getSessionByJoinCode("GEN7");
-    expect(session).not.toBeNull();
-    const participant = await store.getParticipantByCodeHash(
-      session!.id,
-      hashParticipantCode("GEN-001", "development-only-pepper"),
-    );
-    expect(participant?.assignedCondition).toBe("adaptive");
-    const first = await store.getOrCreateAttempt(session!, participant!);
-    const resumed = await store.getOrCreateAttempt(session!, participant!);
-    expect(resumed.id).toBe(first.id);
-  });
 
   it("shows a student-entered name to teachers but leaves it out of research exports", async () => {
     const store = new MemoryResearchStore();
@@ -30,7 +15,6 @@ describe("memory research store", () => {
       durationMinutes: 15,
       contentVersionId: "test-content-v1",
       contentDraft: {
-        collectStudentNames: true,
         initialPrompt: "Explain the scientific relationship using the information provided.",
         ideaDescriptions: { idea: "Test idea" },
         misconceptionDescriptions: {},
@@ -38,18 +22,12 @@ describe("memory research store", () => {
       },
     });
 
-    const participant = await store.getParticipantByCodeHash(
-      created.session.id,
-      hashParticipantCode(
-        created.participantCodes[0].participantCode,
-        "development-only-pepper",
-      ),
-    );
-    const attempt = await store.getOrCreateAttempt(created.session, participant!);
+    const attempt = await store.claimAvailableAttempt(created.session);
+    expect(attempt).not.toBeNull();
     await store.appendEvent({
       id: randomUUID(),
       sessionId: created.session.id,
-      attemptId: attempt.id,
+      attemptId: attempt!.id,
       eventType: "student_joined",
       payload: { resumed: false, displayName: "Avery Johnson" },
       createdAt: new Date().toISOString(),
@@ -57,7 +35,7 @@ describe("memory research store", () => {
     const snapshot = await store.getDashboardSnapshot(created.session.id);
     expect(snapshot?.submissionRows[0]).toEqual(
       expect.objectContaining({
-        participantTag: attempt.participantTag,
+        participantTag: attempt!.participantTag,
         displayName: "Avery Johnson",
       }),
     );
@@ -67,14 +45,29 @@ describe("memory research store", () => {
     expect(exported[0]).not.toHaveProperty("student_name");
   });
 
+  it("claims one distinct internal response slot per student name join", async () => {
+    const store = new MemoryResearchStore();
+    const created = await store.createSession({
+      title: "Name join capacity test",
+      participantCount: 2,
+      durationMinutes: 15,
+      contentVersionId: "test-content-v1",
+    });
+
+    const first = await store.claimAvailableAttempt(created.session);
+    const second = await store.claimAvailableAttempt(created.session);
+    const full = await store.claimAvailableAttempt(created.session);
+
+    expect(first?.participantTag).toBe("P01");
+    expect(second?.participantTag).toBe("P02");
+    expect(second?.id).not.toBe(first?.id);
+    expect(full).toBeNull();
+  });
+
   it("locks one response per research stage", async () => {
     const store = new MemoryResearchStore();
     const session = (await store.getSessionByJoinCode("GEN7"))!;
-    const participant = (await store.getParticipantByCodeHash(
-      session.id,
-      hashParticipantCode("GEN-001", "development-only-pepper"),
-    ))!;
-    const attempt = await store.getOrCreateAttempt(session, participant);
+    const attempt = (await store.claimAvailableAttempt(session))!;
     const response = {
       id: randomUUID(),
       attemptId: attempt.id,
@@ -95,11 +88,7 @@ describe("memory research store", () => {
   it("does not carry a draft into a later research stage", async () => {
     const store = new MemoryResearchStore();
     const session = (await store.getSessionByJoinCode("GEN7"))!;
-    const participant = (await store.getParticipantByCodeHash(
-      session.id,
-      hashParticipantCode("GEN-001", "development-only-pepper"),
-    ))!;
-    const attempt = await store.getOrCreateAttempt(session, participant);
+    const attempt = (await store.claimAvailableAttempt(session))!;
     await store.saveDraft(attempt.id, "Initial screen draft text", "initial");
     await store.updateAttemptStage(attempt.id, "revision");
     await store.saveDraft(attempt.id, "Late initial autosave", "initial");
@@ -111,11 +100,7 @@ describe("memory research store", () => {
   it("reveals routed evidence examples only after the session closes", async () => {
     const store = new MemoryResearchStore();
     const session = (await store.getSessionByJoinCode("GEN7"))!;
-    const participant = (await store.getParticipantByCodeHash(
-      session.id,
-      hashParticipantCode("GEN-001", "development-only-pepper"),
-    ))!;
-    const attempt = await store.getOrCreateAttempt(session, participant);
+    const attempt = (await store.claimAvailableAttempt(session))!;
     await store.appendResponse({
       id: randomUUID(),
       attemptId: attempt.id,
@@ -154,7 +139,7 @@ describe("memory research store", () => {
     const closedSnapshot = await store.getDashboardSnapshot(session.id);
     expect(closedSnapshot?.patternExamples.one_parent_determines_trait).toEqual([
       expect.objectContaining({
-        participantTag: participant.participantTag,
+        participantTag: attempt.participantTag,
         displayedPromptId: "inheritance_both_parents_probe_01",
       }),
     ]);
@@ -163,11 +148,7 @@ describe("memory research store", () => {
   it("deletes a session and its related classroom data", async () => {
     const store = new MemoryResearchStore();
     const session = (await store.getSessionByJoinCode("GEN7"))!;
-    const participant = (await store.getParticipantByCodeHash(
-      session.id,
-      hashParticipantCode("GEN-001", "development-only-pepper"),
-    ))!;
-    const attempt = await store.getOrCreateAttempt(session, participant);
+    const attempt = (await store.claimAvailableAttempt(session))!;
     await store.appendResponse({
       id: randomUUID(),
       attemptId: attempt.id,

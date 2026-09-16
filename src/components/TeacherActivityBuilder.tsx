@@ -9,11 +9,6 @@ import type { EditableLessonDraft } from "@/lib/ai/lesson-draft";
 
 interface CreatedSession {
   session: { id: string; joinCode: string; title: string };
-  participantCodes: Array<{
-    participantTag: string;
-    participantCode: string;
-    condition: "adaptive";
-  }>;
 }
 
 function validateDraft(draft: EditableLessonDraft) {
@@ -56,12 +51,11 @@ export function TeacherActivityBuilder() {
   const [draft, setDraft] = useState<EditableLessonDraft | null>(null);
   const [title, setTitle] = useState("");
   const [participantCount, setParticipantCount] = useState(1);
-  const [studentIdentityMode, setStudentIdentityMode] = useState<"names" | "codes">("codes");
   const [durationMinutes, setDurationMinutes] = useState(15);
   const [created, setCreated] = useState<CreatedSession | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
-  const [copied, setCopied] = useState<"class" | "student" | "">("");
+  const [copied, setCopied] = useState(false);
 
   const handleDraftChange = useCallback((nextDraft: EditableLessonDraft | null) => {
     setDraft(nextDraft);
@@ -70,16 +64,14 @@ export function TeacherActivityBuilder() {
     }
   }, []);
 
-  const firstCode = created?.participantCodes[0];
   const draftProblem = draft ? validateDraft(draft) : "";
   const studentUrl = useMemo(() => {
-    if (!created || !firstCode) return "";
+    if (!created) return "";
     const query = new URLSearchParams({
       classCode: created.session.joinCode,
-      participantCode: firstCode.participantCode,
     });
     return `/student?${query.toString()}`;
-  }, [created, firstCode]);
+  }, [created]);
 
   async function startSession(event: React.FormEvent) {
     event.preventDefault();
@@ -99,10 +91,7 @@ export function TeacherActivityBuilder() {
           title: title || draft.lessonTitle,
           participantCount,
           durationMinutes,
-          authoringDraft: {
-            ...lessonDraftToContentDraft(draft),
-            collectStudentNames: studentIdentityMode === "names",
-          },
+          authoringDraft: lessonDraftToContentDraft(draft),
         }),
       });
       const result = (await response.json()) as CreatedSession & { error?: string };
@@ -123,24 +112,10 @@ export function TeacherActivityBuilder() {
     }
   }
 
-  function downloadCodes() {
-    if (!created) return;
-    const rows = [
-      "participant_tag,participant_code",
-      ...created.participantCodes.map((row) => `${row.participantTag},${row.participantCode}`),
-    ];
-    const url = URL.createObjectURL(new Blob([rows.join("\n")], { type: "text/csv" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `exitloop-codes-${created.session.joinCode}.csv`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  }
-
-  async function copyCode(kind: "class" | "student", value: string) {
+  async function copyCode(value: string) {
     await navigator.clipboard.writeText(value);
-    setCopied(kind);
-    window.setTimeout(() => setCopied(""), 1_500);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1_500);
   }
 
   return (
@@ -156,7 +131,7 @@ export function TeacherActivityBuilder() {
       <ol className="builder-progress" aria-label="Activity setup progress">
         <li className={!draft ? "current" : "complete"}><span>1</span><div><strong>Add materials</strong><small>Upload or enter lesson content</small></div></li>
         <li className={created ? "complete" : draft ? "current" : ""}><span>2</span><div><strong>Review activity</strong><small>Check content and questions</small></div></li>
-        <li className={created ? "current" : ""}><span>3</span><div><strong>Open session</strong><small>Share student access codes</small></div></li>
+        <li className={created ? "current" : ""}><span>3</span><div><strong>Open session</strong><small>Share one class code</small></div></li>
       </ol>
 
       <section className="activity-builder-panel">
@@ -190,36 +165,11 @@ export function TeacherActivityBuilder() {
               <input id="activity-duration" type="number" min={8} max={25} value={durationMinutes} onChange={(event) => setDurationMinutes(Number(event.target.value))} />
             </div>
           </div>
-          <fieldset className="identity-setting">
-            <legend>How should students appear on the dashboard?</legend>
-            <div className="identity-options">
-              <label className={studentIdentityMode === "names" ? "identity-option selected" : "identity-option"}>
-                <input
-                  type="radio"
-                  name="student-identity-mode"
-                  value="names"
-                  checked={studentIdentityMode === "names"}
-                  onChange={() => setStudentIdentityMode("names")}
-                />
-                <span className="radio-dot" aria-hidden="true" />
-                <strong>Student-entered names</strong>
-                <small>Students enter their name when they join. Names appear only in the teacher dashboard.</small>
-              </label>
-              <label className={studentIdentityMode === "codes" ? "identity-option selected" : "identity-option"}>
-                <input
-                  type="radio"
-                  name="student-identity-mode"
-                  value="codes"
-                  checked={studentIdentityMode === "codes"}
-                  onChange={() => setStudentIdentityMode("codes")}
-                />
-                <span className="radio-dot" aria-hidden="true" />
-                <strong>Participant codes only</strong>
-                <small>Students stay identified as P01, P02, and so on.</small>
-              </label>
-            </div>
-            <p className="field-note">Each student still receives a private access code so responses can be resumed safely. Names are not sent to OpenAI or included in research exports.</p>
-          </fieldset>
+          <div className="callout compact neutral">
+            Students will join with the class code and the name their teacher recognizes. Names
+            appear only in the private teacher dashboard; they are not sent to OpenAI or included
+            in research exports.
+          </div>
           {draftProblem ? (
             <div className="review-blocker" role="status">
               <strong>One item still needs attention</strong>
@@ -227,7 +177,7 @@ export function TeacherActivityBuilder() {
             </div>
           ) : (
             <div className="callout compact neutral">
-              ExitLoop will create one class code and {participantCount} private student {participantCount === 1 ? "code" : "codes"}. The reviewed activity and question rules will be used for this session.
+              ExitLoop will create one class code for up to {participantCount} {participantCount === 1 ? "student" : "students"}. The reviewed activity and question rules will be used for this session.
             </div>
           )}
           {error ? <p className="form-error" role="alert">{error}</p> : null}
@@ -244,27 +194,19 @@ export function TeacherActivityBuilder() {
             <div>
               <span className="eyebrow">Session is open</span>
               <h2>{created.session.title}</h2>
-              <p>Share the class code and one private access code with each student.</p>
+              <p>Share this class code. Students enter it with their name to join.</p>
             </div>
           </div>
           <div className="session-code-grid">
             <div>
               <span>Class code</span>
               <strong>{created.session.joinCode}</strong>
-              <button className="text-button" type="button" onClick={() => copyCode("class", created.session.joinCode)}>{copied === "class" ? "Copied" : "Copy code"}</button>
+              <button className="text-button" type="button" onClick={() => copyCode(created.session.joinCode)}>{copied ? "Copied" : "Copy code"}</button>
             </div>
-            {firstCode ? (
-              <div>
-                <span>Student preview code</span>
-                <strong>{firstCode.participantCode}</strong>
-                <button className="text-button" type="button" onClick={() => copyCode("student", firstCode.participantCode)}>{copied === "student" ? "Copied" : "Copy code"}</button>
-              </div>
-            ) : null}
           </div>
           <div className="button-row">
             <Link className="button primary" href={studentUrl} target="_blank">Open student preview</Link>
             <Link className="button secondary" href={`/teacher/session/${created.session.id}`}>Open session dashboard</Link>
-            <button className="button ghost" type="button" onClick={downloadCodes}>Download all student codes</button>
           </div>
         </section>
       ) : null}

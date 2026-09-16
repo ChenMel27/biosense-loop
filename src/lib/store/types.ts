@@ -4,7 +4,6 @@ import type {
   AttemptBundle,
   AttemptStage,
   DashboardSnapshot,
-  Participant,
   SessionCreationResult,
   StudyEvent,
   StudyResponse,
@@ -29,11 +28,7 @@ export interface ResearchStore {
   getSessionByJoinCode(joinCode: string): Promise<StudySession | null>;
   getSession(sessionId: string): Promise<StudySession | null>;
   getTeacherActivityConfiguration(sessionId: string): Promise<TeacherActivityConfiguration | null>;
-  getParticipantByCodeHash(
-    sessionId: string,
-    codeHash: string,
-  ): Promise<Participant | null>;
-  getOrCreateAttempt(session: StudySession, participant: Participant): Promise<Attempt>;
+  claimAvailableAttempt(session: StudySession): Promise<Attempt | null>;
   getAttemptBundle(attemptId: string): Promise<AttemptBundle | null>;
   updateAttemptStage(attemptId: string, stage: AttemptStage): Promise<Attempt>;
   saveDraft(attemptId: string, draftText: string, stage: AttemptStage): Promise<void>;

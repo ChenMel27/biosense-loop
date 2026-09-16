@@ -162,11 +162,6 @@ export interface DashboardSnapshot {
 
 export interface SessionCreationResult {
   session: StudySession;
-  participantCodes: Array<{
-    participantTag: string;
-    participantCode: string;
-    condition: Condition;
-  }>;
 }
 
 export type UsabilityReviewJudgment = "agree" | "needs_revision" | "unsure";
@@ -189,7 +184,6 @@ export interface TeacherContentDraft {
   gradeLevel?: GradeLevel;
   course?: Course;
   scopeBoundary?: string;
-  collectStudentNames?: boolean;
   initialPrompt: string;
   nearTransferPrompt?: string;
   completionPromptId?: string;

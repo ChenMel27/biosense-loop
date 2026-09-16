@@ -49,8 +49,7 @@ export const studentSubmissionSchema = z.discriminatedUnion("action", [
 
 export const joinSchema = z.object({
   joinCode: z.string().trim().min(4).max(12),
-  participantCode: z.string().trim().min(4).max(32),
-  displayName: z.string().trim().min(1).max(120).optional(),
+  displayName: z.string().trim().min(2, "Enter the name your teacher will recognize.").max(80),
 });
 
 export const teacherSessionSchema = z.object({
@@ -81,7 +80,6 @@ export const teacherContentDraftSchema = z.object({
   gradeLevel: gradeLevelSchema.optional(),
   course: z.literal("Biology").optional(),
   scopeBoundary: z.string().trim().min(10).max(2_000).optional(),
-  collectStudentNames: z.boolean().default(false),
   initialPrompt: z.string().trim().min(20).max(4_000),
   nearTransferPrompt: z.string().trim().min(20).max(4_000).optional(),
   completionPromptId: z.string().trim().min(2).max(120).optional(),

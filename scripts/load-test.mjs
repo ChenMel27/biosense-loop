@@ -10,14 +10,14 @@ async function jsonFetch(path, init = {}) {
 }
 
 async function runStudent(index) {
-  const code = `GEN-${String(index + 1).padStart(3, "0")}`;
+  const displayName = `Load Student ${index + 1}`;
   const joined = await jsonFetch("/api/student/join", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ joinCode: "GEN7", participantCode: code }),
+    body: JSON.stringify({ joinCode: "GEN7", displayName }),
   });
   const cookie = joined.response.headers.get("set-cookie")?.split(";")[0];
-  if (!cookie) throw new Error(`No student cookie returned for ${code}`);
+  if (!cookie) throw new Error(`No student cookie returned for ${displayName}`);
   const headers = { "content-type": "application/json", cookie };
   const submit = (payload) =>
     jsonFetch("/api/student/submit", {
@@ -54,7 +54,7 @@ async function runStudent(index) {
     helpfulness: 4,
     openComment: "Synthetic load-test response",
   });
-  return code;
+  return displayName;
 }
 
 const startedAt = Date.now();

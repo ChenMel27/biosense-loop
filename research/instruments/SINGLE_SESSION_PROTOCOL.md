@@ -23,13 +23,13 @@ This is an exploratory feasibility and signal-detection study, not a test of ret
 1. Confirm the class has completed relevant instruction on genes, chromosomes, and inheritance under Georgia GSE S7L3.a.
 2. Complete the [pre-classroom checklist](../../docs/PRE_CLASSROOM_CHECKLIST.md), including required school/research approvals, permission, and assent decisions.
 3. Freeze the content-pack ID, classifier schema, prompts, rubric, routing procedure, analysis outcomes, and exclusion rules.
-4. Create the classroom session for the expected count. Download the participant-code manifest and keep it separate from research exports.
+4. Create the classroom session for the expected count and confirm the class code students will use.
 5. Confirm the database, deployment health, school-device test, 30-user load test, and paper/form fallback.
 6. Prepare one neutral script for all students.
 
 ## Neutral teacher script
 
-“Today you will complete a short, low-stakes biology explanation activity. It is not graded. Use the evidence in each question and explain your thinking in your own words. AI will select one teacher-written follow-up question based on your first explanation, but it does not decide your grade or tell your teacher what to teach. Use only the participant code you were given; do not type your name.”
+“Today you will complete a short, low-stakes biology explanation activity. It is not graded. Use the evidence in each question and explain your thinking in your own words. AI will select one teacher-written follow-up question based on your first explanation, but it does not decide your grade or tell your teacher what to teach. Enter the class code and the name your teacher recognizes.”
 
 Use additional language required by the approved permission/assent process.
 
@@ -37,7 +37,7 @@ Use additional language required by the approved permission/assent process.
 
 | Time | Student activity | Teacher/researcher action |
 | --- | --- | --- |
-| 0:00–1:30 | Join with class and participant codes | Open session; resolve access only, without science coaching |
+| 0:00–1:30 | Join with the class code and student name | Open session; resolve access only, without science coaching |
 | 1:30–4:30 | Read beetle evidence card; write initial explanation; choose confidence | Monitor completion and technical status |
 | 4:30–6:30 | Answer the response-specific follow-up | Use the same neutral support for all students |
 | 6:30–9:00 | Revise the complete beetle explanation | Do not provide science coaching |

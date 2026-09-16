@@ -30,7 +30,7 @@ Do not run the student session until every required item is complete.
 - [ ] The health endpoint reports the expected storage and classifier configuration.
 - [ ] A 30-student load test has passed against the exact deployment build.
 - [ ] Student join, draft autosave, resume, revision, near-transfer, survey, teacher dashboard, and CSV export have been tested on school devices and network.
-- [ ] The teacher has printed or securely distributed participant codes and has a replacement-code procedure.
+- [ ] The teacher knows the class code and has told students which form of their name to enter.
 - [ ] A static paper or form fallback is ready if the network or deployment fails.
 
 ## AI and fallback safety
@@ -44,7 +44,7 @@ Do not run the student session until every required item is complete.
 ## Study execution
 
 - [ ] Approximately 15 minutes are reserved for the shared student workflow.
-- [ ] Every participant code is configured for response-specific routing.
+- [ ] The session capacity is large enough for the expected class and response-specific routing is enabled.
 - [ ] The teacher will give the same neutral instructions and support to all students.
 - [ ] Initial, revision, and near-transfer responses are locked by stage.
 - [ ] The near-transfer task hides the student's earlier response.

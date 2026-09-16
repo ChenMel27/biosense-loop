@@ -12,7 +12,7 @@ A student-facing classroom study remains planned future work. Every student woul
 
 ### 1. Review, edit, and launch the diagnostic activity
 
-The teacher reviews the student prompt, target scientific ideas, possible misconceptions, and prewritten follow-up questions. The teacher may add, remove, or edit these items and select which missing ideas or possible misconceptions should route to each response-specific question. A completion question and clarification question remain required because they cover complete and uncertain responses. The teacher then creates a session and receives a class code. The researcher opens the student page with the session's live participant code and completes the activity while the teacher watches. Teacher edits are used in this live demonstration. The 18 frozen examples do not change.
+The teacher reviews the student prompt, target scientific ideas, possible misconceptions, and prewritten follow-up questions. The teacher may add, remove, or edit these items and select which missing ideas or possible misconceptions should route to each response-specific question. A completion question and clarification question remain required because they cover complete and uncertain responses. The teacher then creates a session and receives a class code. The researcher joins with that class code and a clearly marked demo name, then completes the activity while the teacher watches. Teacher edits are used in this live demonstration.
 
 ### 2. Inspect classification and routing
 

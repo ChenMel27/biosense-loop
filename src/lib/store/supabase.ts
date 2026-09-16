@@ -7,8 +7,7 @@ import { traitInheritancePack } from "@/content/trait-inheritance";
 import {
   adaptiveConditions,
   generateJoinCode,
-  generateParticipantCode,
-  hashParticipantCode,
+  hashInternalSlotKey,
   normalizeCode,
 } from "@/lib/domain/assignment";
 import type {
@@ -286,50 +285,46 @@ export class SupabaseResearchStore implements ResearchStore {
     return (payload?.configuration as TeacherActivityConfiguration | undefined) ?? null;
   }
 
-  async getParticipantByCodeHash(sessionId: string, codeHash: string) {
-    const { data, error } = await this.client
-      .from("participants")
-      .select("*")
-      .eq("session_id", sessionId)
-      .eq("code_hash", codeHash)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return data ? mapParticipant(data as ParticipantRow) : null;
-  }
-
-  async getOrCreateAttempt(session: StudySession, participant: Participant) {
-    const existing = await this.client
-      .from("attempts")
-      .select("*")
-      .eq("session_id", session.id)
-      .eq("participant_id", participant.id)
-      .maybeSingle();
-    if (existing.error) throw new Error(existing.error.message);
-    if (existing.data) return mapAttempt(existing.data as AttemptRow);
-
-    const id = randomUUID();
-    const { data, error } = await this.client
-      .from("attempts")
-      .insert({
-        id,
-        session_id: session.id,
-        participant_id: participant.id,
-        participant_tag: participant.participantTag,
-        condition: "adaptive",
-        stage: "initial",
-      })
-      .select("*")
-      .single();
-    if (error?.code === "23505") {
-      const retry = await this.client
-        .from("attempts")
+  async claimAvailableAttempt(session: StudySession) {
+    const [participantQuery, attemptQuery] = await Promise.all([
+      this.client
+        .from("participants")
         .select("*")
         .eq("session_id", session.id)
-        .eq("participant_id", participant.id)
+        .eq("eligible", true)
+        .order("participant_tag", { ascending: true }),
+      this.client.from("attempts").select("participant_id").eq("session_id", session.id),
+    ]);
+    if (participantQuery.error) throw new Error(participantQuery.error.message);
+    if (attemptQuery.error) throw new Error(attemptQuery.error.message);
+
+    const claimed = new Set(
+      ((attemptQuery.data ?? []) as Array<{ participant_id: string }>).map(
+        (row) => row.participant_id,
+      ),
+    );
+    const available = ((participantQuery.data ?? []) as ParticipantRow[])
+      .map(mapParticipant)
+      .filter((participant) => !claimed.has(participant.id));
+
+    for (const participant of available) {
+      const { data, error } = await this.client
+        .from("attempts")
+        .insert({
+          id: randomUUID(),
+          session_id: session.id,
+          participant_id: participant.id,
+          participant_tag: participant.participantTag,
+          condition: "adaptive",
+          stage: "initial",
+        })
+        .select("*")
         .single();
-      return mapAttempt(requireData(retry.data as AttemptRow | null, retry.error, "Resume attempt"));
+      if (error?.code === "23505") continue;
+      if (error) throw new Error(error.message);
+      return mapAttempt(data as AttemptRow);
     }
-    return mapAttempt(requireData(data as AttemptRow | null, error, "Create attempt"));
+    return null;
   }
 
   async getAttemptBundle(attemptId: string): Promise<AttemptBundle | null> {
@@ -573,21 +568,21 @@ export class SupabaseResearchStore implements ResearchStore {
       requireData(sessionQuery.data as SessionRow | null, sessionQuery.error, "Create session"),
     );
     const conditions = adaptiveConditions(input.participantCount);
-    const participantCodes = Array.from({ length: input.participantCount }, (_, index) => {
-      const participantCode = generateParticipantCode(index);
+    const participants = Array.from({ length: input.participantCount }, (_, index) => {
       return {
         participantTag: `P${String(index + 1).padStart(2, "0")}`,
-        participantCode,
         condition: conditions[index],
       };
     });
-    const rows = participantCodes.map((participant) => ({
+    const rows = participants.map((participant) => ({
       id: randomUUID(),
       session_id: session.id,
       participant_tag: participant.participantTag,
-      code_hash: hashParticipantCode(
-        participant.participantCode,
-        process.env.PARTICIPANT_CODE_PEPPER || "",
+      code_hash: hashInternalSlotKey(
+        randomUUID(),
+        process.env.INTERNAL_SLOT_PEPPER ||
+          process.env.SESSION_SIGNING_SECRET ||
+          "internal-slot",
       ),
       assigned_condition: participant.condition,
       eligible: true,
@@ -608,7 +603,7 @@ export class SupabaseResearchStore implements ResearchStore {
       });
       if (configurationQuery.error) throw new Error(configurationQuery.error.message);
     }
-    return { session, participantCodes };
+    return { session };
   }
 
   async updateSessionStatus(sessionId: string, status: StudySession["status"]) {

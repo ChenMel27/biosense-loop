@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Student sign-in" };
 export default async function StudentPage({
   searchParams,
 }: {
-  searchParams: Promise<{ classCode?: string; participantCode?: string }>;
+  searchParams: Promise<{ classCode?: string }>;
 }) {
   const query = await searchParams;
   return (
@@ -28,10 +28,9 @@ export default async function StudentPage({
           <Link className="back-link" href="/">← Back to home</Link>
         </section>
         <section className="auth-card">
-          <div><span className="eyebrow">Class access</span><h2>Enter your codes</h2><p>Both codes are on the card from your teacher.</p></div>
+          <div><span className="eyebrow">Join your class</span><h2>Enter the class code</h2><p>Then add the name your teacher will recognize.</p></div>
           <StudentJoinForm
             initialJoinCode={query.classCode?.toUpperCase() ?? ""}
-            initialParticipantCode={query.participantCode?.toUpperCase() ?? ""}
           />
         </section>
       </main>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type Stage = "initial" | "revision" | "transfer" | "survey" | "complete";
 type Confidence = "not_sure" | "somewhat_sure" | "very_sure";
@@ -14,9 +14,6 @@ interface Prompt {
 interface ActivityState {
   stage: Stage;
   attemptKey: string;
-  participantTag: string;
-  startedAt: string;
-  durationMinutes: number;
   title: string;
   gradeBand: string;
   disclosure: string;
@@ -117,7 +114,6 @@ export function StudentActivity() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState<"idle" | "saving" | "saved">("idle");
   const [online, setOnline] = useState(true);
-  const [clock, setClock] = useState(0);
   const [showTransferQuestion, setShowTransferQuestion] = useState(false);
 
   const loadState = useCallback(async () => {
@@ -160,11 +156,6 @@ export function StudentActivity() {
   }, []);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setClock(Date.now()), 1_000);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
     if (!activity || !["initial", "revision", "transfer"].includes(activity.stage) || !text) return;
     const storageKey = `exitloop-draft:${activity.attemptKey}:${activity.stage}`;
     window.localStorage.setItem(storageKey, text);
@@ -182,12 +173,6 @@ export function StudentActivity() {
     }, 900);
     return () => window.clearTimeout(timer);
   }, [activity, text]);
-
-  const elapsed = useMemo(() => {
-    if (!activity) return "0:00";
-    const seconds = Math.max(0, Math.floor((clock - new Date(activity.startedAt).getTime()) / 1_000));
-    return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-  }, [activity, clock]);
 
   async function submit(action: "initial" | "revision" | "transfer" | "survey") {
     if (submitting) return;
@@ -259,7 +244,7 @@ export function StudentActivity() {
         <div>
           <span className="eyebrow">{activity.gradeBand}</span>
           <h2>{activity.title}</h2>
-          <p className="participant-label">Participant {activity.participantTag}</p>
+          <p className="participant-label">Your class activity</p>
         </div>
         <ol className="progress-list" aria-label="Activity progress">
           {["Explain", "Review and revise", "New example", "Finish"].map((label, index) => (
@@ -269,11 +254,6 @@ export function StudentActivity() {
             </li>
           ))}
         </ol>
-        <div className="time-card">
-          <span>Time in activity</span>
-          <strong>{elapsed}</strong>
-          <small>Work thoughtfully; this is not a race.</small>
-        </div>
       </aside>
 
       <main className="activity-main">
@@ -310,53 +290,96 @@ export function StudentActivity() {
             </button>
           </section>
         ) : activity.stage === "transfer" && !showTransferQuestion ? (
-          <section className="activity-card stack-xl">
-            <div className="question-heading">
-              <span className="eyebrow">Feedback before the new example</span>
-              <h1>Review what ExitLoop noticed</h1>
-              <p>Your revision has been saved. This summary is based on your first explanation.</p>
-            </div>
-            {activity.learningSummary?.uncertain ? (
-              <div className="callout neutral stack-sm">
-                <strong>Your explanation needed clarification</strong>
-                <p>ExitLoop did not have enough evidence to confidently identify one specific gap. The follow-up question asked you to make your reasoning clearer.</p>
+          <section className="activity-card feedback-stage stack-xl">
+            <div className="feedback-hero">
+              <span className="feedback-check" aria-hidden="true">✓</span>
+              <div>
+                <span className="eyebrow">Revision saved</span>
+                <h1>You took another look at your thinking.</h1>
+                <p>
+                  Here is a short learning snapshot from your first explanation. It is meant to
+                  guide your next step, not score your work.
+                </p>
               </div>
+            </div>
+
+            <section className="feedback-goal" aria-labelledby="learning-goal-title">
+              <span>Learning goal</span>
+              <h2 id="learning-goal-title">Build a clear scientific explanation that connects ideas with evidence.</h2>
+            </section>
+
+            {activity.learningSummary?.uncertain ? (
+              <section className="feedback-next-step">
+                <span className="feedback-step-number" aria-hidden="true">1</span>
+                <div>
+                  <span>Your next step</span>
+                  <h2>Make your reasoning easier to follow</h2>
+                  <p>
+                    Your first explanation did not include enough detail for ExitLoop to choose one
+                    idea confidently. The follow-up asked you to explain the connection more clearly.
+                  </p>
+                </div>
+              </section>
             ) : (
-              <div className="learning-feedback-grid">
-                <article>
-                  <span>Ideas you explained clearly</span>
+              <div className="feedback-progress-grid">
+                <section className="feedback-strengths">
+                  <span>Already in your first explanation</span>
                   {activity.learningSummary?.initiallyCovered.length ? (
-                    <ul>{activity.learningSummary.initiallyCovered.map((idea) => <li key={idea}>{idea}</li>)}</ul>
+                    <ul>
+                      {activity.learningSummary.initiallyCovered.map((idea) => (
+                        <li key={idea}><span aria-hidden="true">✓</span>{idea}</li>
+                      ))}
+                    </ul>
                   ) : (
-                    <p>No target idea was identified clearly in the first explanation.</p>
+                    <p>Your first response gave you a starting point for the revision.</p>
                   )}
-                </article>
-                <article>
-                  <span>Ideas to strengthen</span>
-                  {activity.learningSummary?.missingIdeas.length ? (
-                    <ul>{activity.learningSummary.missingIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul>
-                  ) : (
-                    <p>No missing target ideas were identified.</p>
-                  )}
-                </article>
-                <article>
-                  <span>Possible misconceptions to reconsider</span>
-                  {activity.learningSummary?.possibleMisconceptions.length ? (
-                    <ul>{activity.learningSummary.possibleMisconceptions.map((idea) => <li key={idea}>{idea}</li>)}</ul>
-                  ) : (
-                    <p>No possible misconceptions were identified.</p>
-                  )}
-                </article>
+                </section>
+                <section className="feedback-next-step">
+                  <span className="feedback-step-number" aria-hidden="true">1</span>
+                  <div>
+                    <span>Your next learning step</span>
+                    <h2>{activity.learningSummary?.promptTitle ?? "Strengthen one scientific connection"}</h2>
+                    <p>The follow-up question focused on this one idea so you could work on it without trying to change everything at once.</p>
+                  </div>
+                </section>
               </div>
             )}
-            <div className="callout compact neutral">
-              <strong>Your follow-up focused on:</strong>{" "}
-              {activity.learningSummary?.promptTitle ?? "Strengthening your explanation"}
+
+            {!activity.learningSummary?.uncertain &&
+            (activity.learningSummary?.missingIdeas.length ||
+              activity.learningSummary?.possibleMisconceptions.length) ? (
+              <details className="feedback-details">
+                <summary>See everything noticed in your first explanation</summary>
+                <div className="feedback-detail-grid">
+                  {activity.learningSummary?.missingIdeas.length ? (
+                    <div>
+                      <strong>Ideas to keep building</strong>
+                      <ul>{activity.learningSummary.missingIdeas.map((idea) => <li key={idea}>{idea}</li>)}</ul>
+                    </div>
+                  ) : null}
+                  {activity.learningSummary?.possibleMisconceptions.length ? (
+                    <div>
+                      <strong>Claims worth another look</strong>
+                      <ul>{activity.learningSummary.possibleMisconceptions.map((idea) => <li key={idea}>{idea}</li>)}</ul>
+                    </div>
+                  ) : null}
+                </div>
+              </details>
+            ) : null}
+
+            <div className="transfer-invitation">
+              <div>
+                <span>Ready for the next step?</span>
+                <strong>Try the same kind of reasoning in a new example.</strong>
+              </div>
+              <button className="button primary" type="button" onClick={() => setShowTransferQuestion(true)}>
+                Try the new example
+              </button>
             </div>
-            <p className="ai-disclosure">This is automated, low-stakes feedback, not a grade or mastery decision. Your teacher can review the result.</p>
-            <button className="button primary submit-response" type="button" onClick={() => setShowTransferQuestion(true)}>
-              Continue to the new example
-            </button>
+            <p className="ai-disclosure">
+              ExitLoop used the teacher-approved activity rules to create this automated feedback.
+              It is not a grade or a mastery decision, and your teacher can review it.
+            </p>
           </section>
         ) : (
           <section className="activity-card stack-xl">

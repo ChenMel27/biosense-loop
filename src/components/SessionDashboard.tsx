@@ -187,11 +187,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           <div className="session-meta-row">
             <span className={`status-pill ${snapshot.session.status}`}>{statusLabels[snapshot.session.status]}</span>
             <span>Live updates every 5 seconds</span>
-            <span>
-              {snapshot.activityConfiguration?.contentDraft.collectStudentNames
-                ? "Student names enabled"
-                : "Participant codes only"}
-            </span>
+            <span>Students join with their names</span>
           </div>
           <h1>{snapshot.session.title}</h1>
           <p>
@@ -316,7 +312,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         </div> : (
           <div className="empty-dashboard-state">
             <strong>No responses yet</strong>
-            <p>Share the class code and access codes. Responses will appear here after students submit their first explanation.</p>
+            <p>Share the class code. Students join with their name, and responses appear here after they submit their first explanation.</p>
           </div>
         )}
         {submittedRows.length > 5 ? (

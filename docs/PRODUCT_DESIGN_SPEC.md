@@ -50,7 +50,7 @@ Out of scope: ecosystem matter/energy, Punnett-square procedures, inheritance pr
 1. A teacher signs in with a pseudonymous study ID and begins a remote think-aloud session.
 2. The teacher can start with an empty activity form. Uploading lesson material is an optional shortcut: AI organizes the material into the same editable form, but the teacher remains responsible for checking its science, sources, age level, and questions.
 3. The teacher reviews and may edit the shared demonstration prompt, target ideas, possible misconceptions, and prewritten follow-up questions. The teacher also reviews which ideas and misconceptions route to each question. The interface identifies trait inheritance as one worked example, not a universal template.
-4. The teacher creates a session and receives a class code. The researcher joins with the reserved live participant code and completes the student activity.
+4. The teacher creates a session and receives a class code. The researcher joins with the class code and a demo name, then completes the student activity.
 5. ExitLoop uses the edited content to analyze the researcher's response and select an approved follow-up question. It combines that response with 18 researcher-written simulations.
 6. The teacher inspects the combined class, reviews at least five AI outputs, and records agree, needs revision, or unsure.
 7. The teacher sees the top two patterns first, can inspect the responses behind each count, selects the most important pattern, and records a next instructional action and confidence rating.
@@ -70,7 +70,7 @@ The uploaded lesson draft and the shared inheritance demonstration are intention
 
 ### Student loop
 
-1. Student enters class code and participant code.
+1. Student enters the shared class code and the name their teacher recognizes.
 2. Student reads the non-graded, teacher-governed disclosure.
 3. Student answers the beetle bristle-shape evidence task in 2–4 sentences and selects confidence.
 4. The response is locked. The constrained classifier identifies evidenced or missing relationships and possible alternative-conception language, then selects one approved prompt.

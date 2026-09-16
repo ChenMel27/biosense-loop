@@ -26,15 +26,15 @@ The pilot does **not** assess ecosystem matter/energy, Punnett-square procedures
 
 ## Future classroom workflow
 
-1. The teacher creates a 15-minute session, chooses whether students will enter their names or remain identified by participant codes, and downloads the private access codes.
-2. The teacher opens the session and displays the class code.
-3. Each student joins with the class code and an assigned participant code. If the teacher enabled names, the student also enters their own name.
+1. The teacher creates a 15-minute session and chooses the expected number of students.
+2. The teacher opens the session and displays one class code.
+3. Each student joins with the class code and the name their teacher recognizes. No student account or individual access code is required.
 4. Every student completes the same S7L3.a evidence-supported initial explanation and confidence item.
 5. For every student, the classifier identifies a missing or incompatible idea and selects one matching teacher-authored follow-up question. Short or uncertain responses receive the approved clarification question.
 6. Each student revises the original explanation.
-7. ExitLoop shows a low-stakes summary of the target ideas identified in the first explanation, missing ideas, and possible misconceptions. It does not claim that the revision is correct.
+7. ExitLoop shows a low-stakes learning snapshot: the activity goal, ideas already present in the first explanation, and one concrete next step. Additional missing or incompatible ideas are available in an expandable section. The system does not claim that the revision is correct.
 8. Each student applies the reasoning to the same near-transfer example and completes a short experience survey.
-9. The teacher reviews individual submissions, class-level possible misconception patterns, and the responses behind each pattern before recording an instructional next step. The dashboard shows student-entered names only when the teacher enabled them.
+9. The teacher reviews named submissions, class-level possible misconception patterns, and the responses behind each pattern before recording an instructional next step.
 10. The research team exports de-identified responses for blinded human scoring. Student names are excluded from research exports.
 
 ## What makes the tool distinct
@@ -69,12 +69,12 @@ Open `http://localhost:3000`.
 Development demo credentials:
 
 - Student class code: `GEN7`
-- Student participant codes: `GEN-001` through `GEN-030`
+- Student name: any unused demo name, such as `Maya R.`
 - Teacher password: `demo-teacher` unless overridden
 
 ## Required production configuration
 
-Set the variables described in `.env.example`, including Supabase credentials, a strong teacher password, signing secrets, and a participant-code pepper. Apply `supabase/migrations/001_initial.sql` and `supabase/migrations/002_teacher_usability.sql` before enabling the Supabase store.
+Set the variables described in `.env.example`, including Supabase credentials, a strong teacher password, and signing secrets. Apply `supabase/migrations/001_initial.sql` and `supabase/migrations/002_teacher_usability.sql` before enabling the Supabase store.
 
 Live AI routing requires `AI_ROUTING_ENABLED=true`, an OpenAI API key, and one approved use context:
 
@@ -103,6 +103,7 @@ pnpm load-test
 ## Research files
 
 - [Product design specification](docs/PRODUCT_DESIGN_SPEC.md)
+- [Student experience redesign](docs/STUDENT_EXPERIENCE_REDESIGN.md)
 - [Current teacher usability study](docs/TEACHER_USABILITY_STUDY.md)
 - [Georgia standards alignment](docs/GEORGIA_STANDARDS_ALIGNMENT.md)
 - [Misconception evidence map](research/MISCONCEPTION_EVIDENCE_MAP.md)

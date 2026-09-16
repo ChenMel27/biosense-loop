@@ -4,8 +4,7 @@ import { traitInheritancePack } from "@/content/trait-inheritance";
 import {
   adaptiveConditions,
   generateJoinCode,
-  generateParticipantCode,
-  hashParticipantCode,
+  hashInternalSlotKey,
   normalizeCode,
 } from "@/lib/domain/assignment";
 import type {
@@ -44,8 +43,8 @@ function now() {
   return new Date().toISOString();
 }
 
-function participantPepper() {
-  return process.env.PARTICIPANT_CODE_PEPPER || "development-only-pepper";
+function internalSlotPepper() {
+  return process.env.INTERNAL_SLOT_PEPPER || process.env.SESSION_SIGNING_SECRET || "development-only-pepper";
 }
 
 function buildDemoState(): MemoryState {
@@ -62,12 +61,11 @@ function buildDemoState(): MemoryState {
     closedAt: null,
   };
   const participants = Array.from({ length: 30 }, (_, index): Participant => {
-    const participantCode = `GEN-${String(index + 1).padStart(3, "0")}`;
     return {
       id: `demo-participant-${index + 1}`,
       sessionId: session.id,
       participantTag: `P${String(index + 1).padStart(2, "0")}`,
-      codeHash: hashParticipantCode(participantCode, participantPepper()),
+      codeHash: hashInternalSlotKey(randomUUID(), internalSlotPepper()),
       assignedCondition: "adaptive",
       eligible: true,
     };
@@ -148,22 +146,14 @@ export class MemoryResearchStore implements ResearchStore {
     return (event?.payload.configuration as TeacherActivityConfiguration | undefined) ?? null;
   }
 
-  async getParticipantByCodeHash(sessionId: string, codeHash: string) {
-    return (
-      this.state.participants.find(
-        (participant) =>
-          participant.sessionId === sessionId && participant.codeHash === codeHash,
-      ) ?? null
+  async claimAvailableAttempt(session: StudySession) {
+    const participant = this.state.participants.find(
+      (candidate) =>
+        candidate.sessionId === session.id &&
+        candidate.eligible &&
+        !this.state.attempts.some((attempt) => attempt.participantId === candidate.id),
     );
-  }
-
-  async getOrCreateAttempt(session: StudySession, participant: Participant) {
-    const existing = this.state.attempts.find(
-      (attempt) =>
-        attempt.sessionId === session.id && attempt.participantId === participant.id,
-    );
-    if (existing) return existing;
-
+    if (!participant) return null;
     const timestamp = now();
     const attempt: Attempt = {
       id: randomUUID(),
@@ -290,23 +280,17 @@ export class MemoryResearchStore implements ResearchStore {
       closedAt: null,
     };
     const conditions = adaptiveConditions(input.participantCount);
-    const participantCodes = Array.from({ length: input.participantCount }, (_, index) => {
-      const participantCode = generateParticipantCode(index);
+    Array.from({ length: input.participantCount }, (_, index) => {
       const participantTag = `P${String(index + 1).padStart(2, "0")}`;
       const participant: Participant = {
         id: randomUUID(),
         sessionId: session.id,
         participantTag,
-        codeHash: hashParticipantCode(participantCode, participantPepper()),
+        codeHash: hashInternalSlotKey(randomUUID(), internalSlotPepper()),
         assignedCondition: conditions[index],
         eligible: true,
       };
       this.state.participants.push(participant);
-      return {
-        participantTag,
-        participantCode,
-        condition: conditions[index],
-      };
     });
     this.state.sessions.push(session);
     if (input.contentDraft) {
@@ -323,7 +307,7 @@ export class MemoryResearchStore implements ResearchStore {
         createdAt: now(),
       });
     }
-    return { session, participantCodes };
+    return { session };
   }
 
   async updateSessionStatus(sessionId: string, status: StudySession["status"]) {

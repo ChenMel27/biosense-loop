@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   adaptiveConditions,
-  hashParticipantCode,
+  hashInternalSlotKey,
   normalizeCode,
 } from "@/lib/domain/assignment";
 
@@ -12,10 +12,10 @@ describe("study assignment", () => {
     expect(adaptiveConditions(29)).toEqual(Array(29).fill("adaptive"));
   });
 
-  it("normalizes codes before hashing", () => {
-    expect(normalizeCode(" gen-001 ")).toBe("GEN-001");
-    expect(hashParticipantCode("gen-001", "pepper")).toBe(
-      hashParticipantCode(" GEN-001 ", "pepper"),
+  it("normalizes internal slot keys before hashing", () => {
+    expect(normalizeCode(" slot-key ")).toBe("SLOT-KEY");
+    expect(hashInternalSlotKey("slot-key", "pepper")).toBe(
+      hashInternalSlotKey(" SLOT-KEY ", "pepper"),
     );
   });
 });

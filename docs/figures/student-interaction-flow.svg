@@ -35,7 +35,7 @@
     <rect x="70" y="228" width="255" height="24" fill="#102A43"/>
     <text x="95" y="228" class="badge">STEP 1</text>
     <text x="95" y="300" class="head">Join safely</text>
-    <text x="95" y="340" class="body"><tspan x="95" dy="0">Enter class code</tspan><tspan x="95" dy="30">and pseudonymous</tspan><tspan x="95" dy="30">participant code.</tspan></text>
+    <text x="95" y="340" class="body"><tspan x="95" dy="0">Enter the shared</tspan><tspan x="95" dy="30">class code and</tspan><tspan x="95" dy="30">your name.</tspan></text>
     <rect x="95" y="440" width="205" height="58" rx="12" fill="#EEF5FA"/>
     <text x="116" y="476" class="small">No grades or ranking</text>
   </g>

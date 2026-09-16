@@ -40,9 +40,6 @@ export async function GET() {
     activity: {
       stage: bundle.attempt.stage,
       attemptKey: bundle.attempt.id,
-      participantTag: bundle.attempt.participantTag,
-      startedAt: bundle.attempt.startedAt,
-      durationMinutes: bundle.session.durationMinutes,
       title: pack.title,
       gradeBand: pack.gradeBand,
       disclosure: pack.surveyDisclosure,
