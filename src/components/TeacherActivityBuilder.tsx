@@ -56,6 +56,7 @@ export function TeacherActivityBuilder() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [reviewReady, setReviewReady] = useState(false);
 
   const handleDraftChange = useCallback((nextDraft: EditableLessonDraft | null) => {
     setDraft(nextDraft);
@@ -130,15 +131,15 @@ export function TeacherActivityBuilder() {
 
       <ol className="builder-progress" aria-label="Activity setup progress">
         <li className={!draft ? "current" : "complete"}><span>1</span><div><strong>Build the activity</strong><small>Add lesson materials or use the guided form</small></div></li>
-        <li className={created ? "complete" : draft ? "current" : ""}><span>2</span><div><strong>Review the learning focus</strong><small>Approve the ideas and follow-up questions</small></div></li>
+        <li className={created ? "complete" : draft ? "current" : ""}><span>2</span><div><strong>Review the draft</strong><small>Check the student activity and follow-up questions</small></div></li>
         <li className={created ? "current" : ""}><span>3</span><div><strong>Open the class</strong><small>Create and share one class code</small></div></li>
       </ol>
 
       <section className="activity-builder-panel">
-        <LessonDraftGenerator onDraftChange={handleDraftChange} />
+        <LessonDraftGenerator onDraftChange={handleDraftChange} onReviewReadyChange={setReviewReady} />
       </section>
 
-      {draft && !created ? (
+      {draft && reviewReady && !created ? (
         <form className="panel session-setup-panel stack-lg" id="session-setup" onSubmit={startSession}>
           <div className="session-setup-heading">
             <div>

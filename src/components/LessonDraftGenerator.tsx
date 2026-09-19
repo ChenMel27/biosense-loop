@@ -81,8 +81,10 @@ function emptyLessonDraft(): EditableLessonDraft {
 
 export function LessonDraftGenerator({
   onDraftChange,
+  onReviewReadyChange,
 }: {
   onDraftChange?: (draft: EditableLessonDraft | null) => void;
+  onReviewReadyChange?: (ready: boolean) => void;
 }) {
   const [lessonFile, setLessonFile] = useState<File | null>(null);
   const [lessonNotes, setLessonNotes] = useState("");
@@ -92,11 +94,16 @@ export function LessonDraftGenerator({
   const [model, setModel] = useState("");
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
+  const [reviewStep, setReviewStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const hasLessonSource = Boolean(lessonFile || lessonNotes.trim().length >= 40);
 
   useEffect(() => {
     onDraftChange?.(draft);
   }, [draft, onDraftChange]);
+
+  useEffect(() => {
+    onReviewReadyChange?.(Boolean(draft && reviewStep === 5));
+  }, [draft, onReviewReadyChange, reviewStep]);
 
   async function generateDraft() {
     if (!hasLessonSource) {
@@ -118,6 +125,7 @@ export function LessonDraftGenerator({
       setDraft(result.draft);
       setDraftOrigin("ai");
       setModel(result.model ?? "OpenAI");
+      setReviewStep(1);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "The lesson draft could not be created.");
     } finally {
@@ -134,6 +142,42 @@ export function LessonDraftGenerator({
     setDraftOrigin("blank");
     setModel("");
     setError("");
+    setReviewStep(1);
+  }
+
+  function isReviewStepComplete(step: number) {
+    if (!draft) return false;
+    if (step === 1) {
+      return Boolean(draft.lessonTitle.trim() && draft.gradeLevel && draft.topic.trim());
+    }
+    if (step === 2) {
+      return Boolean(
+        draft.studentContext.trim().length >= 20 &&
+        draft.studentPrompt.trim().length >= 20 &&
+        draft.nearTransferPrompt.trim().length >= 20,
+      );
+    }
+    if (step === 3) {
+      return Boolean(
+        draft.targetIdeas.length &&
+        draft.targetIdeas.every((item) => item.label.trim() && item.description.trim()) &&
+        draft.possibleMisconceptions.every((item) => item.label.trim() && item.description.trim()),
+      );
+    }
+    if (step === 4) {
+      const targets = new Set([
+        ...draft.targetIdeas.map((item) => item.id),
+        ...draft.possibleMisconceptions.map((item) => item.id),
+      ]);
+      return Boolean(
+        draft.followUpQuestions.length &&
+        draft.followUpQuestions.every((item) => item.title.trim() && item.question.trim() && targets.has(item.targetId)) &&
+        [...targets].every((targetId) => draft.followUpQuestions.some((item) => item.targetId === targetId)) &&
+        draft.completionQuestion.trim() &&
+        draft.clarificationQuestion.trim(),
+      );
+    }
+    return [1, 2, 3, 4].every(isReviewStepComplete);
   }
 
   return (
@@ -234,10 +278,10 @@ export function LessonDraftGenerator({
               <div className="guided-template-preview">
                 <strong>The template includes</strong>
                 <ul>
-                  <li>Activity and student prompts</li>
-                  <li>Target scientific ideas</li>
-                  <li>Possible misconceptions</li>
-                  <li>Follow-up question rules</li>
+                  <li>The activity students will complete</li>
+                  <li>What students should understand</li>
+                  <li>Common incorrect ideas</li>
+                  <li>Questions that help students think again</li>
                 </ul>
               </div>
               <div className="method-card-actions">
@@ -267,8 +311,8 @@ export function LessonDraftGenerator({
           <div className="generated-draft-heading">
             <div>
               <span className="eyebrow">Step 2 of 3</span>
-              <h2>Review the activity before students use it</h2>
-              <p>Start with what students will see. Then check what ExitLoop should notice and which questions students may receive.</p>
+              <h2>Review your activity</h2>
+              <p>Work through one short step at a time. You can return to any step before opening the class.</p>
             </div>
             <div className="draft-origin">
               <span className="status-pill draft">{draftOrigin === "ai" ? "Generated draft" : "Manual draft"}</span>
@@ -276,22 +320,37 @@ export function LessonDraftGenerator({
             </div>
           </div>
 
-          <div className="review-plan" aria-label="Recommended review order">
-            <div><strong>1</strong><span><b>What students see</b><small>Read the case and questions as a student.</small></span></div>
-            <div><strong>2</strong><span><b>What to notice</b><small>Choose the ideas that matter for this lesson.</small></span></div>
-            <div><strong>3</strong><span><b>What to ask next</b><small>Approve the follow-up questions students may receive.</small></span></div>
-          </div>
+          <nav className="draft-step-nav" aria-label="Activity review steps">
+            {[
+              [1, "Lesson details"],
+              [2, "Student activity"],
+              [3, "Learning focus"],
+              [4, "Follow-up questions"],
+              [5, "Preview"],
+            ].map(([step, label]) => (
+              <button
+                className={`${reviewStep === step ? "current" : ""} ${isReviewStepComplete(Number(step)) ? "complete" : ""}`}
+                key={label}
+                type="button"
+                onClick={() => setReviewStep(Number(step) as 1 | 2 | 3 | 4 | 5)}
+              >
+                <span>{isReviewStepComplete(Number(step)) ? "✓" : step}</span>
+                {label}
+              </button>
+            ))}
+          </nav>
 
           <div className="review-guidance">
-            <strong>You stay in control</strong>
-            <span>{draftOrigin === "ai" ? "This generated draft is only a starting point. Edit anything that does not match your lesson." : "Complete the sections below before opening the activity for students."}</span>
+            <strong>{draftOrigin === "ai" ? "Review, then adjust" : "Build one step at a time"}</strong>
+            <span>{draftOrigin === "ai" ? "ExitLoop prepared a starting point from your lesson. Keep what fits and change what does not." : "Complete this step, then continue. You can return to any step before opening the class."}</span>
           </div>
 
           <div className="authoring-accordion">
+            {reviewStep === 1 ?
             <details className="authoring-section" open>
               <summary className="authoring-section-summary">
-                <span className="section-number">1</span>
-                <span><strong>Set up the lesson</strong><small>Title, grade, course, and biology topic</small></span>
+                <span className="section-number">A</span>
+                <span><strong>Lesson details</strong><small>Title, grade, course, and topic</small></span>
                 <span className="section-meta">4 fields</span>
               </summary>
               <div className="authoring-section-body stack-md">
@@ -314,11 +373,13 @@ export function LessonDraftGenerator({
                 <div className="field"><label htmlFor="draft-topic">Biology topic</label><input id="draft-topic" value={draft.topic} onChange={(event) => updateDraft("topic", event.target.value)} /></div>
               </div>
             </details>
+            : null}
 
-            <details className="authoring-section">
+            {reviewStep === 2 ?
+            <details className="authoring-section" open>
               <summary className="authoring-section-summary">
-                <span className="section-number">2</span>
-                <span><strong>Write the student activity</strong><small>The case students read and the two questions they answer</small></span>
+                <span className="section-number">B</span>
+                <span><strong>What students will see</strong><small>The information and questions shown during the activity</small></span>
                 <span className="section-meta">3 prompts</span>
               </summary>
               <div className="authoring-section-body stack-md">
@@ -327,66 +388,87 @@ export function LessonDraftGenerator({
                 <div className="field"><label htmlFor="draft-transfer">Related example after revision</label><textarea id="draft-transfer" rows={4} value={draft.nearTransferPrompt} placeholder="For example: A similar plant is kept in darkness. Explain how this change would affect glucose production using the same scientific ideas." onChange={(event) => updateDraft("nearTransferPrompt", event.target.value)} /><span className="field-note">This should use the same scientific reasoning in a new but familiar situation.</span></div>
               </div>
             </details>
+            : null}
 
-            <details className="authoring-section">
+            {reviewStep === 3 ? <details className="authoring-section" open>
               <summary className="authoring-section-summary">
-                <span className="section-number">3</span>
-                <span><strong>Choose what ExitLoop should notice</strong><small>Ideas students should explain and incorrect ideas to watch for</small></span>
+                <span className="section-number">2</span>
+                <span><strong>Review the learning focus</strong><small>What students should explain and which incorrect ideas matter</small></span>
                 <span className="section-meta">{draft.targetIdeas.length + draft.possibleMisconceptions.length} items</span>
               </summary>
               <div className="authoring-section-body stack-lg">
-                <p className="section-help">Keep this list focused on the few ideas that matter most for this activity. ExitLoop uses only the items you approve here.</p>
+                <p className="section-help">Keep only the ideas that matter for this activity. ExitLoop will use this list when it reviews a student response.</p>
                 <details className="advanced-settings">
-                  <summary>Optional: add limits for the response review</summary>
-                  <div className="field"><label htmlFor="draft-scope">What should ExitLoop consider or ignore?</label><textarea id="draft-scope" rows={3} value={draft.scopeBoundary} onChange={(event) => updateDraft("scopeBoundary", event.target.value)} /><span className="field-note">For example, ask ExitLoop to consider only the scientific ideas listed below and ignore grammar or spelling.</span></div>
+                  <summary>Advanced settings</summary>
+                  <div className="field"><label htmlFor="draft-scope">What should ExitLoop consider or ignore?</label><textarea id="draft-scope" rows={3} value={draft.scopeBoundary} onChange={(event) => updateDraft("scopeBoundary", event.target.value)} /><span className="field-note">For example, review only the science ideas below and ignore grammar or spelling.</span></div>
                 </details>
                 <div className="editor-subsection stack-md">
-                  <div className="editor-subsection-heading"><div><span className="subsection-number">A</span><strong>Ideas students should explain</strong></div><p>Add each scientific relationship you expect to see in a strong response.</p></div>
+                  <div className="editor-subsection-heading"><div><span className="subsection-number">A</span><strong>What should students understand?</strong></div><p>Keep the essential ideas you expect students to explain.</p></div>
                 {draft.targetIdeas.map((idea, index) => (
-                  <article className="draft-item" key={idea.id}>
-                    <div className="draft-item-heading"><strong>Target idea {index + 1}</strong><button className="text-button danger-text" type="button" onClick={() => updateDraft("targetIdeas", draft.targetIdeas.filter((item) => item.id !== idea.id))}>Remove</button></div>
-                    <div className="field"><label htmlFor={`generated-idea-label-${idea.id}`}>Short name</label><input id={`generated-idea-label-${idea.id}`} value={idea.label} onChange={(event) => updateDraft("targetIdeas", draft.targetIdeas.map((item) => item.id === idea.id ? { ...item, label: event.target.value } : item))} /></div>
-                    <div className="field"><label htmlFor={`generated-idea-description-${idea.id}`}>What should a student explain?</label><textarea id={`generated-idea-description-${idea.id}`} rows={2} value={idea.description} onChange={(event) => updateDraft("targetIdeas", draft.targetIdeas.map((item) => item.id === idea.id ? { ...item, description: event.target.value } : item))} /></div>
-                  </article>
+                  <details className="compact-draft-item" key={idea.id}>
+                    <summary>
+                      <span><strong>{idea.label || `Idea ${index + 1}`}</strong><small>{idea.description || "Add what students should explain."}</small></span>
+                      <span>Edit</span>
+                    </summary>
+                    <div className="compact-draft-body">
+                      <div className="draft-item-heading"><strong>Idea {index + 1}</strong><button className="text-button danger-text" type="button" onClick={() => updateDraft("targetIdeas", draft.targetIdeas.filter((item) => item.id !== idea.id))}>Remove</button></div>
+                      <div className="field"><label htmlFor={`generated-idea-label-${idea.id}`}>Short name</label><input id={`generated-idea-label-${idea.id}`} value={idea.label} onChange={(event) => updateDraft("targetIdeas", draft.targetIdeas.map((item) => item.id === idea.id ? { ...item, label: event.target.value } : item))} /></div>
+                      <div className="field"><label htmlFor={`generated-idea-description-${idea.id}`}>What should a student explain?</label><textarea id={`generated-idea-description-${idea.id}`} rows={2} value={idea.description} onChange={(event) => updateDraft("targetIdeas", draft.targetIdeas.map((item) => item.id === idea.id ? { ...item, description: event.target.value } : item))} /></div>
+                    </div>
+                  </details>
                 ))}
                   <button className="button secondary add-item-button" type="button" onClick={() => updateDraft("targetIdeas", [...draft.targetIdeas, emptyTargetIdea()])}>Add an idea</button>
                 </div>
                 <div className="editor-subsection stack-md">
-                  <div className="editor-subsection-heading"><div><span className="subsection-number">B</span><strong>Incorrect ideas to watch for</strong></div><p>Add only claims that are scientifically incorrect. A student who simply leaves something out has a missing idea, not a misconception.</p></div>
+                  <div className="editor-subsection-heading"><div><span className="subsection-number">B</span><strong>What might students misunderstand?</strong></div><p>Include specific incorrect claims, not ideas a student might simply leave out.</p></div>
                 {draft.possibleMisconceptions.map((item, index) => (
-                  <article className="draft-item" key={item.id}>
-                    <div className="draft-item-heading"><strong>Possible misconception {index + 1}</strong><button className="text-button danger-text" type="button" onClick={() => updateDraft("possibleMisconceptions", draft.possibleMisconceptions.filter((entry) => entry.id !== item.id))}>Remove</button></div>
-                    <div className="field"><label htmlFor={`generated-misconception-label-${item.id}`}>Short name</label><input id={`generated-misconception-label-${item.id}`} value={item.label} onChange={(event) => updateDraft("possibleMisconceptions", draft.possibleMisconceptions.map((entry) => entry.id === item.id ? { ...entry, label: event.target.value } : entry))} /></div>
-                    <div className="field"><label htmlFor={`generated-misconception-description-${item.id}`}>What might the student claim?</label><textarea id={`generated-misconception-description-${item.id}`} rows={2} value={item.description} onChange={(event) => updateDraft("possibleMisconceptions", draft.possibleMisconceptions.map((entry) => entry.id === item.id ? { ...entry, description: event.target.value } : entry))} /></div>
-                    <div className="field"><label htmlFor={`generated-misconception-source-${item.id}`}>Why is this misconception included?</label><textarea id={`generated-misconception-source-${item.id}`} rows={2} value={item.sourceSupport} onChange={(event) => updateDraft("possibleMisconceptions", draft.possibleMisconceptions.map((entry) => entry.id === item.id ? { ...entry, sourceSupport: event.target.value } : entry))} /><span className="field-note">Reference research, curriculum guidance, or a documented classroom pattern.</span></div>
-                  </article>
+                  <details className="compact-draft-item" key={item.id}>
+                    <summary>
+                      <span><strong>{item.label || `Incorrect idea ${index + 1}`}</strong><small>{item.description || "Add the incorrect claim students might make."}</small></span>
+                      <span>Edit</span>
+                    </summary>
+                    <div className="compact-draft-body">
+                      <div className="draft-item-heading"><strong>Incorrect idea {index + 1}</strong><button className="text-button danger-text" type="button" onClick={() => updateDraft("possibleMisconceptions", draft.possibleMisconceptions.filter((entry) => entry.id !== item.id))}>Remove</button></div>
+                      <div className="field"><label htmlFor={`generated-misconception-label-${item.id}`}>Short name</label><input id={`generated-misconception-label-${item.id}`} value={item.label} onChange={(event) => updateDraft("possibleMisconceptions", draft.possibleMisconceptions.map((entry) => entry.id === item.id ? { ...entry, label: event.target.value } : entry))} /></div>
+                      <div className="field"><label htmlFor={`generated-misconception-description-${item.id}`}>What might the student claim?</label><textarea id={`generated-misconception-description-${item.id}`} rows={2} value={item.description} onChange={(event) => updateDraft("possibleMisconceptions", draft.possibleMisconceptions.map((entry) => entry.id === item.id ? { ...entry, description: event.target.value } : entry))} /></div>
+                      <details className="item-evidence">
+                        <summary>Supporting notes or source</summary>
+                        <div className="field"><label htmlFor={`generated-misconception-source-${item.id}`}>Why is this incorrect idea included?</label><textarea id={`generated-misconception-source-${item.id}`} rows={2} value={item.sourceSupport} onChange={(event) => updateDraft("possibleMisconceptions", draft.possibleMisconceptions.map((entry) => entry.id === item.id ? { ...entry, sourceSupport: event.target.value } : entry))} /><span className="field-note">Reference research, curriculum guidance, or a documented classroom pattern.</span></div>
+                      </details>
+                    </div>
+                  </details>
                 ))}
                   <button className="button secondary add-item-button" type="button" onClick={() => updateDraft("possibleMisconceptions", [...draft.possibleMisconceptions, emptyMisconception()])}>Add an incorrect idea</button>
                 </div>
               </div>
-            </details>
+            </details> : null}
 
-            <details className="authoring-section">
+            {reviewStep === 4 ? <details className="authoring-section" open>
               <summary className="authoring-section-summary">
-                <span className="section-number">4</span>
-                <span><strong>Review the questions students may receive</strong><small>Match each question to the situation in which it should appear</small></span>
+                <span className="section-number">3</span>
+                <span><strong>Review the follow-up questions</strong><small>Check what ExitLoop may ask after the first response</small></span>
                 <span className="section-meta">{draft.followUpQuestions.length + 2} questions</span>
               </summary>
               <div className="authoring-section-body stack-lg">
-                <p className="section-help">A student receives one question from this reviewed set. ExitLoop does not write a new question during the activity.</p>
+                <p className="section-help">Each student receives one question from this list. Check that every question helps the student think again without revealing the answer.</p>
                 <div className="editor-subsection stack-md">
-                  <div className="editor-subsection-heading"><div><span className="subsection-number">A</span><strong>Questions for a missing or incorrect idea</strong></div><p>Use the menu on each question to choose exactly when students should see it.</p></div>
+                  <div className="editor-subsection-heading"><div><span className="subsection-number">A</span><strong>Questions connected to the learning focus</strong></div><p>For each question, choose the missing or incorrect idea it should address.</p></div>
                 {draft.followUpQuestions.map((question, index) => {
                   const targets = question.targetKind === "target_idea" ? draft.targetIdeas : draft.possibleMisconceptions;
                   const target = targets.find((item) => item.id === question.targetId);
                   return (
-                    <article className="draft-item" key={question.id}>
-                      <div className="draft-item-heading"><strong>Follow-up question {index + 1}</strong><button className="text-button danger-text" type="button" onClick={() => updateDraft("followUpQuestions", draft.followUpQuestions.filter((entry) => entry.id !== question.id))}>Remove</button></div>
-                      <div className="field"><label htmlFor={`generated-question-title-${question.id}`}>Short label for the teacher</label><input id={`generated-question-title-${question.id}`} value={question.title} onChange={(event) => updateDraft("followUpQuestions", draft.followUpQuestions.map((entry) => entry.id === question.id ? { ...entry, title: event.target.value } : entry))} /></div>
-                      <div className="field"><label htmlFor={`generated-question-text-${question.id}`}>Question the student will see</label><textarea id={`generated-question-text-${question.id}`} rows={3} value={question.question} onChange={(event) => updateDraft("followUpQuestions", draft.followUpQuestions.map((entry) => entry.id === question.id ? { ...entry, question: event.target.value } : entry))} /></div>
-                      <div className="field"><label htmlFor={`generated-question-target-${question.id}`}>Show this question when</label><select id={`generated-question-target-${question.id}`} value={`${question.targetKind}:${question.targetId}`} onChange={(event) => { const [targetKind, targetId] = event.target.value.split(":") as ["target_idea" | "possible_misconception", string]; updateDraft("followUpQuestions", draft.followUpQuestions.map((entry) => entry.id === question.id ? { ...entry, targetKind, targetId } : entry)); }}><optgroup label="A target idea is missing">{draft.targetIdeas.map((item) => <option key={item.id} value={`target_idea:${item.id}`}>{item.label || "Untitled target idea"}</option>)}</optgroup><optgroup label="A possible misconception appears">{draft.possibleMisconceptions.map((item) => <option key={item.id} value={`possible_misconception:${item.id}`}>{item.label || "Untitled misconception"}</option>)}</optgroup></select></div>
-                      <span className="sr-only">Linked to {target?.label || "an item that needs teacher review"}</span>
-                    </article>
+                    <details className="compact-draft-item" key={question.id}>
+                      <summary>
+                        <span><strong>{question.title || `Follow-up question ${index + 1}`}</strong><small>{target?.label ? `Used for: ${target.label}` : "Choose when students should receive this question."}</small></span>
+                        <span>Edit</span>
+                      </summary>
+                      <div className="compact-draft-body">
+                        <div className="draft-item-heading"><strong>Follow-up question {index + 1}</strong><button className="text-button danger-text" type="button" onClick={() => updateDraft("followUpQuestions", draft.followUpQuestions.filter((entry) => entry.id !== question.id))}>Remove</button></div>
+                        <div className="field"><label htmlFor={`generated-question-title-${question.id}`}>Short label for the teacher</label><input id={`generated-question-title-${question.id}`} value={question.title} onChange={(event) => updateDraft("followUpQuestions", draft.followUpQuestions.map((entry) => entry.id === question.id ? { ...entry, title: event.target.value } : entry))} /></div>
+                        <div className="field"><label htmlFor={`generated-question-text-${question.id}`}>Question the student will see</label><textarea id={`generated-question-text-${question.id}`} rows={3} value={question.question} onChange={(event) => updateDraft("followUpQuestions", draft.followUpQuestions.map((entry) => entry.id === question.id ? { ...entry, question: event.target.value } : entry))} /></div>
+                        <div className="field"><label htmlFor={`generated-question-target-${question.id}`}>Use this question when</label><select id={`generated-question-target-${question.id}`} value={`${question.targetKind}:${question.targetId}`} onChange={(event) => { const [targetKind, targetId] = event.target.value.split(":") as ["target_idea" | "possible_misconception", string]; updateDraft("followUpQuestions", draft.followUpQuestions.map((entry) => entry.id === question.id ? { ...entry, targetKind, targetId } : entry)); }}><optgroup label="An important idea is missing">{draft.targetIdeas.map((item) => <option key={item.id} value={`target_idea:${item.id}`}>{item.label || "Untitled idea"}</option>)}</optgroup><optgroup label="An incorrect idea appears">{draft.possibleMisconceptions.map((item) => <option key={item.id} value={`possible_misconception:${item.id}`}>{item.label || "Untitled incorrect idea"}</option>)}</optgroup></select></div>
+                      </div>
+                    </details>
                   );
                 })}
                   <button className="button secondary add-item-button" type="button" onClick={() => { const firstTarget = draft.targetIdeas[0]; const firstMisconception = draft.possibleMisconceptions[0]; if (!firstTarget && !firstMisconception) return; updateDraft("followUpQuestions", [...draft.followUpQuestions, { id: newId("follow_up"), title: "", question: "", targetKind: firstTarget ? "target_idea" : "possible_misconception", targetId: firstTarget?.id ?? firstMisconception?.id ?? "clarification" }]); }}>Add a follow-up question</button>
@@ -405,12 +487,40 @@ export function LessonDraftGenerator({
                   </div>
                 </div>
               </div>
-            </details>
+            </details> : null}
+
+            {reviewStep === 5 ? <>
+            <section className="activity-preview-card">
+              <div className="preview-heading">
+                <div>
+                  <span className="eyebrow">Student preview</span>
+                  <h3>{draft.lessonTitle || "Untitled activity"}</h3>
+                </div>
+                <span>{draft.gradeLevel || "Grade not selected"} · {draft.course}</span>
+              </div>
+              <div className="preview-reading">
+                <strong>Students will read</strong>
+                <p>{draft.studentContext || "Add the information students will read."}</p>
+              </div>
+              <div className="preview-question">
+                <span>First question</span>
+                <p>{draft.studentPrompt || "Add the first explanation question."}</p>
+              </div>
+              <div className="preview-question secondary-preview">
+                <span>Related example after revision</span>
+                <p>{draft.nearTransferPrompt || "Add the related example."}</p>
+              </div>
+              <div className="preview-summary-grid">
+                <div><strong>{draft.targetIdeas.length}</strong><span>ideas to notice</span></div>
+                <div><strong>{draft.possibleMisconceptions.length}</strong><span>incorrect ideas</span></div>
+                <div><strong>{draft.followUpQuestions.length + 2}</strong><span>reviewed questions</span></div>
+              </div>
+            </section>
 
             <details className="authoring-section">
               <summary className="authoring-section-summary">
-                <span className="section-number">5</span>
-                <span><strong>Complete the final teacher check</strong><small>Confirm the science, age level, and question coverage</small></span>
+                <span className="section-number">4</span>
+                <span><strong>Teacher review notes</strong><small>Optional details for your final content check</small></span>
                 <span className="section-meta">Final review</span>
               </summary>
               <div className="authoring-section-body stack-md">
@@ -418,13 +528,21 @@ export function LessonDraftGenerator({
                 {draft.sourceNotes.length ? <div className="source-summary"><strong>Sources identified in the lesson material</strong><ul>{draft.sourceNotes.map((note) => <li key={note}>{note}</li>)}</ul></div> : <p className="section-help">No sources were identified in the uploaded material. Verify the science content and misconceptions before use.</p>}
               </div>
             </details>
+            </> : null}
           </div>
 
           <div className="draft-footer-actions">
-            <span>Changes are kept on this page until you open the session.</span>
+            <span>{reviewStep === 5 ? "Your draft is ready for one final check." : `Step ${reviewStep} of 5`}</span>
             <div className="button-row">
-              <button className="button secondary" type="button" onClick={() => downloadDraft(draft)}>Download activity backup</button>
-              <a className="button primary" href="#session-setup">Continue to session setup</a>
+              {reviewStep > 1 ? <button className="button secondary" type="button" onClick={() => setReviewStep((reviewStep - 1) as 1 | 2 | 3 | 4 | 5)}>Back</button> : null}
+              {reviewStep < 5 ? (
+                <button className="button primary" type="button" onClick={() => setReviewStep((reviewStep + 1) as 1 | 2 | 3 | 4 | 5)}>
+                  {reviewStep === 1 ? "Review student questions" : reviewStep === 2 ? "Review learning focus" : reviewStep === 3 ? "Review follow-up questions" : "Preview activity"}
+                </button>
+              ) : <>
+                <button className="button secondary" type="button" onClick={() => downloadDraft(draft)}>Download backup</button>
+                <a className="button primary" href="#session-setup">Continue to class setup</a>
+              </>}
             </div>
           </div>
         </section>
