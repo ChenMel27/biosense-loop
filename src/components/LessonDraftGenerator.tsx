@@ -158,7 +158,7 @@ export function LessonDraftGenerator({
                 <span className="method-tag">Faster start</span>
               </div>
               <h3>Upload lesson materials</h3>
-              <p>ExitLoop uses AI to prepare an editable activity from your existing material.</p>
+              <p>Upload an existing lesson and receive an editable activity draft.</p>
 
               <div className="material-inputs">
                 <label className={`file-dropzone ${lessonFile ? "selected" : ""}`} htmlFor="lesson-file">
@@ -267,11 +267,11 @@ export function LessonDraftGenerator({
           <div className="generated-draft-heading">
             <div>
               <span className="eyebrow">Step 2 of 3</span>
-              <h2>Review what ExitLoop may use</h2>
-              <p>Check the student task first, then the ideas, misconceptions, and questions used to analyze responses.</p>
+              <h2>Review the learning focus</h2>
+              <p>Check the student task, key ideas, common misconceptions, and follow-up questions.</p>
             </div>
             <div className="draft-origin">
-              <span className="status-pill draft">{draftOrigin === "ai" ? "AI draft" : "Manual draft"}</span>
+              <span className="status-pill draft">{draftOrigin === "ai" ? "Generated draft" : "Manual draft"}</span>
               {draftOrigin === "ai" ? <small>Created with {model}</small> : null}
             </div>
           </div>
@@ -284,7 +284,7 @@ export function LessonDraftGenerator({
 
           <div className="review-guidance">
             <strong>Your review controls the activity</strong>
-            <span>{draftOrigin === "ai" ? "The AI draft is only a starting point. Students receive questions only from the version you review below." : "Students receive questions only from the version you complete and review below."}</span>
+            <span>{draftOrigin === "ai" ? "This draft is only a starting point. Students receive questions only from the version you review below." : "Students receive questions only from the version you complete and review below."}</span>
           </div>
 
           <div className="authoring-accordion">
@@ -312,7 +312,7 @@ export function LessonDraftGenerator({
                   </div>
                 </div>
                 <div className="field"><label htmlFor="draft-topic">Biology topic</label><input id="draft-topic" value={draft.topic} onChange={(event) => updateDraft("topic", event.target.value)} /></div>
-                <div className="field"><label htmlFor="draft-scope">What should ExitLoop look for?</label><textarea id="draft-scope" rows={3} value={draft.scopeBoundary} onChange={(event) => updateDraft("scopeBoundary", event.target.value)} /><span className="field-note">Define what the AI should evaluate and anything it should ignore.</span></div>
+                <div className="field"><label htmlFor="draft-scope">What should ExitLoop look for?</label><textarea id="draft-scope" rows={3} value={draft.scopeBoundary} onChange={(event) => updateDraft("scopeBoundary", event.target.value)} /><span className="field-note">Describe which ideas should be considered and anything the activity should ignore.</span></div>
               </div>
             </details>
 
@@ -352,7 +352,7 @@ export function LessonDraftGenerator({
             <details className="authoring-section">
               <summary className="authoring-section-summary">
                 <span className="section-number">4</span>
-                <span><strong>Possible misconceptions</strong><small>Incorrect claims the AI may flag for teacher review</small></span>
+                <span><strong>Possible misconceptions</strong><small>Incorrect claims ExitLoop may flag for teacher review</small></span>
                 <span className="section-meta">{draft.possibleMisconceptions.length} listed</span>
               </summary>
               <div className="authoring-section-body stack-md">

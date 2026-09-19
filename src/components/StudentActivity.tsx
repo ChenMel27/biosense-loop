@@ -378,7 +378,7 @@ export function StudentActivity() {
               </button>
             </div>
             <p className="ai-disclosure">
-              ExitLoop used the teacher-approved activity rules to create this automated feedback.
+              Your teacher reviewed the ideas and questions used to prepare this feedback.
               It is not a grade or a mastery decision, and your teacher can review it.
             </p>
           </section>

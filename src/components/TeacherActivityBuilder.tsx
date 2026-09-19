@@ -130,7 +130,7 @@ export function TeacherActivityBuilder() {
 
       <ol className="builder-progress" aria-label="Activity setup progress">
         <li className={!draft ? "current" : "complete"}><span>1</span><div><strong>Build the activity</strong><small>Add lesson materials or use the guided form</small></div></li>
-        <li className={created ? "complete" : draft ? "current" : ""}><span>2</span><div><strong>Review AI use</strong><small>Approve what the system may identify and ask</small></div></li>
+        <li className={created ? "complete" : draft ? "current" : ""}><span>2</span><div><strong>Review the learning focus</strong><small>Approve the ideas and follow-up questions</small></div></li>
         <li className={created ? "current" : ""}><span>3</span><div><strong>Open the class</strong><small>Create and share one class code</small></div></li>
       </ol>
 

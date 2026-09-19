@@ -413,13 +413,13 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         <div className="boundary-icon">T</div>
         <div>
           <span className="eyebrow">Teacher review</span>
-          <h2>The AI identifies patterns. The teacher decides what they mean.</h2>
-          <p>ExitLoop does not grade students or assign mastery. Open the responses behind each pattern before deciding what to clarify next.</p>
+          <h2>Start with the pattern, then read the students&apos; words.</h2>
+          <p>ExitLoop organizes responses for review. Open the responses behind each pattern before deciding what the class needs next.</p>
         </div>
         <div className="condition-balance">
-          <span>AI follow-up routing</span>
+          <span>Response-based follow-ups</span>
           <strong>On</strong>
-          <small>Uses the approved question bank</small>
+          <small>Uses your approved question set</small>
         </div>
       </section>
 
