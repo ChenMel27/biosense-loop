@@ -267,8 +267,8 @@ export function LessonDraftGenerator({
           <div className="generated-draft-heading">
             <div>
               <span className="eyebrow">Step 2 of 3</span>
-              <h2>Review the learning focus</h2>
-              <p>Check the student task, key ideas, common misconceptions, and follow-up questions.</p>
+              <h2>Review the activity before students use it</h2>
+              <p>Start with what students will see. Then check what ExitLoop should notice and which questions students may receive.</p>
             </div>
             <div className="draft-origin">
               <span className="status-pill draft">{draftOrigin === "ai" ? "Generated draft" : "Manual draft"}</span>
@@ -276,23 +276,23 @@ export function LessonDraftGenerator({
             </div>
           </div>
 
-          <div className="draft-overview" aria-label="Activity draft summary">
-            <div><strong>{draft.targetIdeas.length}</strong><span>Target ideas</span></div>
-            <div><strong>{draft.possibleMisconceptions.length}</strong><span>Misconceptions</span></div>
-            <div><strong>{draft.followUpQuestions.length}</strong><span>Follow-up questions</span></div>
+          <div className="review-plan" aria-label="Recommended review order">
+            <div><strong>1</strong><span><b>What students see</b><small>Read the case and questions as a student.</small></span></div>
+            <div><strong>2</strong><span><b>What to notice</b><small>Choose the ideas that matter for this lesson.</small></span></div>
+            <div><strong>3</strong><span><b>What to ask next</b><small>Approve the follow-up questions students may receive.</small></span></div>
           </div>
 
           <div className="review-guidance">
-            <strong>Your review controls the activity</strong>
-            <span>{draftOrigin === "ai" ? "This draft is only a starting point. Students receive questions only from the version you review below." : "Students receive questions only from the version you complete and review below."}</span>
+            <strong>You stay in control</strong>
+            <span>{draftOrigin === "ai" ? "This generated draft is only a starting point. Edit anything that does not match your lesson." : "Complete the sections below before opening the activity for students."}</span>
           </div>
 
           <div className="authoring-accordion">
             <details className="authoring-section" open>
               <summary className="authoring-section-summary">
                 <span className="section-number">1</span>
-                <span><strong>Activity details</strong><small>Title, grade, course, topic, and response focus</small></span>
-                <span className="section-meta">5 fields</span>
+                <span><strong>Set up the lesson</strong><small>Title, grade, course, and biology topic</small></span>
+                <span className="section-meta">4 fields</span>
               </summary>
               <div className="authoring-section-body stack-md">
                 <div className="draft-input-grid">
@@ -312,14 +312,13 @@ export function LessonDraftGenerator({
                   </div>
                 </div>
                 <div className="field"><label htmlFor="draft-topic">Biology topic</label><input id="draft-topic" value={draft.topic} onChange={(event) => updateDraft("topic", event.target.value)} /></div>
-                <div className="field"><label htmlFor="draft-scope">What should ExitLoop look for?</label><textarea id="draft-scope" rows={3} value={draft.scopeBoundary} onChange={(event) => updateDraft("scopeBoundary", event.target.value)} /><span className="field-note">Describe which ideas should be considered and anything the activity should ignore.</span></div>
               </div>
             </details>
 
             <details className="authoring-section">
               <summary className="authoring-section-summary">
                 <span className="section-number">2</span>
-                <span><strong>Student activity</strong><small>Reading, first explanation, and related example</small></span>
+                <span><strong>Write the student activity</strong><small>The case students read and the two questions they answer</small></span>
                 <span className="section-meta">3 prompts</span>
               </summary>
               <div className="authoring-section-body stack-md">
@@ -332,11 +331,17 @@ export function LessonDraftGenerator({
             <details className="authoring-section">
               <summary className="authoring-section-summary">
                 <span className="section-number">3</span>
-                <span><strong>Target scientific ideas</strong><small>What a strong explanation should clearly include</small></span>
-                <span className="section-meta">{draft.targetIdeas.length} {draft.targetIdeas.length === 1 ? "idea" : "ideas"}</span>
+                <span><strong>Choose what ExitLoop should notice</strong><small>Ideas students should explain and incorrect ideas to watch for</small></span>
+                <span className="section-meta">{draft.targetIdeas.length + draft.possibleMisconceptions.length} items</span>
               </summary>
-              <div className="authoring-section-body stack-md">
-                <p className="section-help">ExitLoop marks an idea as present only when the student clearly explains it.</p>
+              <div className="authoring-section-body stack-lg">
+                <p className="section-help">Keep this list focused on the few ideas that matter most for this activity. ExitLoop uses only the items you approve here.</p>
+                <details className="advanced-settings">
+                  <summary>Optional: add limits for the response review</summary>
+                  <div className="field"><label htmlFor="draft-scope">What should ExitLoop consider or ignore?</label><textarea id="draft-scope" rows={3} value={draft.scopeBoundary} onChange={(event) => updateDraft("scopeBoundary", event.target.value)} /><span className="field-note">For example, ask ExitLoop to consider only the scientific ideas listed below and ignore grammar or spelling.</span></div>
+                </details>
+                <div className="editor-subsection stack-md">
+                  <div className="editor-subsection-heading"><div><span className="subsection-number">A</span><strong>Ideas students should explain</strong></div><p>Add each scientific relationship you expect to see in a strong response.</p></div>
                 {draft.targetIdeas.map((idea, index) => (
                   <article className="draft-item" key={idea.id}>
                     <div className="draft-item-heading"><strong>Target idea {index + 1}</strong><button className="text-button danger-text" type="button" onClick={() => updateDraft("targetIdeas", draft.targetIdeas.filter((item) => item.id !== idea.id))}>Remove</button></div>
@@ -345,18 +350,10 @@ export function LessonDraftGenerator({
                     <div className="field"><label htmlFor={`generated-idea-action-${idea.id}`}>Possible teaching response <span>(optional)</span></label><textarea id={`generated-idea-action-${idea.id}`} rows={2} value={idea.suggestedTeacherResponse} onChange={(event) => updateDraft("targetIdeas", draft.targetIdeas.map((item) => item.id === idea.id ? { ...item, suggestedTeacherResponse: event.target.value } : item))} /></div>
                   </article>
                 ))}
-                <button className="button secondary add-item-button" type="button" onClick={() => updateDraft("targetIdeas", [...draft.targetIdeas, emptyTargetIdea()])}>Add target idea</button>
-              </div>
-            </details>
-
-            <details className="authoring-section">
-              <summary className="authoring-section-summary">
-                <span className="section-number">4</span>
-                <span><strong>Possible misconceptions</strong><small>Incorrect claims ExitLoop may flag for teacher review</small></span>
-                <span className="section-meta">{draft.possibleMisconceptions.length} listed</span>
-              </summary>
-              <div className="authoring-section-body stack-md">
-                <p className="section-help">Only include explicit incorrect claims. If a student simply leaves out an idea, ExitLoop records it as missing instead.</p>
+                  <button className="button secondary add-item-button" type="button" onClick={() => updateDraft("targetIdeas", [...draft.targetIdeas, emptyTargetIdea()])}>Add an idea</button>
+                </div>
+                <div className="editor-subsection stack-md">
+                  <div className="editor-subsection-heading"><div><span className="subsection-number">B</span><strong>Incorrect ideas to watch for</strong></div><p>Add only claims that are scientifically incorrect. A student who simply leaves something out has a missing idea, not a misconception.</p></div>
                 {draft.possibleMisconceptions.map((item, index) => (
                   <article className="draft-item" key={item.id}>
                     <div className="draft-item-heading"><strong>Possible misconception {index + 1}</strong><button className="text-button danger-text" type="button" onClick={() => updateDraft("possibleMisconceptions", draft.possibleMisconceptions.filter((entry) => entry.id !== item.id))}>Remove</button></div>
@@ -366,18 +363,21 @@ export function LessonDraftGenerator({
                     <div className="field"><label htmlFor={`generated-misconception-action-${item.id}`}>Possible teaching response <span>(optional)</span></label><textarea id={`generated-misconception-action-${item.id}`} rows={2} value={item.suggestedTeacherResponse} onChange={(event) => updateDraft("possibleMisconceptions", draft.possibleMisconceptions.map((entry) => entry.id === item.id ? { ...entry, suggestedTeacherResponse: event.target.value } : entry))} /></div>
                   </article>
                 ))}
-                <button className="button secondary add-item-button" type="button" onClick={() => updateDraft("possibleMisconceptions", [...draft.possibleMisconceptions, emptyMisconception()])}>Add misconception</button>
+                  <button className="button secondary add-item-button" type="button" onClick={() => updateDraft("possibleMisconceptions", [...draft.possibleMisconceptions, emptyMisconception()])}>Add an incorrect idea</button>
+                </div>
               </div>
             </details>
 
             <details className="authoring-section">
               <summary className="authoring-section-summary">
-                <span className="section-number">5</span>
-                <span><strong>Follow-up questions</strong><small>Connect each approved question to one response pattern</small></span>
-                <span className="section-meta">{draft.followUpQuestions.length} {draft.followUpQuestions.length === 1 ? "question" : "questions"}</span>
+                <span className="section-number">4</span>
+                <span><strong>Review the questions students may receive</strong><small>Match each question to the situation in which it should appear</small></span>
+                <span className="section-meta">{draft.followUpQuestions.length + 2} questions</span>
               </summary>
-              <div className="authoring-section-body stack-md">
-                <p className="section-help">ExitLoop shows one approved question. If several response patterns are identified, it prioritizes a possible misconception and then uses the order of the reviewed idea and misconception lists. It does not write a new question during the activity.</p>
+              <div className="authoring-section-body stack-lg">
+                <p className="section-help">A student receives one question from this reviewed set. ExitLoop does not write a new question during the activity.</p>
+                <div className="editor-subsection stack-md">
+                  <div className="editor-subsection-heading"><div><span className="subsection-number">A</span><strong>Questions for a missing or incorrect idea</strong></div><p>Use the menu on each question to choose exactly when students should see it.</p></div>
                 {draft.followUpQuestions.map((question, index) => {
                   const targets = question.targetKind === "target_idea" ? draft.targetIdeas : draft.possibleMisconceptions;
                   const target = targets.find((item) => item.id === question.targetId);
@@ -391,25 +391,19 @@ export function LessonDraftGenerator({
                     </article>
                   );
                 })}
-                <button className="button secondary add-item-button" type="button" onClick={() => { const firstTarget = draft.targetIdeas[0]; const firstMisconception = draft.possibleMisconceptions[0]; if (!firstTarget && !firstMisconception) return; updateDraft("followUpQuestions", [...draft.followUpQuestions, { id: newId("follow_up"), title: "", question: "", targetKind: firstTarget ? "target_idea" : "possible_misconception", targetId: firstTarget?.id ?? firstMisconception?.id ?? "clarification" }]); }}>Add follow-up question</button>
-              </div>
-            </details>
-
-            <details className="authoring-section">
-              <summary className="authoring-section-summary">
-                <span className="section-number">6</span>
-                <span><strong>Complete and unclear responses</strong><small>Questions for responses that do not need a targeted probe</small></span>
-                <span className="section-meta">2 questions</span>
-              </summary>
-              <div className="authoring-section-body">
-                <div className="prompt-settings-grid">
+                  <button className="button secondary add-item-button" type="button" onClick={() => { const firstTarget = draft.targetIdeas[0]; const firstMisconception = draft.possibleMisconceptions[0]; if (!firstTarget && !firstMisconception) return; updateDraft("followUpQuestions", [...draft.followUpQuestions, { id: newId("follow_up"), title: "", question: "", targetKind: firstTarget ? "target_idea" : "possible_misconception", targetId: firstTarget?.id ?? firstMisconception?.id ?? "clarification" }]); }}>Add a follow-up question</button>
+                </div>
+                <div className="editor-subsection stack-md">
+                  <div className="editor-subsection-heading"><div><span className="subsection-number">B</span><strong>Questions for complete or unclear responses</strong></div><p>These two questions make sure every student can continue, even when no specific gap is identified.</p></div>
+                  <div className="prompt-settings-grid">
                   <div className="draft-item clarification-question">
-                    <div><strong>When all target ideas are present</strong><p className="source-note">Acknowledge the response and invite the student to strengthen the evidence or reasoning.</p></div>
+                    <div><strong>When the response includes all selected ideas</strong><p className="source-note">Invite the student to strengthen the evidence or reasoning without assigning a grade.</p></div>
                     <div className="field"><label htmlFor="draft-completion">Question the student will see</label><textarea id="draft-completion" rows={4} value={draft.completionQuestion} onChange={(event) => updateDraft("completionQuestion", event.target.value)} /></div>
                   </div>
                   <div className="draft-item clarification-question">
                     <div><strong>When the response is unclear</strong><p className="source-note">Use for a short, contradictory, or off-topic response.</p></div>
                     <div className="field"><label htmlFor="draft-clarification">Question the student will see</label><textarea id="draft-clarification" rows={4} value={draft.clarificationQuestion} onChange={(event) => updateDraft("clarificationQuestion", event.target.value)} /></div>
+                  </div>
                   </div>
                 </div>
               </div>
@@ -417,8 +411,8 @@ export function LessonDraftGenerator({
 
             <details className="authoring-section">
               <summary className="authoring-section-summary">
-                <span className="section-number">7</span>
-                <span><strong>Review checklist and sources</strong><small>Final checks before the session opens</small></span>
+                <span className="section-number">5</span>
+                <span><strong>Complete the final teacher check</strong><small>Confirm the science, age level, and question coverage</small></span>
                 <span className="section-meta">Final review</span>
               </summary>
               <div className="authoring-section-body stack-md">
