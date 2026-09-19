@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AppHeader } from "@/components/Brand";
 import { TeacherActivityBuilder } from "@/components/TeacherActivityBuilder";
+import { TeacherShell } from "@/components/TeacherShell";
 import { getTeacherIdentity } from "@/lib/auth/guards";
 
 export const metadata: Metadata = { title: "Activity builder" };
@@ -14,12 +13,10 @@ export default async function ActivityBuilderPage() {
     redirect("/teacher/login?next=%2Fteacher%2Factivity-builder");
   }
   return (
-    <div className="teacher-page">
-      <AppHeader compact />
-      <main className="shell teacher-main stack-lg">
-        <Link className="back-link" href="/teacher">← Teacher workspace</Link>
+    <TeacherShell active="builder">
+      <div className="stack-lg">
         <TeacherActivityBuilder />
-      </main>
-    </div>
+      </div>
+    </TeacherShell>
   );
 }

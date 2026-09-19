@@ -142,11 +142,11 @@ export function LessonDraftGenerator({
         <div className="lesson-source-setup stack-lg">
           <div className="lesson-source-heading">
             <div>
-              <span className="eyebrow">Step 1 · Choose a starting point</span>
-              <h2 id="lesson-draft-title">How would you like to begin?</h2>
+              <span className="eyebrow">Step 1 of 3</span>
+              <h2 id="lesson-draft-title">Build the activity</h2>
               <p>
-                Let ExitLoop prepare a draft from your lesson materials, or complete the same
-                structured activity template yourself.
+                Upload lesson materials for a first draft, or start with the guided form and enter
+                each part yourself.
               </p>
             </div>
           </div>
@@ -155,10 +155,10 @@ export function LessonDraftGenerator({
             <section className="start-method-card recommended-method">
               <div className="method-card-heading">
                 <span className="method-icon" aria-hidden="true">✦</span>
-                <span className="method-tag">Recommended</span>
+                <span className="method-tag">Faster start</span>
               </div>
-              <h3>Create from lesson materials</h3>
-              <p>ExitLoop uses AI to turn your existing material into an editable first draft.</p>
+              <h3>Upload lesson materials</h3>
+              <p>ExitLoop uses AI to prepare an editable activity from your existing material.</p>
 
               <div className="material-inputs">
                 <label className={`file-dropzone ${lessonFile ? "selected" : ""}`} htmlFor="lesson-file">
@@ -227,10 +227,10 @@ export function LessonDraftGenerator({
             <section className="start-method-card guided-method">
               <div className="method-card-heading">
                 <span className="method-icon neutral" aria-hidden="true">✎</span>
-                <span className="method-tag neutral">Guided setup</span>
+                <span className="method-tag neutral">Manual setup</span>
               </div>
-              <h3>Build with a guided template</h3>
-              <p>Start with an organized form and write each part of the activity yourself.</p>
+              <h3>Use the guided form</h3>
+              <p>Start with an empty activity and complete each section yourself.</p>
               <div className="guided-template-preview">
                 <strong>The template includes</strong>
                 <ul>
@@ -266,9 +266,9 @@ export function LessonDraftGenerator({
         <section className="generated-draft stack-lg" aria-live="polite">
           <div className="generated-draft-heading">
             <div>
-              <span className="eyebrow">Step 2 · Teacher review</span>
-              <h2>Review and approve the activity</h2>
-              <p>Open each section to check the wording, science content, and response rules.</p>
+              <span className="eyebrow">Step 2 of 3</span>
+              <h2>Review what ExitLoop may use</h2>
+              <p>Check the student task first, then the ideas, misconceptions, and questions used to analyze responses.</p>
             </div>
             <div className="draft-origin">
               <span className="status-pill draft">{draftOrigin === "ai" ? "AI draft" : "Manual draft"}</span>
@@ -283,8 +283,8 @@ export function LessonDraftGenerator({
           </div>
 
           <div className="review-guidance">
-            <strong>Teacher approval required</strong>
-            <span>{draftOrigin === "ai" ? "AI prepared this draft. Your reviewed version controls what the system checks and which questions students may receive." : "Complete and review each section. Your version controls what the system checks and which questions students may receive."}</span>
+            <strong>Your review controls the activity</strong>
+            <span>{draftOrigin === "ai" ? "The AI draft is only a starting point. Students receive questions only from the version you review below." : "Students receive questions only from the version you complete and review below."}</span>
           </div>
 
           <div className="authoring-accordion">

@@ -122,16 +122,16 @@ export function TeacherActivityBuilder() {
     <div className="stack-xl">
       <section className="workspace-heading">
         <div>
-          <span className="eyebrow">Activity builder</span>
-          <h1>Build a focused check for understanding</h1>
-          <p>Turn your lesson materials into a short explanation activity with teacher-approved follow-up questions.</p>
+          <span className="eyebrow">Create activity</span>
+          <h1>Prepare a check for understanding</h1>
+          <p>Start with your lesson materials, review the activity ExitLoop prepares, and then open it for students.</p>
         </div>
       </section>
 
       <ol className="builder-progress" aria-label="Activity setup progress">
-        <li className={!draft ? "current" : "complete"}><span>1</span><div><strong>Add materials</strong><small>Upload or enter lesson content</small></div></li>
-        <li className={created ? "complete" : draft ? "current" : ""}><span>2</span><div><strong>Review activity</strong><small>Check content and questions</small></div></li>
-        <li className={created ? "current" : ""}><span>3</span><div><strong>Open session</strong><small>Share one class code</small></div></li>
+        <li className={!draft ? "current" : "complete"}><span>1</span><div><strong>Build the activity</strong><small>Add lesson materials or use the guided form</small></div></li>
+        <li className={created ? "complete" : draft ? "current" : ""}><span>2</span><div><strong>Review AI use</strong><small>Approve what the system may identify and ask</small></div></li>
+        <li className={created ? "current" : ""}><span>3</span><div><strong>Open the class</strong><small>Create and share one class code</small></div></li>
       </ol>
 
       <section className="activity-builder-panel">
@@ -142,9 +142,9 @@ export function TeacherActivityBuilder() {
         <form className="panel session-setup-panel stack-lg" id="session-setup" onSubmit={startSession}>
           <div className="session-setup-heading">
             <div>
-              <span className="eyebrow">Step 3 · Session setup</span>
-              <h2>Open the activity for your class</h2>
-              <p>Set the class size and expected student completion time.</p>
+              <span className="eyebrow">Step 3 of 3</span>
+              <h2>Open the class session</h2>
+              <p>Name the session and tell ExitLoop how many students you expect.</p>
             </div>
             <span className={`readiness-status ${draftProblem ? "needs-review" : "ready"}`}>
               {draftProblem ? "Review needed" : "Ready to open"}
@@ -166,9 +166,8 @@ export function TeacherActivityBuilder() {
             </div>
           </div>
           <div className="callout compact neutral">
-            Students will join with the class code and the name their teacher recognizes. Names
-            appear only in the private teacher dashboard; they are not sent to OpenAI or included
-            in research exports.
+            Students join with one class code and their name. Names appear only in the private
+            teacher dashboard and are not sent to OpenAI.
           </div>
           {draftProblem ? (
             <div className="review-blocker" role="status">
@@ -194,7 +193,7 @@ export function TeacherActivityBuilder() {
             <div>
               <span className="eyebrow">Session is open</span>
               <h2>{created.session.title}</h2>
-              <p>Share this class code. Students enter it with their name to join.</p>
+              <p>Share the code below. Students enter it with their name at the student sign-in page.</p>
             </div>
           </div>
           <div className="session-code-grid">

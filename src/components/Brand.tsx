@@ -8,10 +8,7 @@ export function Brand() {
         <span />
         <span />
       </span>
-      <span>
-        <strong>ExitLoop</strong>
-        <small>Formative assessment</small>
-      </span>
+      <strong>ExitLoop</strong>
     </Link>
   );
 }
@@ -21,6 +18,12 @@ export function AppHeader({ compact = false }: { compact?: boolean }) {
     <header className={compact ? "site-header compact" : "site-header"}>
       <div className="shell header-inner">
         <Brand />
+        {!compact ? (
+          <nav className="public-nav" aria-label="Main navigation">
+            <Link href="/student">Join a class</Link>
+            <Link className="button primary" href="/teacher/login">Teacher sign in</Link>
+          </nav>
+        ) : null}
       </div>
     </header>
   );

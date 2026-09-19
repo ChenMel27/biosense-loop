@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { AppHeader } from "@/components/Brand";
 import { SessionDashboard } from "@/components/SessionDashboard";
+import { TeacherShell } from "@/components/TeacherShell";
 import { getTeacherIdentity } from "@/lib/auth/guards";
 import { getStore } from "@/lib/store";
 
@@ -19,5 +19,5 @@ export default async function SessionPage({
   const { id } = await params;
   const snapshot = await getStore().getDashboardSnapshot(id);
   if (!snapshot) notFound();
-  return <div className="teacher-page"><AppHeader compact /><main className="shell teacher-main stack-lg"><Link className="back-link" href="/teacher">← All classroom sessions</Link><SessionDashboard initialSnapshot={snapshot} /></main></div>;
+  return <TeacherShell active="session"><div className="stack-lg"><Link className="back-link" href="/teacher">← All sessions</Link><SessionDashboard initialSnapshot={snapshot} /></div></TeacherShell>;
 }

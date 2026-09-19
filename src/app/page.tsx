@@ -7,47 +7,42 @@ export default function Home() {
     <div className="site-page">
       <AppHeader />
       <main>
-        <section className="hero shell">
-          <div className="hero-copy">
-            <span className="eyebrow">A clearer exit ticket</span>
-            <h1>Find gaps in understanding before class ends.</h1>
+        <section className="home-hero shell">
+          <div className="home-intro">
+            <span className="eyebrow">Formative assessment for biology</span>
+            <h1>Understand what your class needs next.</h1>
             <p>
-              Students explain what they understand and receive one follow-up question based on
-              their response. They revise their answer while teachers get a clear view of the ideas
-              the class may need to revisit.
+              ExitLoop turns a short written explanation into one focused follow-up question.
+              Students revise their thinking, and teachers see the class patterns that are worth
+              reviewing.
             </p>
-            <div className="button-row">
-              <Link className="button primary large" href="/student">Join as a student</Link>
-              <Link className="button secondary large" href="/teacher/login">Teacher workspace</Link>
-            </div>
-            <div className="trust-row">
-              <span><b>Low pressure</b> and ungraded</span>
-              <span><b>Questions approved</b> by teachers</span>
-              <span><b>Teacher review</b> before classroom use</span>
-            </div>
+            <p className="home-boundary">AI selects from questions the teacher has reviewed. It does not grade students or determine mastery.</p>
           </div>
-          <div className="hero-visual" aria-label="ExitLoop activity loop illustration">
-            <div className="loop-orbit">
-              <div className="loop-center"><span>One class</span><strong>check</strong><small>made useful</small></div>
-              <div className="orbit-step step-one"><b>1</b><span>Explain</span></div>
-              <div className="orbit-step step-two"><b>2</b><span>Review</span></div>
-              <div className="orbit-step step-three"><b>3</b><span>Revise</span></div>
-              <div className="orbit-step step-four"><b>4</b><span>Apply</span></div>
-            </div>
+          <div className="role-panel" aria-labelledby="role-heading">
+            <h2 id="role-heading">Get started</h2>
+            <Link className="role-choice" href="/student">
+              <span className="role-icon student" aria-hidden="true">S</span>
+              <span><strong>Student</strong><small>Join an activity with your class code</small></span>
+              <span aria-hidden="true">›</span>
+            </Link>
+            <Link className="role-choice" href="/teacher/login">
+              <span className="role-icon teacher" aria-hidden="true">T</span>
+              <span><strong>Teacher</strong><small>Create an activity and review class patterns</small></span>
+              <span aria-hidden="true">›</span>
+            </Link>
           </div>
         </section>
-        <section className="problem-band">
-          <div className="shell problem-grid">
-            <div><span className="eyebrow light">The classroom problem</span><h2>One answer rarely shows exactly what a student misunderstood.</h2></div>
-            <p>Biology concepts build on one another. ExitLoop gives students a chance to work through one gap while the lesson is still fresh.</p>
-          </div>
-        </section>
-        <section className="shell feature-section">
-          <div className="section-heading centered"><span className="eyebrow">Designed for a real classroom</span><h2>Built for the last twelve minutes of class.</h2></div>
-          <div className="feature-grid">
-            <article><span>01</span><h3>Teacher controlled</h3><p>Teachers review the science ideas, possible misconceptions, and every question students can receive.</p></article>
-            <article><span>02</span><h3>Based on explanations</h3><p>Students explain their reasoning in their own words, then revise it after one focused question.</p></article>
-            <article><span>03</span><h3>Easy to review</h3><p>The class summary shows common patterns and links each count to the responses behind it.</p></article>
+        <section className="home-process-section">
+          <div className="shell home-process">
+            <div>
+              <span className="eyebrow">A short classroom loop</span>
+              <h2>More useful than a single exit-ticket response.</h2>
+            </div>
+            <ol>
+              <li><span>1</span><div><strong>Explain</strong><p>Students respond in their own words.</p></div></li>
+              <li><span>2</span><div><strong>Reconsider</strong><p>Each student receives one approved follow-up.</p></div></li>
+              <li><span>3</span><div><strong>Review</strong><p>The teacher sees patterns and the responses behind them.</p></div></li>
+            </ol>
           </div>
         </section>
       </main>

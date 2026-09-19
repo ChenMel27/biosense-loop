@@ -13,25 +13,19 @@ export default async function StudentPage({
 }) {
   const query = await searchParams;
   return (
-    <div className="auth-page">
+    <div className="entry-page">
       <AppHeader compact />
-      <main className="auth-shell">
-        <section className="auth-copy">
-          <span className="eyebrow">Student activity</span>
-          <h1>Explain what you know, then improve your answer.</h1>
-          <p>You will answer a biology question, receive one follow up based on your response, revise your answer, and try a similar example.</p>
-          <ul className="check-list">
-            <li>This activity is not graded.</li>
-            <li>Use your own words and enter only the information requested.</li>
-            <li>Ask your teacher if an instruction is unclear.</li>
-          </ul>
-          <Link className="back-link" href="/">← Back to home</Link>
-        </section>
-        <section className="auth-card">
-          <div><span className="eyebrow">Join your class</span><h2>Enter the class code</h2><p>Then add the name your teacher will recognize.</p></div>
+      <main className="entry-shell">
+        <Link className="back-link entry-back" href="/">← Home</Link>
+        <section className="entry-card">
+          <div className="entry-heading">
+            <span className="role-icon student" aria-hidden="true">S</span>
+            <div><span className="eyebrow">Student</span><h1>Join your class</h1><p>Enter the code your teacher shared and the name they will recognize.</p></div>
+          </div>
           <StudentJoinForm
             initialJoinCode={query.classCode?.toUpperCase() ?? ""}
           />
+          <p className="entry-note">This is a low-stakes activity. It is not graded.</p>
         </section>
       </main>
     </div>
