@@ -10,7 +10,7 @@ export default function Home() {
         <section className="home-hero shell">
           <div className="home-intro">
             <span className="eyebrow">Formative assessment for biology</span>
-            <h1>Understand what your class needs next.</h1>
+            <h1>Understand what your class <span>needs next.</span></h1>
             <p>
               ExitLoop turns a short written explanation into one focused follow-up question.
               Students revise their thinking, and teachers see the class patterns that are worth
