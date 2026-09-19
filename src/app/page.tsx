@@ -9,8 +9,8 @@ export default function Home() {
       <main>
         <section className="edu-hero shell">
           <div className="edu-hero-copy">
-            <span className="eyebrow">A better end-of-class check-in</span>
-            <h1>Help students rethink, not just submit.</h1>
+            <span className="eyebrow">A clearer exit ticket</span>
+            <h1>Find gaps in understanding before class ends.</h1>
             <p>
               ExitLoop gives each student one focused question to revisit their explanation, then
               helps teachers see which ideas are worth discussing next.
