@@ -89,6 +89,8 @@ interface DecisionRow {
   demonstrated_idea_ids: string[];
   missing_idea_ids: string[];
   possible_alternative_conception_ids: string[];
+  evidence_spans: AiDecision["evidenceSpans"];
+  routing_target_id: string | null;
   classification_confidence: number;
   recommended_prompt_id: string;
   displayed_prompt_id: string;
@@ -192,6 +194,8 @@ function mapDecision(row: DecisionRow): AiDecision {
     demonstratedIdeaIds: row.demonstrated_idea_ids,
     missingIdeaIds: row.missing_idea_ids,
     possibleAlternativeConceptionIds: row.possible_alternative_conception_ids,
+    evidenceSpans: row.evidence_spans ?? [],
+    routingTargetId: row.routing_target_id ?? null,
     classificationConfidence: row.classification_confidence,
     recommendedPromptId: row.recommended_prompt_id,
     displayedPromptId: row.displayed_prompt_id,
@@ -438,6 +442,8 @@ export class SupabaseResearchStore implements ResearchStore {
       demonstrated_idea_ids: decision.demonstratedIdeaIds,
       missing_idea_ids: decision.missingIdeaIds,
       possible_alternative_conception_ids: decision.possibleAlternativeConceptionIds,
+      evidence_spans: decision.evidenceSpans,
+      routing_target_id: decision.routingTargetId,
       classification_confidence: decision.classificationConfidence,
       recommended_prompt_id: decision.recommendedPromptId,
       displayed_prompt_id: decision.displayedPromptId,
@@ -791,6 +797,9 @@ export class SupabaseResearchStore implements ResearchStore {
               displayName: displayNamesByAttempt.get(attempt.id) ?? null,
               responseText: response.responseText,
               displayedPromptId: decision.displayedPromptId,
+              evidenceSpans: decision.evidenceSpans.filter(
+                (evidence) => evidence.labelId === id,
+              ),
             });
           }
         }
@@ -812,6 +821,8 @@ export class SupabaseResearchStore implements ResearchStore {
           classificationConfidence: decision?.classificationConfidence ?? null,
           displayedPromptId: decision?.displayedPromptId ?? null,
           provider: decision?.provider ?? null,
+          evidenceSpans: decision?.evidenceSpans ?? [],
+          routingTargetId: decision?.routingTargetId ?? null,
         };
       })
       .sort((a, b) => a.participantTag.localeCompare(b.participantTag));

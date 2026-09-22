@@ -21,15 +21,15 @@ ExitLoop does not generate questions during a student session, assign grades, or
 2. Read the lesson-specific information and submit an initial explanation.
 3. Receive one response-specific question selected from the teacher-reviewed bank.
 4. Revise the explanation.
-5. Review a low-stakes summary of ideas found in the initial response and one area to reconsider.
-6. Apply the same reasoning to a related example and complete a short experience survey.
+5. Review a low-stakes summary of the initial response: the learning goal, ideas already supported, the focus of the follow-up, and two strategy checks. The summary does not regrade the revision.
+6. Apply the same reasoning to a feedback-supported related example and complete a short experience survey.
 
 ## How AI is used
 
 Lesson authoring and student routing are separate AI tasks.
 
 - During authoring, OpenAI can organize teacher-provided lesson materials into an editable draft. The teacher must review the science, scope, possible misconceptions, and questions before opening a session.
-- During routing, OpenAI receives redacted response text and the frozen content pack. Its structured output is limited to approved idea IDs, approved possible-misconception IDs, confidence, reason codes, and an approved prompt ID. Server code validates the result and displays the stored question text.
+- During routing, OpenAI receives redacted response text and the frozen content pack. Its structured output is limited to approved idea IDs, approved possible-misconception IDs, exact supporting quotes, confidence, reason codes, and an approved prompt ID. Server code verifies every quote against the submitted response, removes unsupported positive labels, validates the route, and displays the stored question text.
 - If routing is disabled, unavailable, invalid, or uncertain, ExitLoop uses the approved clarification question. The built-in inheritance demonstration also has a deterministic keyword fallback for local testing.
 
 Uploaded files are used to produce the draft and are not saved by ExitLoop. Student names are not sent to OpenAI and are excluded from research exports.
@@ -96,6 +96,9 @@ pnpm load-test
 - [Data dictionary](docs/DATA_DICTIONARY.md)
 - [Production and classroom checklist](docs/PRE_CLASSROOM_CHECKLIST.md)
 - [Student experience design](docs/STUDENT_EXPERIENCE_REDESIGN.md)
+- [AI routing and evidence contract](docs/AI_ROUTING_AND_EVIDENCE.md)
+- [Accessibility implementation and test plan](docs/ACCESSIBILITY.md)
+- [Research design roadmap](docs/DESIGN_ROADMAP.md)
 - [Georgia inheritance demonstration alignment](docs/GEORGIA_STANDARDS_ALIGNMENT.md)
 - [Teacher evaluation protocol draft](docs/TEACHER_USABILITY_STUDY.md)
 - [Draft research abstract](research/ABSTRACT.md)

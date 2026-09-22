@@ -25,7 +25,7 @@ Do not run the student session until every required item is complete.
 ## Deployment and concurrency
 
 - [ ] The production deployment uses Supabase, not the in-memory demo store.
-- [ ] All files in `supabase/migrations` have been applied in numeric order, including `003_content_packs.sql`.
+- [ ] All files in `supabase/migrations` have been applied in numeric order, including `004_ai_decision_evidence.sql`.
 - [ ] Production secrets are strong, unique, and unavailable to students.
 - [ ] The health endpoint returns HTTP 200 with `configuration: ready` and `storage: supabase`.
 - [ ] A 30-student load test has passed against the exact deployment build.
@@ -38,8 +38,19 @@ Do not run the student session until every required item is complete.
 - [ ] AI routing is disabled unless minor-data safeguards and school approval are confirmed.
 - [ ] The API sends only response text after likely identifiers are redacted, uses `store: false`, and cannot call tools.
 - [ ] The classifier schema accepts only frozen idea, misconception, and prompt identifiers.
+- [ ] Every positive AI label shown in a test response has a server-verified exact quote; unsupported labels are discarded.
 - [ ] Low-confidence, invalid, or timed-out classifications route to the teacher-authored fallback prompt.
 - [ ] Staff understand that classifier tags are hypotheses for routing, not diagnoses or grades.
+
+## Accessibility
+
+- [ ] Automated accessibility checks report no critical or serious issues on the home, join, student activity, builder, login, and dashboard routes.
+- [ ] Every workflow can be completed with the keyboard alone and visible focus never disappears behind sticky navigation.
+- [ ] Form controls announce their label, instructions, required state, errors, and grouped question text in a screen reader.
+- [ ] Pages remain usable at 200% zoom and reflow at 400% without requiring two-dimensional scrolling for ordinary text.
+- [ ] Text, controls, focus indicators, and status states meet WCAG 2.2 AA contrast requirements.
+- [ ] Interaction targets are at least 24 by 24 CSS pixels with adequate spacing; ExitLoop aims for 44 by 44 pixels for primary and repeated controls.
+- [ ] Reduced-motion mode removes nonessential animation, and no student response field blocks paste or imposes a countdown.
 
 ## Study execution
 

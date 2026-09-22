@@ -15,7 +15,7 @@ export default async function StudentPage({
   return (
     <div className="entry-page">
       <AppHeader compact />
-      <main className="entry-shell">
+      <main className="entry-shell" id="main-content" tabIndex={-1}>
         <Link className="back-link entry-back" href="/">← Home</Link>
         <section className="entry-card">
           <div className="entry-heading">

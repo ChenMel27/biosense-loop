@@ -4,7 +4,7 @@ export default function GlobalError({ reset }: { reset: () => void }) {
   return (
     <html lang="en">
       <body>
-        <main className="site-shell">
+        <main className="site-shell" id="main-content" tabIndex={-1}>
           <section className="panel stack-lg" role="alert">
             <h1>ExitLoop could not load.</h1>
             <p>Try again. If the problem continues, return to the home page.</p>

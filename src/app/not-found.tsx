@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function NotFoundPage() {
   return (
-    <main className="site-shell">
+    <main className="site-shell" id="main-content" tabIndex={-1}>
       <section className="panel stack-lg">
         <span className="eyebrow">Page not found</span>
         <h1>We could not find that ExitLoop page.</h1>

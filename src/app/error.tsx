@@ -14,7 +14,7 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <main className="site-shell">
+    <main className="site-shell" id="main-content" tabIndex={-1}>
       <section className="panel stack-lg" role="alert">
         <span className="eyebrow">Something went wrong</span>
         <h1>This page could not be loaded.</h1>

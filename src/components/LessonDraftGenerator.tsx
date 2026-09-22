@@ -205,21 +205,22 @@ export function LessonDraftGenerator({
               <p>Upload an existing lesson and receive an editable activity draft.</p>
 
               <div className="material-inputs">
-                <label className={`file-dropzone ${lessonFile ? "selected" : ""}`} htmlFor="lesson-file">
+                <div className={`file-dropzone ${lessonFile ? "selected" : ""}`}>
                   <span className="file-upload-icon" aria-hidden="true">↑</span>
                   <span>
-                    <strong>{lessonFile?.name || "Upload a lesson file"}</strong>
+                    <label htmlFor="lesson-file">{lessonFile?.name || "Upload a lesson file"}</label>
                     <small>{lessonFile ? "File ready to use" : "PDF, Word, PowerPoint, or text · Up to 4 MB"}</small>
                   </span>
-                  <span className="file-action">{lessonFile ? "Change" : "Browse"}</span>
-                </label>
-                <input
-                  className="sr-only"
-                  id="lesson-file"
-                  type="file"
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md,.rtf,.odt"
-                  onChange={(event) => setLessonFile(event.target.files?.[0] ?? null)}
-                />
+                  <input
+                    className="file-input-native"
+                    id="lesson-file"
+                    type="file"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md,.rtf,.odt"
+                    onChange={(event) => setLessonFile(event.target.files?.[0] ?? null)}
+                    aria-describedby="lesson-file-help"
+                  />
+                </div>
+                <span className="field-note" id="lesson-file-help">Choose one instructional file up to 4 MB. Do not upload student information.</span>
 
                 <div className="input-divider"><span>or paste lesson notes</span></div>
                 <div className="field">
@@ -230,10 +231,11 @@ export function LessonDraftGenerator({
                     value={lessonNotes}
                     onChange={(event) => setLessonNotes(event.target.value)}
                     placeholder="Paste learning goals, key concepts, or an explanation task..."
+                    aria-describedby="lesson-notes-help lesson-notes-count"
                   />
                   <span className="field-meta">
-                    <span>Minimum 40 characters</span>
-                    <span>{lessonNotes.trim().length.toLocaleString()} characters</span>
+                    <span id="lesson-notes-help">Minimum 40 characters</span>
+                    <span id="lesson-notes-count">{lessonNotes.trim().length.toLocaleString()} characters</span>
                   </span>
                 </div>
 
@@ -333,6 +335,7 @@ export function LessonDraftGenerator({
                 key={label}
                 type="button"
                 onClick={() => setReviewStep(Number(step) as 1 | 2 | 3 | 4 | 5)}
+                aria-current={reviewStep === step ? "step" : undefined}
               >
                 <span>{isReviewStepComplete(Number(step)) ? "✓" : step}</span>
                 {label}

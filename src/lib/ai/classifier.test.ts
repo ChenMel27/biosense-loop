@@ -45,11 +45,15 @@ describe("teacher-approved prompt mappings", () => {
       demonstrated_idea_ids: ["gene_trait_information"],
       missing_idea_ids: ["gene_on_chromosome"],
       possible_alternative_conception_ids: [],
+      evidence_spans: [{
+        label_id: "gene_trait_information",
+        evidence_quote: "The gene carries inherited information about bristle shape.",
+      }],
       classification_confidence: 0.9,
       recommended_prompt_id: "inheritance_both_parents_probe_01",
       abstain: false,
       reason_codes: ["missing_relationship"],
-    }, traitInheritancePack);
+    }, traitInheritancePack, "The gene carries inherited information about bristle shape.");
 
     expect(result.recommendedPromptId).toBe("inheritance_chromosome_probe_01");
     expect(result.abstain).toBe(false);
@@ -82,11 +86,12 @@ describe("teacher-approved prompt mappings", () => {
       demonstrated_idea_ids: [],
       missing_idea_ids: [addedIdeaId],
       possible_alternative_conception_ids: [],
+      evidence_spans: [],
       classification_confidence: 0.93,
       recommended_prompt_id: addedQuestionId,
       abstain: false,
       reason_codes: ["missing_relationship"],
-    }, pack);
+    }, pack, "The response does not explain where inherited information is found.");
 
     expect(result.recommendedPromptId).toBe(addedQuestionId);
     expect(result.abstain).toBe(false);
@@ -100,11 +105,21 @@ describe("teacher-approved prompt mappings", () => {
         "one_parent_determines_trait",
         "gene_is_the_trait",
       ],
+      evidence_spans: [
+        {
+          label_id: "one_parent_determines_trait",
+          evidence_quote: "Only one parent determines it.",
+        },
+        {
+          label_id: "gene_is_the_trait",
+          evidence_quote: "The gene is the curved bristle trait.",
+        },
+      ],
       classification_confidence: 0.91,
       recommended_prompt_id: "inheritance_both_parents_probe_01",
       abstain: false,
       reason_codes: ["contradictory_statement", "missing_relationship"],
-    }, traitInheritancePack);
+    }, traitInheritancePack, "The gene is the curved bristle trait. Only one parent determines it.");
 
     expect(result.possibleAlternativeConceptionIds).toHaveLength(2);
     expect(result.demonstratedIdeaIds).not.toContain("gene_trait_information");
@@ -113,5 +128,39 @@ describe("teacher-approved prompt mappings", () => {
       "both_parent_contributions",
     ]));
     expect(result.recommendedPromptId).toBe("inheritance_gene_trait_probe_01");
+  });
+
+  it("discards a positive label when its supporting quote is not in the response", () => {
+    const responseText = "The offspring received one chromosome from each parent.";
+    const result = normalizeClassificationResult({
+      demonstrated_idea_ids: ["both_parent_contributions"],
+      missing_idea_ids: [],
+      possible_alternative_conception_ids: ["gene_is_the_trait"],
+      evidence_spans: [
+        {
+          label_id: "both_parent_contributions",
+          evidence_quote: "one chromosome from each parent",
+        },
+        {
+          label_id: "gene_is_the_trait",
+          evidence_quote: "The gene is the visible trait.",
+        },
+      ],
+      classification_confidence: 0.9,
+      recommended_prompt_id: "inheritance_gene_trait_probe_01",
+      abstain: false,
+      reason_codes: ["explicit_evidence"],
+    }, traitInheritancePack, responseText);
+
+    expect(result.demonstratedIdeaIds).toContain("both_parent_contributions");
+    expect(result.possibleAlternativeConceptionIds).toEqual([]);
+    expect(result.evidenceSpans).toEqual([
+      expect.objectContaining({
+        labelId: "both_parent_contributions",
+        quote: "one chromosome from each parent",
+        startIndex: 23,
+      }),
+    ]);
+    expect(result.missingIdeaIds).toContain("gene_trait_information");
   });
 });

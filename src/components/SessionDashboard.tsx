@@ -196,11 +196,11 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         </div>
         <div className="session-actions">
           {snapshot.session.status === "draft" ? (
-            <button className="button primary" disabled={updating} onClick={() => setStatus("active")}>Open for students</button>
+            <button className="button primary" type="button" disabled={updating} onClick={() => setStatus("active")}>Open for students</button>
           ) : snapshot.session.status === "active" ? (
-            <button className="button danger" disabled={updating} onClick={() => setStatus("closed")}>Close session</button>
+            <button className="button danger" type="button" disabled={updating} onClick={() => setStatus("closed")}>Close session</button>
           ) : (
-            <button className="button secondary" disabled={updating} onClick={() => setStatus("active")}>Reopen session</button>
+            <button className="button secondary" type="button" disabled={updating} onClick={() => setStatus("active")}>Reopen session</button>
           )}
           <a className="button secondary" href={`/api/teacher/sessions/${snapshot.session.id}/export?format=csv`}>Export CSV</a>
           <a className="button ghost" href={`/api/teacher/sessions/${snapshot.session.id}/export?format=json`}>Export JSON</a>
@@ -211,7 +211,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           />
         </div>
       </section>
-      {error ? <p className="form-error" role="alert">{error}</p> : null}
+      {error ? <p className="form-error" id="dashboard-error" role="alert">{error}</p> : null}
       {!resolvedContentPack ? (
         <div className="callout warning" role="alert">
           This session’s approved activity snapshot is unavailable. Close the session and contact
@@ -298,9 +298,27 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
                 </p>
                 {prompt ? (
                   <div className="dashboard-routing-summary">
+                    <div className="routing-evidence-review">
+                      <small>Exact response evidence</small>
+                      {row.evidenceSpans.length ? (
+                        <ul>
+                          {row.evidenceSpans.map((evidence) => (
+                            <li key={`${evidence.labelId}-${evidence.startIndex}`}>
+                              <span>{contentLabels[evidence.labelId] ?? evidence.labelId}</span>
+                              <blockquote>“{evidence.quote}”</blockquote>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span>No positive label was supported by a server-verified quote.</span>
+                      )}
+                    </div>
                     <div>
                       <small>Target ideas not identified</small>
                       <span>{row.missingIdeaIds.map((id) => contentLabels[id] ?? id).join(", ") || "None"}</span>
+                      {row.missingIdeaIds.length ? (
+                        <em>No matching relationship was found. An omission is not automatically a misconception.</em>
+                      ) : null}
                     </div>
                     <div>
                       <small>Misconception to review</small>
@@ -346,9 +364,14 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
                     <small>{item.count} response{item.count === 1 ? "" : "s"}. {item.kind}</small>
                     <small className="action-tip">{item.teacherAction}</small>
                     {(snapshot.patternExamples[item.id] ?? []).map((example) => (
-                      <small key={`${item.id}-${example.participantTag}`} className="response-example">
-                        {example.displayName ?? example.participantTag}: “{example.responseText}”
-                      </small>
+                      <span key={`${item.id}-${example.participantTag}`} className="response-example">
+                        <small>{example.displayName ?? example.participantTag}: “{example.responseText}”</small>
+                        {example.evidenceSpans[0] ? (
+                          <small className="matched-evidence">Matched phrase: “{example.evidenceSpans[0].quote}”</small>
+                        ) : (
+                          <small className="missing-evidence-note">No phrase matched this required relationship.</small>
+                        )}
+                      </span>
                     ))}
                   </span>
                   <b>{item.count}</b>
@@ -441,7 +464,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
             <span className="small-note">Available after the session is closed.</span>
           )}
         </div>
-        <fieldset className="action-options">
+        <fieldset className="action-options" aria-describedby={error ? "dashboard-error" : undefined}>
           <legend className="sr-only">Planned instructional response</legend>
           {actionOptions.map(([value, label]) => (
             <label key={value} className={actionType === value ? "selected" : ""}>
@@ -467,7 +490,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
             placeholder="For example: Several responses treated genes and chromosomes as unrelated, so I will trace one gene location on chromosome strips…"
           />
         </div>
-        <button className="button primary" disabled={savingAction}>
+        <button className="button primary" type="submit" disabled={savingAction}>
           {savingAction ? "Recording…" : snapshot.teacherAction ? "Update instructional response" : "Record instructional response"}
         </button>
       </form> : null}

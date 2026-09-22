@@ -11,18 +11,36 @@ ExitLoop should help a student understand what to do next without presenting the
 - CAST recommends relevant, constructive, accessible, timely, and action-oriented feedback that emphasizes strategies, effort, improvement, reflection, and learner agency rather than comparison or competition. [CAST UDL Guidelines, Consideration 8.5](https://udlguidelines.cast.org/engagement/effort-persistence/feedback/)
 - WCAG 2.2 calls for predictable interaction, clear labels and instructions, and text that identifies an error and suggests how to correct it. [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
 
+These sources justify the design principles, not a claim that ExitLoop's summary has already improved learning. The summary is **research-informed** and must still be evaluated for student interpretation, usability, scientific accuracy, and learning impact.
+
+## Feedback model used in ExitLoop
+
+The post-revision screen translates the literature into three functions:
+
+| Feedback function | ExitLoop element | Design reason |
+| --- | --- | --- |
+| Clarify the goal | **What you are practicing** | Keeps attention on the scientific explanation and evidence, rather than points or ability. |
+| Describe current evidence | **What your first explanation showed** and **What the follow-up focused on** | Uses task-specific evidence from the initial response and distinguishes a missing relationship from an explicit claim that should be reconsidered. |
+| Support the next attempt | **Before the new example** | Gives two short process checks that a student can use in the related case without supplying the scientific answer. |
+
+This follows Hattie and Timperley's goal, progress, and next-step framework; Shute's recommendations for specific, supportive, non-evaluative feedback in manageable amounts; and Nicol and Macfarlane-Dick's emphasis on feedback that helps a learner monitor work and act on a next step. [Formative assessment and self-regulated learning](https://doi.org/10.1080/03075070600572090)
+
 ## Implemented direction
 
 The feedback screen now uses this sequence:
 
-1. **Revision saved.** Acknowledge the learning action without claiming the answer is correct.
-2. **Learning goal.** State what a strong explanation is trying to do.
-3. **Progress.** Show scientific ideas that were already present in the first explanation.
-4. **One next step.** Give the selected teacher-approved follow-up focus the most visual attention.
-5. **Optional detail.** Place other missing or incompatible ideas in an expandable section so the screen does not overwhelm the student.
-6. **New example.** Explain why the student is moving to a related case and use one clear action button.
+1. **Revision saved.** Confirm storage without claiming that the revision is correct.
+2. **Measurement boundary.** State that ExitLoop analyzed the first explanation and did not recheck or grade the revision.
+3. **Learning goal.** State what a strong scientific explanation is trying to do.
+4. **Current evidence.** Show target ideas supported by the first explanation.
+5. **One focus.** Name the missing idea, claim to reconsider, clarification need, or evidence check that triggered the approved follow-up.
+6. **Optional detail.** Place additional initial-response patterns in an expandable section so they are available without competing with the primary focus.
+7. **Reusable strategy.** Ask the student to explain relationships and connect case facts to a conclusion in the new example.
+8. **New example.** Use one clear action button to continue.
 
 The summary explicitly says it is based on the first explanation. ExitLoop does not currently reclassify the revision, so it must not say that the student corrected an idea or reached mastery.
+
+Because the summary appears before the related example, that example is a **feedback-supported near-transfer task**, not an unaided transfer measure. A future study seeking an independent transfer outcome should either move the summary after the transfer task or add a later no-feedback transfer item.
 
 ## Student language rules
 
@@ -32,6 +50,7 @@ The summary explicitly says it is based on the first explanation. ExitLoop does 
 - Recognize actions such as revising, checking evidence, or clarifying reasoning. Avoid ability praise and unverified claims of correctness.
 - Never show a grade, mastery badge, class rank, streak, leaderboard, or comparison with classmates.
 - Explain automated decisions in plain language and remind students that the teacher can review them.
+- Do not expose the system's chain of reasoning. Show only the approved focus label and question; retain detailed routing evidence for the teacher.
 
 ## Join and identity flow
 

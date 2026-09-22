@@ -15,7 +15,7 @@ This is an exploratory feasibility and signal-detection study, not a test of ret
 - Common tasks: beetle initial explanation, targeted follow-up and revision, automated summary of the initial response, plant near-transfer explanation, experience survey.
 - Follow-up: the classifier selects one teacher-approved question for each initial explanation.
 - Primary outcome: blinded targeted repair from initial explanation to revision.
-- Secondary student outcome: blinded plant near-transfer total, 0–8.
+- Secondary student outcome: blinded plant feedback-supported near-transfer total, 0–8.
 - Secondary teacher outcome: time-to-action plus descriptive usefulness and interpretability ratings from one teacher.
 
 ## Before the session
@@ -49,7 +49,7 @@ If the schedule slips, preserve the same task order for everyone and record devi
 
 ## Response-specific routing
 
-The constrained classifier processes the locked initial response and records every supported target-idea and possible-alternative-conception label. It displays only one prompt to keep the activity brief. An explicit possible alternative conception takes priority over an omitted target idea. When several labels in the same category apply, the frozen content-bank order determines the primary target. The system accepts the model's recommended prompt only when it is an approved question linked to that target; otherwise the server selects the first approved matching question. A short, unclear, or out-of-scope response receives `inheritance_clarify_01`. A response evidencing all four target relationships with no incompatible claim receives `inheritance_complete_check_01`, which acknowledges task coverage without assigning a grade or mastery label. After the revision is locked, students see all initial-response labels as automated feedback before the near-transfer task. The summary does not reclassify the revision or claim that an idea was repaired.
+The constrained classifier processes the locked initial response and records every supported target-idea and possible-alternative-conception label. It displays only one prompt to keep the activity brief. An explicit possible alternative conception takes priority over an omitted target idea. When several labels in the same category apply, the frozen content-bank order determines the primary target. The system accepts the model's recommended prompt only when it is an approved question linked to that target; otherwise the server selects the first approved matching question. A short, unclear, or out-of-scope response receives `inheritance_clarify_01`. A response evidencing all four target relationships with no incompatible claim receives `inheritance_complete_check_01`, which acknowledges task coverage without assigning a grade or mastery label. After the revision is locked, students see a research-informed summary of the stored initial-response labels before the near-transfer task. It states the learning goal, ideas evidenced in the first explanation, the one routing focus, and a reusable explanation strategy. The summary does not reclassify the revision or claim that an idea was repaired. Because this feedback is shown before the plant item, the item is a feedback-supported near-transfer measure, not an unaided transfer measure.
 
 ## Primary targeted-repair outcome
 

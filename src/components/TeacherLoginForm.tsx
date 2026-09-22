@@ -41,10 +41,12 @@ export function TeacherLoginForm({ redirectTo = "/teacher" }: { redirectTo?: str
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           required
+          aria-invalid={Boolean(error)}
+          aria-errormessage={error ? "teacher-login-error" : undefined}
         />
       </div>
-      {error ? <p className="form-error" role="alert">{error}</p> : null}
-      <button className="button primary full" disabled={loading}>
+      {error ? <p className="form-error" id="teacher-login-error" role="alert">{error}</p> : null}
+      <button className="button primary full" type="submit" disabled={loading}>
         {loading ? "Signing in…" : "Open teacher workspace"}
       </button>
       {process.env.NODE_ENV !== "production" ? (

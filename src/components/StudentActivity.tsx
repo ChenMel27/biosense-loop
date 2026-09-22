@@ -24,6 +24,8 @@ interface ActivityState {
     initiallyCovered: string[];
     missingIdeas: string[];
     possibleMisconceptions: string[];
+    focusKind: "missing_idea" | "claim_to_reconsider" | "clarify_reasoning" | "evidence_check";
+    focusLabel: string;
     promptTitle: string;
     uncertain: boolean;
   } | null;
@@ -39,11 +41,17 @@ const confidenceOptions: Array<{ value: Confidence; label: string; note: string 
 ];
 
 const stageOrder: Stage[] = ["initial", "revision", "transfer", "survey", "complete"];
-const pasteBlockedMessage = "Pasting is turned off for this activity. Please write your response in your own words.";
-
-function ConfidencePicker({ value, onChange }: { value: Confidence | ""; onChange: (value: Confidence) => void }) {
+function ConfidencePicker({
+  value,
+  onChange,
+  errorId,
+}: {
+  value: Confidence | "";
+  onChange: (value: Confidence) => void;
+  errorId?: string;
+}) {
   return (
-    <fieldset className="confidence-picker">
+    <fieldset className="confidence-picker" aria-describedby={errorId}>
       <legend>How sure are you about this explanation?</legend>
       <div className="confidence-grid">
         {confidenceOptions.map((option) => (
@@ -72,6 +80,7 @@ function ScaleQuestion({
   high,
   value,
   onChange,
+  errorId,
 }: {
   name: string;
   label: string;
@@ -79,9 +88,10 @@ function ScaleQuestion({
   high: string;
   value: number;
   onChange: (value: number) => void;
+  errorId?: string;
 }) {
   return (
-    <fieldset className="scale-question">
+    <fieldset className="scale-question" aria-describedby={errorId}>
       <legend>{label}</legend>
       <div className="scale-labels"><span>{low}</span><span>{high}</span></div>
       <div className="scale-options">
@@ -218,13 +228,13 @@ export function StudentActivity() {
   }
 
   if (loading) {
-    return <div className="activity-loading"><span className="spinner" />Preparing your activity…</div>;
+    return <div className="activity-loading" role="status"><span className="spinner" aria-hidden="true" />Preparing your activity…</div>;
   }
 
   if (!activity) {
     return (
       <section className="activity-card narrow stack-lg">
-        <span className="status-icon error">!</span>
+        <span className="status-icon error" aria-hidden="true">!</span>
         <h1>We could not open the activity</h1>
         <p>{error}</p>
         <a className="button primary" href="/student">Return to student sign-in</a>
@@ -249,7 +259,11 @@ export function StudentActivity() {
         </div>
         <ol className="progress-list" aria-label="Activity progress">
           {["Explain", "Review and revise", "New example", "Finish"].map((label, index) => (
-            <li key={label} className={index < currentIndex ? "done" : index === currentIndex ? "current" : ""}>
+            <li
+              key={label}
+              className={index < currentIndex ? "done" : index === currentIndex ? "current" : ""}
+              aria-current={index === currentIndex ? "step" : undefined}
+            >
               <span>{index < currentIndex ? "✓" : index + 1}</span>
               {label}
             </li>
@@ -257,10 +271,10 @@ export function StudentActivity() {
         </ol>
       </aside>
 
-      <main className="activity-main">
+      <main className="activity-main" id="main-content" tabIndex={-1}>
         {activity.stage === "complete" ? (
           <section className="activity-card completion-card stack-lg">
-            <span className="status-icon success">✓</span>
+            <span className="status-icon success" aria-hidden="true">✓</span>
             <span className="eyebrow">Activity complete</span>
             <h1>Your thinking has been saved.</h1>
             <p>
@@ -278,15 +292,23 @@ export function StudentActivity() {
               <h1>How did the activity feel?</h1>
               <p>These answers do not affect a grade. Choose the response that fits best.</p>
             </div>
-            <ScaleQuestion name="clarity" label="The instructions were clear." low="Not at all" high="Very clear" value={clarity} onChange={setClarity} />
-            <ScaleQuestion name="pressure" label="I felt pressure or stress during this activity." low="None" high="A lot" value={pressure} onChange={setPressure} />
-            <ScaleQuestion name="helpfulness" label="The follow up question helped me review my explanation." low="Not at all" high="A lot" value={helpfulness} onChange={setHelpfulness} />
+            <ScaleQuestion name="clarity" label="The instructions were clear." low="Not at all" high="Very clear" value={clarity} onChange={setClarity} errorId={error ? "activity-error" : undefined} />
+            <ScaleQuestion name="pressure" label="I felt pressure or stress during this activity." low="None" high="A lot" value={pressure} onChange={setPressure} errorId={error ? "activity-error" : undefined} />
+            <ScaleQuestion name="helpfulness" label="The follow up question helped me review my explanation." low="Not at all" high="A lot" value={helpfulness} onChange={setHelpfulness} errorId={error ? "activity-error" : undefined} />
             <div className="field">
               <label htmlFor="student-comment">Anything else you want your teacher to know? <span>(optional)</span></label>
-              <textarea id="student-comment" rows={3} maxLength={1000} value={comment} onChange={(event) => setComment(event.target.value)} />
+              <textarea
+                id="student-comment"
+                rows={3}
+                maxLength={1000}
+                value={comment}
+                onChange={(event) => setComment(event.target.value)}
+                aria-describedby="student-comment-help"
+              />
+              <span className="field-note" id="student-comment-help">Do not include private information. {comment.length}/1000 characters.</span>
             </div>
-            {error ? <p className="form-error" role="alert">{error}</p> : null}
-            <button className="button primary" onClick={() => submit("survey")} disabled={submitting}>
+            {error ? <p className="form-error" id="activity-error" role="alert">{error}</p> : null}
+            <button className="button primary" type="button" onClick={() => submit("survey")} disabled={submitting}>
               {submitting ? "Saving…" : "Finish activity"}
             </button>
           </section>
@@ -296,55 +318,50 @@ export function StudentActivity() {
               <span className="feedback-check" aria-hidden="true">✓</span>
               <div>
                 <span className="eyebrow">Revision saved</span>
-                <h1>You took another look at your thinking.</h1>
+                <h1>Prepare for the new example.</h1>
                 <p>
-                  Here is a short learning snapshot from your first explanation. It is meant to
-                  guide your next step, not score your work.
+                  ExitLoop used your first explanation to choose the follow-up you just answered.
+                  This snapshot does not recheck or grade your revision.
                 </p>
               </div>
             </div>
 
             <section className="feedback-goal" aria-labelledby="learning-goal-title">
-              <span>Learning goal</span>
-              <h2 id="learning-goal-title">Build a clear scientific explanation that connects ideas with evidence.</h2>
+              <span>What you are practicing</span>
+              <h2 id="learning-goal-title">Explain how the scientific ideas connect and use facts from the case as evidence.</h2>
             </section>
 
-            {activity.learningSummary?.uncertain ? (
+            <div className="feedback-progress-grid">
+              <section className="feedback-strengths">
+                <span>What your first explanation showed</span>
+                {activity.learningSummary?.initiallyCovered.length ? (
+                  <ul>
+                    {activity.learningSummary.initiallyCovered.map((idea) => (
+                      <li key={idea}><span aria-hidden="true">✓</span>{idea}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>Your first response gave you a starting point, but it did not state a target idea clearly enough for the system to confirm it.</p>
+                )}
+              </section>
               <section className="feedback-next-step">
                 <span className="feedback-step-number" aria-hidden="true">1</span>
                 <div>
-                  <span>Your next step</span>
-                  <h2>Make your reasoning easier to follow</h2>
-                  <p>
-                    Your first explanation did not include enough detail for ExitLoop to choose one
-                    idea confidently. The follow-up asked you to explain the connection more clearly.
+                  <span>What the follow-up focused on</span>
+                  <p className="feedback-focus-type">
+                    {activity.learningSummary?.focusKind === "claim_to_reconsider"
+                      ? "Claim to reconsider"
+                      : activity.learningSummary?.focusKind === "clarify_reasoning"
+                        ? "Clarify your reasoning"
+                        : activity.learningSummary?.focusKind === "evidence_check"
+                          ? "Evidence check"
+                          : "Idea to develop"}
                   </p>
+                  <h2>{activity.learningSummary?.focusLabel ?? "Strengthen one scientific connection"}</h2>
+                  <p>{activity.learningSummary?.promptTitle ?? "Use evidence to strengthen your explanation"}</p>
                 </div>
               </section>
-            ) : (
-              <div className="feedback-progress-grid">
-                <section className="feedback-strengths">
-                  <span>Already in your first explanation</span>
-                  {activity.learningSummary?.initiallyCovered.length ? (
-                    <ul>
-                      {activity.learningSummary.initiallyCovered.map((idea) => (
-                        <li key={idea}><span aria-hidden="true">✓</span>{idea}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>Your first response gave you a starting point for the revision.</p>
-                  )}
-                </section>
-                <section className="feedback-next-step">
-                  <span className="feedback-step-number" aria-hidden="true">1</span>
-                  <div>
-                    <span>Your next learning step</span>
-                    <h2>{activity.learningSummary?.promptTitle ?? "Strengthen one scientific connection"}</h2>
-                    <p>The follow-up question focused on this one idea so you could work on it without trying to change everything at once.</p>
-                  </div>
-                </section>
-              </div>
-            )}
+            </div>
 
             {!activity.learningSummary?.uncertain &&
             (activity.learningSummary?.missingIdeas.length ||
@@ -368,6 +385,15 @@ export function StudentActivity() {
               </details>
             ) : null}
 
+            <section className="feedback-strategy" aria-labelledby="feedback-strategy-title">
+              <span>Before the new example</span>
+              <h2 id="feedback-strategy-title">Use the same explanation strategy again.</h2>
+              <ul>
+                <li>State how the scientific ideas are connected, not only what the terms mean.</li>
+                <li>Connect the facts in the new case to your conclusion.</li>
+              </ul>
+            </section>
+
             <div className="transfer-invitation">
               <div>
                 <span>Ready for the next step?</span>
@@ -378,8 +404,8 @@ export function StudentActivity() {
               </button>
             </div>
             <p className="ai-disclosure">
-              Your teacher reviewed the ideas and questions used to prepare this feedback.
-              It is not a grade or a mastery decision, and your teacher can review it.
+              This summary is based on automated analysis of your first explanation using ideas and
+              questions reviewed by your teacher. It is not a grade or a mastery decision.
             </p>
           </section>
         ) : (
@@ -435,22 +461,23 @@ export function StudentActivity() {
                 onChange={(event) => {
                   setText(event.target.value);
                   setSaved("saving");
-                  if (error === pasteBlockedMessage) setError("");
-                }}
-                onPaste={(event) => {
-                  event.preventDefault();
-                  setError(pasteBlockedMessage);
+                  if (error) setError("");
                 }}
                 placeholder="Write your explanation here"
-                autoFocus
+                aria-describedby="explanation-help explanation-count"
+                aria-invalid={Boolean(error)}
+                aria-errormessage={error ? "activity-error" : undefined}
               />
-              <div className="field-meta"><span>Write 2 to 4 sentences in your own words. Pasting is turned off.</span><span>{text.length}/2000</span></div>
+              <div className="field-meta">
+                <span id="explanation-help">Write 2 to 4 sentences in your own words.</span>
+                <span id="explanation-count">{text.length}/2000</span>
+              </div>
             </div>
 
-            <ConfidencePicker value={confidence} onChange={setConfidence} />
+            <ConfidencePicker value={confidence} onChange={setConfidence} errorId={error ? "activity-error" : undefined} />
             <p className="ai-disclosure">{activity.disclosure}</p>
-            {error ? <p className="form-error" role="alert">{error}</p> : null}
-            <button className="button primary submit-response" onClick={() => submit(action)} disabled={submitting || !online}>
+            {error ? <p className="form-error" id="activity-error" role="alert">{error}</p> : null}
+            <button className="button primary submit-response" type="button" onClick={() => submit(action)} disabled={submitting || !online}>
               {submitting
                 ? activity.stage === "initial"
                   ? "Choosing your next question…"

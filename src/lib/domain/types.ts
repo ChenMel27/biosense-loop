@@ -69,10 +69,21 @@ export interface ClassificationResult {
   demonstratedIdeaIds: string[];
   missingIdeaIds: string[];
   possibleAlternativeConceptionIds: string[];
+  evidenceSpans: ClassificationEvidence[];
+  routingTargetId: string | null;
   classificationConfidence: number;
   recommendedPromptId: string;
   abstain: boolean;
   reasonCodes: string[];
+}
+
+export interface ClassificationEvidence {
+  labelId: string;
+  category: "demonstrated_idea" | "possible_alternative_conception";
+  /** Exact, contiguous text copied from the submitted response. */
+  quote: string;
+  startIndex: number;
+  endIndex: number;
 }
 
 export interface AiDecision extends ClassificationResult {
@@ -143,6 +154,7 @@ export interface DashboardSnapshot {
       displayName: string | null;
       responseText: string;
       displayedPromptId: string;
+      evidenceSpans: ClassificationEvidence[];
     }>
   >;
   submissionRows: Array<{
@@ -156,6 +168,8 @@ export interface DashboardSnapshot {
     classificationConfidence: number | null;
     displayedPromptId: string | null;
     provider: AiDecision["provider"] | null;
+    evidenceSpans: ClassificationEvidence[];
+    routingTargetId: string | null;
   }>;
   recentEvents: StudyEvent[];
   teacherAction: TeacherInstructionalAction | null;

@@ -1,8 +1,57 @@
 import { traitInheritancePack } from "@/content/trait-inheritance";
-import type { ClassificationResult } from "@/lib/domain/types";
+import type { ClassificationEvidence, ClassificationResult } from "@/lib/domain/types";
 
 function includesAny(text: string, terms: string[]) {
   return terms.some((term) => text.includes(term));
+}
+
+const evidenceTerms: Record<string, string[]> = {
+  gene_trait_information: ["gene", "inherited information", "b version"],
+  gene_on_chromosome: ["chromosome", "located", "carried"],
+  both_parent_contributions: ["both parents", "each parent", "one from each", "mother", "father"],
+  evidence_linked_explanation: ["because", "therefore", "evidence", "shows", "supports"],
+  gene_is_the_trait: ["gene is", "passed down curved bristles", "gave it curved bristles"],
+  genes_lack_hereditary_information: ["genes do not", "genes have no", "only chromosomes"],
+  genes_and_chromosomes_unrelated: ["not on the chromosome", "separate", "do not carry genes"],
+  one_parent_determines_trait: ["only one parent", "only the mother", "only the father", "same-sex parent"],
+  parents_contribute_different_traits: ["different trait", "bristle shape and"],
+  acquired_trait_is_inherited: ["trimmed bristles", "cut bristles", "changes during life", "acquired traits"],
+};
+
+function exactEvidence(
+  response: string,
+  labelId: string,
+  category: ClassificationEvidence["category"],
+): ClassificationEvidence | null {
+  const lower = response.toLocaleLowerCase();
+  const matches = (evidenceTerms[labelId] ?? [])
+    .map((term) => lower.indexOf(term))
+    .filter((index) => index >= 0);
+  if (!matches.length) return null;
+  const matchIndex = Math.min(...matches);
+  const sentenceStart = Math.max(
+    response.lastIndexOf(".", matchIndex - 1),
+    response.lastIndexOf("?", matchIndex - 1),
+    response.lastIndexOf("!", matchIndex - 1),
+    response.lastIndexOf("\n", matchIndex - 1),
+  ) + 1;
+  const endings = [".", "?", "!", "\n"]
+    .map((marker) => response.indexOf(marker, matchIndex))
+    .filter((index) => index >= 0);
+  const sentenceEnd = endings.length ? Math.min(...endings) + 1 : response.length;
+  const untrimmed = response.slice(sentenceStart, sentenceEnd);
+  const leadingWhitespace = untrimmed.length - untrimmed.trimStart().length;
+  const startIndex = sentenceStart + leadingWhitespace;
+  const quote = response.slice(startIndex, sentenceEnd).trimEnd().slice(0, 500);
+  return quote
+    ? {
+        labelId,
+        category,
+        quote,
+        startIndex,
+        endIndex: startIndex + quote.length,
+      }
+    : null;
 }
 
 export function deterministicClassify(response: string): ClassificationResult {
@@ -164,11 +213,29 @@ export function deterministicClassify(response: string): ClassificationResult {
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
   const abstain = wordCount < 7;
+  const retainedLabels = [
+    ...demonstratedIdeaIds.map((labelId) => ({
+      labelId,
+      category: "demonstrated_idea" as const,
+    })),
+    ...possibleAlternativeConceptionIds.map((labelId) => ({
+      labelId,
+      category: "possible_alternative_conception" as const,
+    })),
+  ];
+  const evidenceSpans = retainedLabels
+    .map(({ labelId, category }) => exactEvidence(response, labelId, category))
+    .filter((item): item is ClassificationEvidence => Boolean(item));
+  const routingTargetId = abstain
+    ? null
+    : possibleAlternativeConceptionIds[0] ?? missingIdeaIds[0] ?? null;
 
   return {
     demonstratedIdeaIds,
     missingIdeaIds,
     possibleAlternativeConceptionIds,
+    evidenceSpans,
+    routingTargetId,
     classificationConfidence: abstain
       ? 0.35
       : Math.min(0.85, 0.5 + demonstratedIdeaIds.length * 0.08),

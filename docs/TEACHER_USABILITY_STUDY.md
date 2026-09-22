@@ -36,11 +36,13 @@ This is a product demonstration, not student-learning evidence.
 
 ### 4. Review the teacher dashboard
 
-Return to the teacher view. Ask the teacher to inspect the response, labels, confidence, routing provider, selected question, and session controls. If a larger synthetic class is needed for later research, it should be generated and documented in a separate approved test protocol rather than presented as current product data.
+Return to the teacher view. Ask the teacher to inspect the response, labels, exact supporting quotes, missing-relationship notes, routing target, confidence, routing provider, selected question, and session controls. If a larger synthetic class is needed for later research, it should be generated and documented in a separate approved test protocol rather than presented as current product data.
 
 Ask:
 
 - Does the route match the evidence in the response?
+- Does the quoted phrase actually support the label, or would you change it?
+- Is it clear that a missing idea means the relationship was not found, rather than that the student holds a misconception?
 - Is the selected question useful without giving away the answer?
 - What additional context would you need before trusting the label?
 - Is the student name and progress information sufficient?
@@ -65,7 +67,7 @@ With a small teacher sample, report individual results, medians, ranges, and qua
 
 ## AI explanation for participants
 
-ExitLoop uses AI twice. First, it can organize teacher-provided materials into an editable activity draft. Second, after an initial response, it can select labels and one question ID from the content pack the teacher reviewed. Server code validates the output and displays the stored question. The model cannot add a new misconception, write a new student question during class, grade the response, or determine mastery.
+ExitLoop uses AI twice. First, it can organize teacher-provided materials into an editable activity draft. Second, after an initial response, it can select labels, copy exact supporting phrases, and select one question ID from the content pack the teacher reviewed. Server code rejects any quote that is not found verbatim in the response, removes unsupported positive labels, validates the question mapping, and displays the stored question. The model cannot add a new misconception, write a new student question during class, grade the response, or determine mastery.
 
 ## Data handling
 

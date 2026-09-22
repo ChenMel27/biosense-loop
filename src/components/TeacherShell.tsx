@@ -37,11 +37,11 @@ export function TeacherShell({
             </Link>
           </nav>
           <form action="/api/teacher/logout" method="post">
-            <button className="teacher-signout">Sign out</button>
+            <button className="teacher-signout" type="submit">Sign out</button>
           </form>
         </div>
       </header>
-      <main className="shell teacher-main">{children}</main>
+      <main className="shell teacher-main" id="main-content" tabIndex={-1}>{children}</main>
     </div>
   );
 }

@@ -53,8 +53,11 @@ export function StudentJoinForm({
           onChange={(event) => setJoinCode(event.target.value.toUpperCase())}
           placeholder="Example: GEN7"
           required
+          aria-describedby="join-code-help"
+          aria-invalid={Boolean(error)}
+          aria-errormessage={error ? "join-error" : undefined}
         />
-        <p className="field-note">Your teacher will share this code with the class.</p>
+        <p className="field-note" id="join-code-help">Your teacher will share this code with the class.</p>
       </div>
       <div className="field">
         <label htmlFor="student-name">Your name</label>
@@ -66,12 +69,15 @@ export function StudentJoinForm({
           placeholder="Example: Maya R."
           maxLength={80}
           required
+          aria-describedby="student-name-help"
+          aria-invalid={Boolean(error)}
+          aria-errormessage={error ? "join-error" : undefined}
         />
-        <p className="field-note">
+        <p className="field-note" id="student-name-help">
           Use the name your teacher will recognize. Add your last initial if needed.
         </p>
       </div>
-      {error ? <p className="form-error" role="alert">{error}</p> : null}
+      {error ? <p className="form-error" id="join-error" role="alert">{error}</p> : null}
       <button className="button primary full" type="submit" disabled={loading}>
         {loading ? "Opening activity…" : "Join class"}
       </button>

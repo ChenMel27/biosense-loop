@@ -63,13 +63,15 @@ Draft text is temporary working state. Submitting a stage locks the response and
 | `demonstrated_idea_ids` | Approved target ideas explicitly supported by the initial response |
 | `missing_idea_ids` | Required ideas not supported by the initial response |
 | `possible_alternative_conception_ids` | Explicit incompatible response patterns; these are not learner diagnoses |
+| `ai_evidence_spans` | JSON array of label ID, category, exact quote, and character offsets for every server-verified positive label |
+| `ai_routing_target_id` | One validated idea or possible-misconception ID used to select the displayed question; null for clarification or complete-response routes |
 | `ai_confidence`, `ai_abstained` | Model certainty and abstention state |
 | `ai_provider`, `ai_model`, `ai_schema_version` | Reproducibility metadata |
 | `ai_reason_codes` | Structured reasons for the route |
 | `ai_latency_ms` | Routing time in milliseconds |
 | `fallback_reason` | Reason deterministic or clarification fallback was used |
 
-The classifier can record multiple missing ideas or possible misconceptions. Server routing gives priority to the first explicit incompatible pattern in the teacher-reviewed order, otherwise the first missing idea. Only one approved follow-up question is shown.
+The classifier can record multiple missing ideas or possible misconceptions. Every demonstrated idea and possible-misconception label must have a quote that the server can locate exactly in `initial_text`; otherwise that positive label is removed. A missing idea represents the absence of supporting text and therefore has no evidence quote. Server routing gives priority to the first explicit incompatible pattern in the teacher-reviewed order, otherwise the first missing idea. Only one approved follow-up question is shown.
 
 ## 6. Student experience and teacher action
 
@@ -94,6 +96,7 @@ The authenticated dashboard may display:
 - demonstrated and missing idea labels;
 - possible-misconception labels;
 - routing provider, confidence, and displayed question;
+- exact response quotes supporting positive labels and a clear absence note for missing relationships;
 - class counts and up to three supporting responses per pattern after session closure.
 
 Student display names are deliberately removed from exports. Teachers should follow school policy when entering, viewing, retaining, or deleting classroom sessions.
@@ -105,10 +108,12 @@ Authenticated teachers can download:
 - `/api/teacher/sessions/{session_id}/export?format=csv`
 - `/api/teacher/sessions/{session_id}/export?format=json`
 
-Exports contain one row per started attempt. Empty participant slots do not create response rows. Identifier arrays are serialized as JSON text in CSV-compatible database output. JSON export wraps the same rows with basic session metadata.
+Exports contain one row per started attempt. Empty participant slots do not create response rows. Identifier arrays and evidence spans are serialized as JSON text in CSV-compatible database output. JSON export wraps the same rows with basic session metadata.
 
 ## 9. Research analysis boundary
 
 Classifier labels and revisions are operational data, not proof of learning. A research dataset may add blinded human scores, targeted-repair codes, rater identifiers, and reliability measures only under an approved protocol. Human raters should not see the AI route or prompt when scoring a primary learning outcome.
 
 A one-session descriptive study may examine completion, routing agreement, immediate revision, student experience, and teacher decision support. It cannot establish retention, long-term progress, general effectiveness, or causal impact without a suitable approved design.
+
+The current learning summary is derived at request time from the stored initial-response decision and approved content pack, so it does not require a separate database table. No event claims that a revision was correct. Since the summary appears before the related example, `near_transfer_text` represents feedback-supported near transfer rather than an unaided transfer measure.

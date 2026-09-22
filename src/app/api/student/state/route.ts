@@ -2,6 +2,7 @@ import { resolveContentPack } from "@/content/teacher-draft";
 import { getStudentIdentity } from "@/lib/auth/guards";
 import { apiError } from "@/lib/http";
 import { getStore } from "@/lib/store";
+import { buildStudentLearningSummary } from "@/lib/student/learning-summary";
 
 export async function GET() {
   const identity = await getStudentIdentity();
@@ -20,19 +21,6 @@ export async function GET() {
         (prompt) => prompt.id === bundle.decision?.displayedPromptId,
       ) ?? pack.fallbackPrompt
     : null;
-  const ideaById = new Map(pack.ideas.map((idea) => [idea.id, idea.label]));
-  const patternById = new Map(
-    pack.alternativeConceptions.map((pattern) => [pattern.id, pattern.label]),
-  );
-  const initiallyCovered = bundle.decision?.demonstratedIdeaIds
-    .map((id) => ideaById.get(id))
-    .filter((label): label is string => Boolean(label)) ?? [];
-  const missingIdeas = bundle.decision?.missingIdeaIds
-    .map((id) => ideaById.get(id))
-    .filter((label): label is string => Boolean(label)) ?? [];
-  const possibleMisconceptions = bundle.decision?.possibleAlternativeConceptionIds
-    .map((id) => patternById.get(id))
-    .filter((label): label is string => Boolean(label)) ?? [];
   return Response.json({
     ok: true,
     activity: {
@@ -45,13 +33,7 @@ export async function GET() {
       nearTransferPrompt: pack.nearTransferPrompt,
       followUp,
       learningSummary: bundle.decision
-        ? {
-            initiallyCovered,
-            missingIdeas,
-            possibleMisconceptions,
-            promptTitle: followUp?.title ?? "Use evidence to strengthen your explanation",
-            uncertain: bundle.decision.abstain,
-          }
+        ? buildStudentLearningSummary(pack, bundle.decision, followUp)
         : null,
       initialResponse: initialResponse?.responseText ?? null,
       finalResponse: finalResponse?.responseText ?? null,

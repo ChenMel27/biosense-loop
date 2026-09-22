@@ -130,9 +130,9 @@ export function TeacherActivityBuilder() {
       </section>
 
       <ol className="builder-progress" aria-label="Activity setup progress">
-        <li className={!draft ? "current" : "complete"}><span>1</span><div><strong>Build the activity</strong><small>Add lesson materials or use the guided form</small></div></li>
-        <li className={created ? "complete" : draft ? "current" : ""}><span>2</span><div><strong>Review the draft</strong><small>Check the student activity and follow-up questions</small></div></li>
-        <li className={created ? "current" : ""}><span>3</span><div><strong>Open the class</strong><small>Create and share one class code</small></div></li>
+        <li className={!draft ? "current" : "complete"} aria-current={!draft ? "step" : undefined}><span>1</span><div><strong>Build the activity</strong><small>Add lesson materials or use the guided form</small></div></li>
+        <li className={created ? "complete" : draft ? "current" : ""} aria-current={draft && !created ? "step" : undefined}><span>2</span><div><strong>Review the draft</strong><small>Check the student activity and follow-up questions</small></div></li>
+        <li className={created ? "current" : ""} aria-current={created ? "step" : undefined}><span>3</span><div><strong>Open the class</strong><small>Create and share one class code</small></div></li>
       </ol>
 
       <section className="activity-builder-panel">
@@ -154,16 +154,18 @@ export function TeacherActivityBuilder() {
           <div className="form-grid">
             <div className="field">
               <label htmlFor="activity-session-title">Session name</label>
-              <input id="activity-session-title" value={title} onChange={(event) => setTitle(event.target.value)} />
-              <span className="field-note">Students will not see this name.</span>
+              <input id="activity-session-title" value={title} onChange={(event) => setTitle(event.target.value)} required aria-describedby="session-title-help" aria-invalid={Boolean(error)} aria-errormessage={error ? "session-create-error" : undefined} />
+              <span className="field-note" id="session-title-help">Students will not see this name.</span>
             </div>
             <div className="field">
               <label htmlFor="activity-participant-count">Number of students</label>
-              <input id="activity-participant-count" type="number" min={1} max={40} value={participantCount} onChange={(event) => setParticipantCount(Number(event.target.value))} />
+              <input id="activity-participant-count" type="number" min={1} max={40} value={participantCount} onChange={(event) => setParticipantCount(Number(event.target.value))} required aria-describedby="participant-count-help" />
+              <span className="field-note" id="participant-count-help">Enter 1 to 40 students.</span>
             </div>
             <div className="field">
               <label htmlFor="activity-duration">Expected time <span>(minutes)</span></label>
-              <input id="activity-duration" type="number" min={8} max={25} value={durationMinutes} onChange={(event) => setDurationMinutes(Number(event.target.value))} />
+              <input id="activity-duration" type="number" min={8} max={25} value={durationMinutes} onChange={(event) => setDurationMinutes(Number(event.target.value))} required aria-describedby="activity-duration-help" />
+              <span className="field-note" id="activity-duration-help">Choose 8 to 25 minutes.</span>
             </div>
           </div>
           <div className="callout compact neutral">
@@ -180,8 +182,8 @@ export function TeacherActivityBuilder() {
               ExitLoop will create one class code for up to {participantCount} {participantCount === 1 ? "student" : "students"}. The reviewed activity and question rules will be used for this session.
             </div>
           )}
-          {error ? <p className="form-error" role="alert">{error}</p> : null}
-          <button className="button primary large" disabled={creating || Boolean(draftProblem)}>
+          {error ? <p className="form-error" id="session-create-error" role="alert">{error}</p> : null}
+          <button className="button primary large" type="submit" disabled={creating || Boolean(draftProblem)}>
             {creating ? "Creating session…" : "Create and open session"}
           </button>
         </form>

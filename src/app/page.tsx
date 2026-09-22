@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div className="site-page">
       <AppHeader />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <section className="hero shell">
           <div className="hero-copy">
             <span className="eyebrow">A clearer exit ticket</span>

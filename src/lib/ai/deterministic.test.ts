@@ -13,6 +13,12 @@ describe("deterministic safe fallback", () => {
     expect(result.demonstratedIdeaIds).toContain("evidence_linked_explanation");
     expect(result.abstain).toBe(false);
     expect(result.recommendedPromptId).toBe("inheritance_complete_check_01");
+    expect(result.evidenceSpans).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ labelId: "gene_trait_information" }),
+        expect.objectContaining({ labelId: "gene_on_chromosome" }),
+      ]),
+    );
   });
 
   it("routes a gene-is-trait claim to a discriminating prompt", () => {
@@ -21,6 +27,8 @@ describe("deterministic safe fallback", () => {
     );
     expect(result.possibleAlternativeConceptionIds).toContain("gene_is_the_trait");
     expect(result.recommendedPromptId).toBe("inheritance_gene_trait_probe_01");
+    expect(result.evidenceSpans.find((item) => item.labelId === "gene_is_the_trait")?.quote)
+      .toContain("gene is curved bristles");
   });
 
   it("routes one-parent reasoning to the parental-contribution prompt", () => {
@@ -76,5 +84,6 @@ describe("deterministic safe fallback", () => {
     const result = deterministicClassify("It just works somehow.");
     expect(result.abstain).toBe(true);
     expect(result.recommendedPromptId).toBe("inheritance_clarify_01");
+    expect(result.routingTargetId).toBeNull();
   });
 });

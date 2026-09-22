@@ -38,9 +38,9 @@ ExitLoop helps biology teachers find gaps in understanding before class ends. It
 1. Join with the class code and the name the teacher recognizes.
 2. Read the teacher-approved information and submit an initial explanation plus confidence.
 3. ExitLoop locks the response and routes it to one approved follow-up question.
-4. View the original answer, respond to the follow-up, and revise the explanation.
-5. See a short learning summary based on the initial response: ideas already present, one area to reconsider, and additional patterns in an expandable section. The summary does not claim the revision is correct.
-6. Complete the teacher-approved related example without viewing the earlier response.
+4. View the original answer, respond to the targeted follow-up, and revise the explanation.
+5. See a short learning summary based on the initial response. It states the learning goal, identifies ideas already supported, names the one focus of the follow-up, and gives a reusable explanation strategy. It explicitly says the revision was not automatically rechecked or graded.
+6. Complete the teacher-approved, feedback-supported related example without viewing the earlier response.
 7. Rate clarity, pressure, and helpfulness; then finish without a score.
 
 ## 5. Approved content pack
@@ -71,11 +71,16 @@ The routing model receives redacted response text and the approved content pack.
 - demonstrated target-idea IDs;
 - missing target-idea IDs;
 - possible-misconception IDs;
+- one exact response quote for every demonstrated idea or possible misconception;
 - confidence and approved reason codes;
 - abstention status;
 - one prompt ID from the approved bank.
 
-Server code validates all identifiers and checks that the chosen prompt targets the highest-priority identified pattern. Explicit incompatible claims take priority over omissions. Multiple patterns are recorded, but the student receives only one follow-up question. Low-confidence, unclear, contradictory, or out-of-scope responses receive the approved clarification question.
+Server code validates all identifiers and checks every quoted evidence span against the original response. A positive label is discarded unless its quote is an exact contiguous substring of the submitted text. Missing ideas do not receive evidence quotes because their meaning is absence of support, not an observed misconception. The server then checks that the chosen prompt targets the highest-priority identified pattern. Explicit incompatible claims take priority over omissions. Multiple patterns are recorded, but the student receives only one follow-up question. Low-confidence, unclear, contradictory, or out-of-scope responses receive the approved clarification question.
+
+The student sees the targeted, teacher-approved question directly. Detailed classification evidence and routing rationale remain in the teacher dashboard so the question itself is the only adaptive support introduced before revision.
+
+After the revision is saved, the student summary converts the stored initial-response decision into task-focused feedback. It shows approved labels only, separates omissions from explicit claims, emphasizes one route, and gives two process checks for the related example. It does not run a second classification or claim that the revision repaired the focus. The design rationale and research boundary are documented in `docs/STUDENT_EXPERIENCE_REDESIGN.md`.
 
 ## 7. Teacher dashboard
 
@@ -86,7 +91,7 @@ The dashboard must answer:
 1. Who has started and finished?
 2. Which target ideas are commonly missing?
 3. Which possible misconceptions need teacher review?
-4. What response text supports each count?
+4. What exact response text supports each positive label, and which missing counts are based on an omitted relationship?
 5. What should the teacher clarify or check next?
 
 It must not rank students or display an automated mastery score.
@@ -107,7 +112,12 @@ It must not rank students or display an automated mastery score.
 - Duplicate stage submissions are rejected server-side.
 - Teacher and student API routes recheck authentication.
 - Inputs are schema validated and length limited.
-- The application includes no-store headers for teacher/API pages, security headers, clear error states, keyboard-operable controls, labeled fields, and readable status messages.
+- The application targets WCAG 2.2 Level AA. Forms use programmatically connected labels, instructions, fieldsets, legends, error references, and status announcements.
+- Keyboard focus is visible across links, buttons, form controls, custom radio cards, and expandable sections. A skip link bypasses repeated navigation.
+- Primary controls and compact actions use interaction targets of at least 44 by 44 CSS pixels where layout permits, exceeding the WCAG 2.2 AA minimum target size.
+- Motion respects `prefers-reduced-motion`; the activity has no countdown or completion time limit.
+- Pasting is not blocked because assistive workflows may depend on clipboard input.
+- Formal conformance should be rechecked on the deployed build with automated scans, keyboard-only navigation, 200% and 400% zoom/reflow, and screen-reader testing before classroom use.
 - A 30-user load test must pass against the exact deployment before classroom use.
 
 ## 10. Research boundary

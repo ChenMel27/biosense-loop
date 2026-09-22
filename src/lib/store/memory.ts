@@ -413,6 +413,9 @@ export class MemoryResearchStore implements ResearchStore {
                 displayName: displayNamesByAttempt.get(attempt.id) ?? null,
                 responseText: response.responseText,
                 displayedPromptId: decision.displayedPromptId,
+                evidenceSpans: decision.evidenceSpans.filter(
+                  (evidence) => evidence.labelId === id,
+                ),
               });
             }
           }
@@ -437,6 +440,8 @@ export class MemoryResearchStore implements ResearchStore {
           classificationConfidence: decision?.classificationConfidence ?? null,
           displayedPromptId: decision?.displayedPromptId ?? null,
           provider: decision?.provider ?? null,
+          evidenceSpans: decision?.evidenceSpans ?? [],
+          routingTargetId: decision?.routingTargetId ?? null,
         };
       })
       .sort((a, b) => a.participantTag.localeCompare(b.participantTag));
@@ -502,6 +507,8 @@ export class MemoryResearchStore implements ResearchStore {
         possible_alternative_conception_ids: decision
           ? JSON.stringify(decision.possibleAlternativeConceptionIds)
           : null,
+        ai_evidence_spans: decision ? JSON.stringify(decision.evidenceSpans) : null,
+        ai_routing_target_id: decision?.routingTargetId ?? null,
         ai_reason_codes: decision ? JSON.stringify(decision.reasonCodes) : null,
         ai_schema_version: decision?.schemaVersion ?? null,
         ai_latency_ms: decision?.latencyMs ?? null,
