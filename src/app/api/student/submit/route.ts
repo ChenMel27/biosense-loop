@@ -1,8 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { classifyForRouting } from "@/lib/ai/classifier";
-import { getContentPack } from "@/content/trait-inheritance";
-import { applyTeacherContentDraft } from "@/content/teacher-draft";
+import { resolveContentPack } from "@/content/teacher-draft";
 import { getStudentIdentity } from "@/lib/auth/guards";
 import type { StudyResponse } from "@/lib/domain/types";
 import { studentSubmissionSchema } from "@/lib/domain/validation";
@@ -20,10 +19,9 @@ export async function POST(request: Request) {
   if (bundle.session.status === "closed" && bundle.attempt.stage !== "complete") {
     return apiError("Your teacher has closed this session.", 409);
   }
-  const basePack = getContentPack(bundle.session.contentVersionId);
-  if (!basePack) return apiError("The lesson content version is unavailable.", 503);
   const activityConfiguration = await store.getTeacherActivityConfiguration(bundle.session.id);
-  const pack = applyTeacherContentDraft(basePack, activityConfiguration?.contentDraft);
+  const pack = resolveContentPack(bundle.session.contentVersionId, activityConfiguration);
+  if (!pack) return apiError("The lesson content version is unavailable.", 503);
   const timestamp = new Date().toISOString();
 
   const appendResponse = async (

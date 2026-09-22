@@ -1,5 +1,4 @@
-import { getContentPack, getFollowUpPrompt } from "@/content/trait-inheritance";
-import { applyTeacherContentDraft } from "@/content/teacher-draft";
+import { resolveContentPack } from "@/content/teacher-draft";
 import { getStudentIdentity } from "@/lib/auth/guards";
 import { apiError } from "@/lib/http";
 import { getStore } from "@/lib/store";
@@ -11,16 +10,15 @@ export async function GET() {
   if (!bundle || bundle.session.id !== identity.sessionId) {
     return apiError("Activity not found.", 404);
   }
-  const basePack = getContentPack(bundle.session.contentVersionId);
-  if (!basePack) return apiError("The lesson content version is unavailable.", 503);
   const activityConfiguration = await getStore().getTeacherActivityConfiguration(bundle.session.id);
-  const pack = applyTeacherContentDraft(basePack, activityConfiguration?.contentDraft);
+  const pack = resolveContentPack(bundle.session.contentVersionId, activityConfiguration);
+  if (!pack) return apiError("The lesson content version is unavailable.", 503);
   const initialResponse = bundle.responses.find((item) => item.stage === "initial");
   const finalResponse = bundle.responses.find((item) => item.stage === "final");
   const followUp = bundle.decision
     ? [...pack.followUps, pack.fallbackPrompt].find(
         (prompt) => prompt.id === bundle.decision?.displayedPromptId,
-      ) ?? getFollowUpPrompt(bundle.decision.displayedPromptId)
+      ) ?? pack.fallbackPrompt
     : null;
   const ideaById = new Map(pack.ideas.map((idea) => [idea.id, idea.label]));
   const patternById = new Map(

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { traitInheritancePack } from "@/content/trait-inheritance";
+import { resolveContentPack } from "@/content/teacher-draft";
 import {
   adaptiveConditions,
   generateJoinCode,
@@ -266,12 +267,18 @@ export class MemoryResearchStore implements ResearchStore {
   }
 
   async createSession(input: CreateSessionInput): Promise<SessionCreationResult> {
-    const joinCode = generateJoinCode();
+    let joinCode = generateJoinCode();
+    while (this.state.sessions.some((session) => session.joinCode === joinCode)) {
+      joinCode = generateJoinCode();
+    }
+    const contentVersionId = input.contentPack
+      ? input.contentPack.versionId
+      : input.contentVersionId;
     const session: StudySession = {
       id: randomUUID(),
       title: input.title,
       joinCode,
-      contentVersionId: input.contentVersionId,
+      contentVersionId,
       status: "draft",
       assignmentSeed: randomUUID(),
       durationMinutes: input.durationMinutes,
@@ -293,11 +300,17 @@ export class MemoryResearchStore implements ResearchStore {
       this.state.participants.push(participant);
     });
     this.state.sessions.push(session);
-    if (input.contentDraft) {
-      const configuration: TeacherActivityConfiguration = {
-        mode: "teacher_authored",
-        contentDraft: input.contentDraft,
-      };
+    if (input.contentPack || input.contentDraft) {
+      const configuration: TeacherActivityConfiguration = input.contentPack
+        ? {
+            mode: "teacher_authored",
+            approvedAt: input.approvedAt,
+            contentPack: structuredClone(input.contentPack),
+          }
+        : {
+            mode: "teacher_authored",
+            contentDraft: structuredClone(input.contentDraft!),
+          };
       this.state.events.push({
         id: randomUUID(),
         sessionId: session.id,
@@ -357,6 +370,7 @@ export class MemoryResearchStore implements ResearchStore {
       attempts.some((attempt) => attempt.id === decision.attemptId),
     );
     const activityConfiguration = await this.getTeacherActivityConfiguration(sessionId);
+    const contentPack = resolveContentPack(session.contentVersionId, activityConfiguration);
     const displayNamesByAttempt = new Map<string, string>();
     for (const event of this.state.events) {
       const displayName = event.payload.displayName;
@@ -435,7 +449,7 @@ export class MemoryResearchStore implements ResearchStore {
         adaptive: participants.length,
       },
       fallbackCount: decisions.filter(
-        (item) => item.displayedPromptId === traitInheritancePack.fallbackPrompt.id,
+        (item) => item.displayedPromptId === (contentPack?.fallbackPrompt.id ?? traitInheritancePack.fallbackPrompt.id),
       ).length,
       ideaCounts,
       missingIdeaCounts,
@@ -454,6 +468,8 @@ export class MemoryResearchStore implements ResearchStore {
   }
 
   async exportSession(sessionId: string) {
+    const session = this.state.sessions.find((item) => item.id === sessionId);
+    const configuration = await this.getTeacherActivityConfiguration(sessionId);
     const attempts = this.state.attempts.filter((item) => item.sessionId === sessionId);
     const teacherAction = [...this.state.teacherActions]
       .reverse()
@@ -466,9 +482,12 @@ export class MemoryResearchStore implements ResearchStore {
         responses.find((item) => item.stage === stage);
       return {
         session_id: sessionId,
+        content_version_id: session?.contentVersionId ?? null,
+        content_approved_at: configuration?.approvedAt ?? null,
         participant_tag: attempt.participantTag,
         condition: attempt.condition,
         completion_state: attempt.stage,
+        technical_status: attempt.technicalStatus,
         started_at: attempt.startedAt,
         completed_at: attempt.completedAt,
         initial_text: response("initial")?.responseText ?? null,
@@ -478,6 +497,14 @@ export class MemoryResearchStore implements ResearchStore {
         ai_model: decision?.model ?? null,
         ai_confidence: decision?.classificationConfidence ?? null,
         ai_abstained: decision?.abstain ?? null,
+        demonstrated_idea_ids: decision ? JSON.stringify(decision.demonstratedIdeaIds) : null,
+        missing_idea_ids: decision ? JSON.stringify(decision.missingIdeaIds) : null,
+        possible_alternative_conception_ids: decision
+          ? JSON.stringify(decision.possibleAlternativeConceptionIds)
+          : null,
+        ai_reason_codes: decision ? JSON.stringify(decision.reasonCodes) : null,
+        ai_schema_version: decision?.schemaVersion ?? null,
+        ai_latency_ms: decision?.latencyMs ?? null,
         fallback_reason: decision?.fallbackReason ?? null,
         final_text: response("final")?.responseText ?? null,
         final_confidence: response("final")?.confidenceChoice ?? null,

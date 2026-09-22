@@ -2,12 +2,64 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyTeacherContentDraft,
+  buildApprovedContentPack,
   lessonDraftToContentDraft,
   TEACHER_COMPLETION_PROMPT_ID,
+  TEACHER_FALLBACK_PROMPT_ID,
 } from "@/content/teacher-draft";
 import { traitInheritancePack } from "@/content/trait-inheritance";
 
 describe("teacher content draft", () => {
+  it("builds a standalone approved snapshot without inheriting demo content", () => {
+    const draft = {
+      title: "Photosynthesis and plant growth",
+      gradeBand: "Grade 8 Biology",
+      scopeBoundary: "Evaluate only matter sources, light energy, and evidence from the plant case.",
+      initialPrompt: "Read the bean-plant results and explain why the plant in light produced more new material.",
+      nearTransferPrompt: "Explain what happens to glucose production when carbon dioxide is reduced.",
+      completionPromptId: TEACHER_COMPLETION_PROMPT_ID,
+      ideaIds: ["matter_source"],
+      ideaLabels: { matter_source: "Matter in glucose comes from carbon dioxide and water" },
+      ideaDescriptions: { matter_source: "The response identifies the matter sources used to make glucose." },
+      misconceptionIds: ["soil_is_main_source"],
+      misconceptionLabels: { soil_is_main_source: "Most plant mass comes from soil" },
+      misconceptionDescriptions: { soil_is_main_source: "The response explicitly claims soil supplies most new plant mass." },
+      followUpIds: ["matter_probe", TEACHER_COMPLETION_PROMPT_ID],
+      followUpTitles: {
+        matter_probe: "Trace the matter",
+        [TEACHER_COMPLETION_PROMPT_ID]: "Review your explanation",
+        [TEACHER_FALLBACK_PROMPT_ID]: "Clarify your explanation",
+      },
+      followUpPrompts: {
+        matter_probe: "Which substances supplied the atoms in the new glucose?",
+        [TEACHER_COMPLETION_PROMPT_ID]: "Reread and clarify your evidence link if needed.",
+        [TEACHER_FALLBACK_PROMPT_ID]: "Describe what changed between the two plants.",
+      },
+      followUpTargetIds: {
+        matter_probe: ["matter_source", "soil_is_main_source"],
+        [TEACHER_COMPLETION_PROMPT_ID]: ["matter_source"],
+        [TEACHER_FALLBACK_PROMPT_ID]: ["matter_source", "soil_is_main_source"],
+      },
+      sourceNotes: ["Teacher slide 8 defines the matter inputs."],
+      teacherReviewChecks: ["Confirm wording before class."],
+    };
+    const pack = buildApprovedContentPack(draft, {
+      id: "teacher-photosynthesis-a1b2c3d4",
+      versionId: "teacher-photosynthesis-20260921-a1b2c3d4",
+      approvedAt: "2026-09-21T20:00:00.000Z",
+      estimatedMinutes: 15,
+    });
+
+    expect(pack.teacherReviewStatus).toBe("approved");
+    expect(pack.versionId).toBe("teacher-photosynthesis-20260921-a1b2c3d4");
+    expect(pack.fallbackPrompt.id).toBe(TEACHER_FALLBACK_PROMPT_ID);
+    expect(pack.initialPrompt.text).not.toContain("beetle");
+    expect(pack.ideas.map((idea) => idea.id)).toEqual(["matter_source"]);
+    expect(pack.alternativeConceptions.map((item) => item.id)).toEqual(["soil_is_main_source"]);
+    expect(pack.authoringNotes).toEqual(["Teacher slide 8 defines the matter inputs."]);
+    expect(pack.approvedAt).toBe("2026-09-21T20:00:00.000Z");
+  });
+
   it("turns an uploaded lesson draft into the content used by a classroom session", () => {
     const contentDraft = lessonDraftToContentDraft({
       lessonTitle: "Cell transport",

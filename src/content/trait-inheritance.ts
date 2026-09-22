@@ -11,6 +11,7 @@ export interface AlternativeConceptionDefinition {
   description: string;
   teacherAction: string;
   sourceIds: string[];
+  sourceSupport?: string;
 }
 
 export interface FollowUpPrompt {
@@ -45,6 +46,9 @@ export interface ContentPack {
   ideas: IdeaDefinition[];
   alternativeConceptions: AlternativeConceptionDefinition[];
   researchSources: ResearchSource[];
+  authoringNotes?: string[];
+  reviewChecks?: string[];
+  approvedAt?: string;
   surveyDisclosure: string;
 }
 

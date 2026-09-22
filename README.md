@@ -1,60 +1,52 @@
 # ExitLoop
 
-ExitLoop is a teacher-governed, low-stakes formative-assessment platform for K–12 classrooms. Its first prototype uses trait inheritance to demonstrate a short **explain → targeted probe → revise → feedback → near-transfer** loop. The software does not grade students or generate new questions during class. A constrained classifier selects only from a teacher-reviewed prompt bank, abstains when evidence is weak, and shows class-level patterns for teacher review.
+ExitLoop is a teacher-governed formative-assessment platform for biology classrooms. A teacher prepares a short explanation activity, reviews the scientific ideas and possible misconceptions the system may use, and approves a bank of follow-up questions. Students respond with a class code and their name. ExitLoop uses constrained AI to select one approved follow-up question, then gives the teacher a concise view of common class patterns.
 
-## Current research phase
+ExitLoop does not generate questions during a student session, assign grades, or decide mastery.
 
-The current study is a remote usability study with two to five secondary science teachers. A teacher reviews and edits the diagnostic content, creates a coded session, and watches the researcher complete one live demonstration from the student view. ExitLoop combines that response with 18 researcher-written simulations. The teacher checks the AI routing, uses the class summary to choose an instructional next step, and completes the usability measures. No students or student data are included in this study.
+## Current product flow
 
-The student-facing classroom study remains in the repository as a future prototype. Every student receives response-specific routing. It must not be run until the required IRB, district, school, consent, and assent approvals are in place.
+### Teacher
 
-## Demonstration content
+1. Sign in and open **Create activity**.
+2. Upload lesson materials for an AI-created draft, or start with the guided blank form.
+3. Review and edit the student reading, explanation question, target ideas, possible misconceptions, question mappings, clarification question, and related example.
+4. Create a session. ExitLoop saves the reviewed activity as a standalone, approved content pack with a unique version ID. That snapshot cannot be changed by later edits.
+5. Share the class code and monitor completion.
+6. Close the session, inspect named submissions and class patterns, record a next instructional action, and export de-identified CSV or JSON data.
 
-The teacher workspace now has three clear authoring paths:
+### Student
 
-1. **Shared study example.** The teacher usability study uses one frozen trait-inheritance activity so every participant reviews the same 18 simulated responses.
-2. **Empty activity form.** A teacher who does not have lesson notes can enter the lesson title, student context, prompt, target ideas, possible misconceptions, and follow-up questions manually. Items can be added, removed, renamed, and edited. Each response-specific question can be linked to one or more missing ideas or possible misconceptions.
-3. **Optional lesson upload.** A signed-in teacher can upload a PDF, Word, PowerPoint, or text file, or paste lesson context. OpenAI returns the same editable form with a first draft of the student prompt, target ideas, possible misconceptions, follow-up questions, source notes, and teacher checks. ExitLoop does not save the uploaded file. This generated draft is not yet used to replace the frozen study example.
+1. Join with the shared class code and the name the teacher recognizes.
+2. Read the lesson-specific information and submit an initial explanation.
+3. Receive one response-specific question selected from the teacher-reviewed bank.
+4. Revise the explanation.
+5. Review a low-stakes summary of ideas found in the initial response and one area to reconsider.
+6. Apply the same reasoning to a related example and complete a short experience survey.
 
-The shared study example is aligned only to Georgia Standards of Excellence **S7L3.a**:
+## How AI is used
 
-> Construct an explanation supported with scientific evidence of the role of genes and chromosomes in the process of inheriting a specific trait.
+Lesson authoring and student routing are separate AI tasks.
 
-Students use a fictional beetle evidence card to explain how a bristle-shape gene located on a chromosome is inherited from both parents and relates to the offspring's trait. After revision and automated feedback, the near-transfer task uses a fictional plant seed-coat trait.
+- During authoring, OpenAI can organize teacher-provided lesson materials into an editable draft. The teacher must review the science, scope, possible misconceptions, and questions before opening a session.
+- During routing, OpenAI receives redacted response text and the frozen content pack. Its structured output is limited to approved idea IDs, approved possible-misconception IDs, confidence, reason codes, and an approved prompt ID. Server code validates the result and displays the stored question text.
+- If routing is disabled, unavailable, invalid, or uncertain, ExitLoop uses the approved clarification question. The built-in inheritance demonstration also has a deterministic keyword fallback for local testing.
 
-The pilot does **not** assess ecosystem matter/energy, Punnett-square procedures, probability calculations, memorized meiosis or mitosis stages, DNA replication, protein synthesis, or complex human inheritance. See [Georgia standards alignment](docs/GEORGIA_STANDARDS_ALIGNMENT.md).
+Uploaded files are used to produce the draft and are not saved by ExitLoop. Student names are not sent to OpenAI and are excluded from research exports.
 
-## Future classroom workflow
+## Built-in demonstration
 
-1. The teacher creates a 15-minute session and chooses the expected number of students.
-2. The teacher opens the session and displays one class code.
-3. Each student joins with the class code and the name their teacher recognizes. No student account or individual access code is required.
-4. Every student completes the same S7L3.a evidence-supported initial explanation and confidence item.
-5. For every student, the classifier identifies a missing or incompatible idea and selects one matching teacher-authored follow-up question. Short or uncertain responses receive the approved clarification question.
-6. Each student revises the original explanation.
-7. ExitLoop shows a low-stakes learning snapshot: the activity goal, ideas already present in the first explanation, and one concrete next step. Additional missing or incompatible ideas are available in an expandable section. The system does not claim that the revision is correct.
-8. Each student applies the reasoning to the same near-transfer example and completes a short experience survey.
-9. The teacher reviews named submissions, class-level possible misconception patterns, and the responses behind each pattern before recording an instructional next step.
-10. The research team exports de-identified responses for blinded human scoring. Student names are excluded from research exports.
-
-## What makes the tool distinct
-
-- It elicits a short causal explanation rather than relying on recognition or flash-card recall.
-- Its content taxonomy is built from published genetics-education research, not generated from model guesses.
-- AI is limited to classification and routing among approved prompts; it cannot grade, label a learner, or invent classroom content.
-- The frozen content version, complete event trail, and exportable research data support later classroom research rather than a product demo alone.
-- The teacher receives short, actionable class patterns and two-minute response ideas instead of a raw transcript feed.
+Local demo mode includes a trait-inheritance activity aligned with Georgia GSE S7L3.a. It is a worked example and deterministic test fixture, not a universal template. New teacher-created sessions use only their own approved content pack rather than inheriting the demonstration's prompts or labels.
 
 ## Technology
 
 - Next.js 16 App Router, React 19, and TypeScript
-- Supabase Postgres for shared production storage
-- OpenAI Responses API with strict structured output for optional constrained routing
-- OpenAI file input and strict structured output for the teacher lesson-draft preview
-- Deterministic local fallback when AI is disabled, times out, or returns low-confidence evidence
-- Vercel-compatible deployment
+- Supabase Postgres for persistent production state
+- OpenAI Responses API with strict structured output
+- Zod validation for incoming classroom and authoring data
+- Vercel-compatible deployment with production configuration checks and security headers
 
-The in-memory store is for local demonstration only. A classroom deployment must use Supabase so concurrent server instances share state.
+The in-memory store is only for local development. Production refuses to use it.
 
 ## Local development
 
@@ -66,24 +58,22 @@ pnpm dev
 
 Open `http://localhost:3000`.
 
-Development demo credentials:
+Local demo credentials:
 
 - Student class code: `GEN7`
-- Student name: any unused demo name, such as `Maya R.`
+- Student name: any unused name, such as `Maya R.`
 - Teacher password: `demo-teacher` unless overridden
 
-## Required production configuration
+## Production setup
 
-Set the variables described in `.env.example`, including Supabase credentials, a strong teacher password, and signing secrets. Apply `supabase/migrations/001_initial.sql` and `supabase/migrations/002_teacher_usability.sql` before enabling the Supabase store.
+1. Create a Supabase project.
+2. Apply every SQL file in `supabase/migrations` in numeric order.
+3. Set all required Vercel variables from `.env.example` with new production values.
+4. Use a teacher password of at least 16 characters and signing secrets of at least 32 characters.
+5. Call `/api/health` and confirm it returns HTTP 200 with `configuration: "ready"` and `storage: "supabase"`.
+6. Run the verification commands and a 30-user load test against the deployment.
 
-Live AI routing requires `AI_ROUTING_ENABLED=true`, an OpenAI API key, and one approved use context:
-
-1. For researcher or adult demonstrations using synthetic or researcher-entered responses, set `AI_DEMO_ROUTING_ENABLED=true`.
-2. For an approved study involving minors, set `MINOR_DATA_SAFEGUARDS_CONFIRMED=true` only after the required research, school, and data safeguards are confirmed.
-
-The system sends only redacted response text to the model, uses `store: false`, and uses an attempt-derived safety identifier. If neither use context is approved, the deterministic teacher-authored fallback remains available.
-
-Lesson drafting also requires `OPENAI_API_KEY`. The route accepts instructional files up to 4 MB and uses `store: false`. Teachers are told not to upload student work or identifying information. AI-generated target ideas, misconceptions, sources, and questions remain unapproved until a teacher reviews them.
+Live routing requires `AI_ROUTING_ENABLED=true`, an OpenAI key, and one explicitly approved context. Use `AI_DEMO_ROUTING_ENABLED=true` only for adult or synthetic demonstrations. Set `MINOR_DATA_SAFEGUARDS_CONFIRMED=true` only after the required research, school, consent, privacy, and data-handling approvals are complete.
 
 ## Verification
 
@@ -94,31 +84,25 @@ pnpm test
 pnpm build
 ```
 
-With the development server running, validate 30 simultaneous student flows and the teacher export:
+With the server running:
 
 ```bash
 pnpm load-test
 ```
 
-## Research files
+## Documentation
 
 - [Product design specification](docs/PRODUCT_DESIGN_SPEC.md)
-- [Student experience redesign](docs/STUDENT_EXPERIENCE_REDESIGN.md)
-- [Current teacher usability study](docs/TEACHER_USABILITY_STUDY.md)
-- [Georgia standards alignment](docs/GEORGIA_STANDARDS_ALIGNMENT.md)
-- [Misconception evidence map](research/MISCONCEPTION_EVIDENCE_MAP.md)
-- [Single-session protocol](research/instruments/SINGLE_SESSION_PROTOCOL.md)
-- [Trait-inheritance scoring rubric](research/instruments/TRAIT_INHERITANCE_RUBRIC.md)
-- [Data dictionary and analysis fields](docs/DATA_DICTIONARY.md)
-- [Pre-classroom checklist](docs/PRE_CLASSROOM_CHECKLIST.md)
-- [Draft abstract](research/ABSTRACT.md)
+- [Data dictionary](docs/DATA_DICTIONARY.md)
+- [Production and classroom checklist](docs/PRE_CLASSROOM_CHECKLIST.md)
+- [Student experience design](docs/STUDENT_EXPERIENCE_REDESIGN.md)
+- [Georgia inheritance demonstration alignment](docs/GEORGIA_STANDARDS_ALIGNMENT.md)
+- [Teacher evaluation protocol draft](docs/TEACHER_USABILITY_STUDY.md)
+- [Draft research abstract](research/ABSTRACT.md)
 
-## Safety and interpretation boundaries
+## Research and safety boundaries
 
-- Possible misconception tags are routing hypotheses, not diagnoses or permanent student labels.
-- When enabled by the teacher, student-entered names are visible only in authenticated teacher views. They are not sent to OpenAI or included in research exports.
-- The teacher remains responsible for instructional decisions.
-- Primary research outcomes are scored later by blinded human raters, not by the routing classifier.
-- The simulated class is system-demonstration data, not evidence of student learning.
-- The current study can support claims about teacher usability and interpretability only, not classroom effectiveness.
-- Do not use the tool with students until the teacher, advisor, and required IRB, district, and school reviewers approve the protocol, content, data handling, and consent/assent process.
+- Possible-misconception labels are response-level routing hypotheses, not diagnoses of students.
+- Teachers remain responsible for content approval and instructional decisions.
+- Automated classifications are not research outcome scores. Any learning study should use blinded human scoring.
+- Classroom data collection with students requires the approvals established by the research team, school, and district. A working product does not itself authorize a study.

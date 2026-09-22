@@ -93,6 +93,7 @@ export const teacherContentDraftSchema = z.object({
     z.string(),
     z.string().trim().min(4).max(1_000),
   ),
+  misconceptionSourceSupport: z.record(z.string(), z.string().trim().max(1_000)).default({}),
   misconceptionTeacherActions: z.record(z.string(), z.string().trim().max(1_000)).default({}),
   followUpIds: z.array(z.string().trim().min(2).max(120)).min(1).max(20).optional(),
   followUpTitles: z.record(z.string(), z.string().trim().min(2).max(160)).default({}),
@@ -101,6 +102,8 @@ export const teacherContentDraftSchema = z.object({
     z.string(),
     z.array(z.string().trim().min(2).max(120)).min(1).max(22),
   ).default({}),
+  sourceNotes: z.array(z.string().trim().min(2).max(1_000)).max(20).optional(),
+  teacherReviewChecks: z.array(z.string().trim().min(2).max(1_000)).max(20).optional(),
 });
 
 export const teacherAuthoredSessionSchema = teacherSessionSchema.extend({

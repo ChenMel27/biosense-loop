@@ -1,191 +1,134 @@
 # ExitLoop Product Design Specification
 
-## 1. Product decision
+## 1. Product purpose
 
-ExitLoop is designed as a K–12 formative-assessment platform. The current MVP evaluates the teacher-facing design tools with two to five secondary science teachers and a simulated class. It uses trait inheritance as demonstration content, but the product direction can expand to other documented biology concepts after the diagnostic workflow is usable. The MVP uses a fixed, research-grounded question bank. It does not allow the classifier to write student-facing questions, grade work, or determine mastery.
+ExitLoop helps biology teachers find gaps in understanding before class ends. It extends a one-response exit ticket into a short cycle: explain, receive a targeted question, revise, review a learning summary, and apply the reasoning to a related case. The teacher controls the scientific content and question bank. AI classifies and routes; it does not grade, diagnose a learner, or write a new question during class.
 
-The S7L3.a student workflow remains a future classroom phase. It is not the current study and cannot begin without the required IRB and district approvals. Every student in that workflow receives a response-specific follow-up question.
-
-## 2. Problem and rationale
-
-Teachers have limited time to cover required content while supporting students who may hold partial or incompatible ideas. A conventional exit ticket usually captures one answer after instruction; it can show that an explanation is incomplete without revealing which relationship needs attention or giving the student time to reconsider it. Thirty open responses can also take longer to interpret than the teacher has available.
-
-Genetics-education research shows that students often struggle to coordinate the structural and functional relationships among genes, chromosomes, inherited information, parental contribution, and traits. ExitLoop adds one rapid feedback cycle: the student explains, receives a targeted teacher-reviewed probe, revises, and applies the reasoning to a new case. This is low-stakes formative assessment: no score or mastery label is shown, and the teacher retains instructional authority.
-
-## 3. Users and jobs to be done
-
-### Student
-
-- Explain a biological relationship in their own words.
-- Reconsider one specific relationship without being told an answer.
-- Apply the relationship to an unseen but structurally similar case.
-- Complete the activity in roughly 12–15 minutes without a name, email, or grade.
+## 2. Users and core needs
 
 ### Teacher
 
-- Start with an empty activity form or optionally upload lesson notes, slides, or a handout for an AI-created first draft.
-- Add, remove, rename, and edit the activity prompt, target ideas, possible misconceptions, and follow-up questions. For each response-specific question, select the missing ideas or possible misconceptions that should route to it.
-- Inspect the response text and reasoning behind a classification rather than accepting a hidden label.
-- Review a short class-level summary of possible patterns, not a raw transcript dump.
-- Receive a content-specific response idea for each visible pattern.
-- Record what instructional action the summary prompted and how confident they are.
+- Turn lesson material into a focused check for understanding without building every field from scratch.
+- Review exactly what the classifier can identify and which question each pattern can trigger.
+- Open one class session with a shareable code.
+- See named submissions privately while students work.
+- Identify common missing ideas or possible misconceptions without reading every response first.
+- Export de-identified records for approved analysis.
 
-### Researcher
+### Student
 
-- Give each teacher a pseudonymous study ID and run the same frozen simulation.
-- Observe the remote think-aloud tasks and conduct the approved short interview.
-- Export authoring edits, routing judgments, decision-support responses, timing, and usability ratings.
-- Report usability findings without treating the simulated class as evidence of student learning.
+- Explain a scientific relationship in their own words.
+- Reconsider one important part of the explanation without being given the answer.
+- See supportive, task-focused feedback rather than a grade or mastery label.
+- Apply the reasoning to a related example.
 
-## 4. Learning objective and scope
+## 3. Teacher workflow
 
-Primary standard: Georgia GSE **S7L3.a**. See [Georgia standards alignment](GEORGIA_STANDARDS_ALIGNMENT.md).
+1. The teacher signs in and chooses **Create activity**.
+2. The teacher either uploads lesson materials for an AI-created draft or starts with the guided blank form.
+3. The teacher reviews and edits the lesson title, grade, student reading, first explanation question, scope boundary, related example, target ideas, possible misconceptions, follow-up questions, and routing mappings.
+4. ExitLoop checks that every active idea and possible misconception has a matching question. A complete-response question and clarification question are also required.
+5. When the teacher creates a session, the server validates the form and creates a complete approved content pack with a unique version ID and approval timestamp.
+6. The teacher opens the session and shares one class code.
+7. The dashboard updates as students join, submit explanations, revise, and finish.
+8. After closing the session, the teacher reviews common patterns, opens supporting responses, records what to clarify next, and exports the session if needed.
 
-Target construct: an evidence-supported explanation that a gene is inherited information related to a specific trait, the gene is located on a chromosome, the offspring receives a relevant gene version on a chromosome from each parent, and the supplied evidence links the inherited pair with the observed trait.
+## 4. Student workflow
 
-Out of scope: ecosystem matter/energy, Punnett-square procedures, inheritance probabilities, memorized cell-division stages, molecular gene expression, and complex human inheritance.
+1. Join with the class code and the name the teacher recognizes.
+2. Read the teacher-approved information and submit an initial explanation plus confidence.
+3. ExitLoop locks the response and routes it to one approved follow-up question.
+4. View the original answer, respond to the follow-up, and revise the explanation.
+5. See a short learning summary based on the initial response: ideas already present, one area to reconsider, and additional patterns in an expandable section. The summary does not claim the revision is correct.
+6. Complete the teacher-approved related example without viewing the earlier response.
+7. Rate clarity, pressure, and helpfulness; then finish without a score.
 
-## 5. Current teacher usability flow
+## 5. Approved content pack
 
-1. A teacher signs in with a pseudonymous study ID and begins a remote think-aloud session.
-2. The teacher can start with an empty activity form. Uploading lesson material is an optional shortcut: AI organizes the material into the same editable form, but the teacher remains responsible for checking its science, sources, age level, and questions.
-3. The teacher reviews and may edit the shared demonstration prompt, target ideas, possible misconceptions, and prewritten follow-up questions. The teacher also reviews which ideas and misconceptions route to each question. The interface identifies trait inheritance as one worked example, not a universal template.
-4. The teacher creates a session and receives a class code. The researcher joins with the class code and a demo name, then completes the student activity.
-5. ExitLoop uses the edited content to analyze the researcher's response and select an approved follow-up question. It combines that response with 18 researcher-written simulations.
-6. The teacher inspects the combined class, reviews at least five AI outputs, and records agree, needs revision, or unsure.
-7. The teacher sees the top two patterns first, can inspect the responses behind each count, selects the most important pattern, and records a next instructional action and confidence rating.
-8. The teacher completes the ten-item System Usability Scale, two ExitLoop-specific ratings, and open feedback. The system stores task times and exports the study data as CSV or JSON.
+Each session stores a standalone snapshot containing:
 
-The live response is entered by the researcher, not a student. The full demonstration class cannot be used as evidence of student learning.
+- activity title, grade/course, scope, and expected time;
+- initial explanation prompt and related example;
+- target scientific ideas;
+- possible misconceptions;
+- prewritten follow-up questions and their target mappings;
+- complete-response and clarification questions;
+- authoring source notes and teacher review checks;
+- approval timestamp, pack ID, and unique version ID.
 
-The uploaded lesson draft and the shared inheritance demonstration are intentionally separate in the current study. The 18 frozen responses only make sense with the shared inheritance content. A later product iteration will version and save teacher-approved generated content packs before they can open a live session.
+The snapshot is written to Supabase and copied into the session configuration event. Student and dashboard routes resolve that exact version. Later builder edits cannot change an open or completed session. Sessions created before this model remain readable through a legacy overlay resolver.
 
-## 6. Future classroom flow
+## 6. AI behavior
 
-### Before class
+### Authoring
 
-1. Teacher signs in and creates a 15-minute session for the expected participant count.
-2. Server creates one pseudonymous code per participant. Every code uses response-specific routing.
-3. Teacher downloads the one-time code manifest, confirms the frozen content version, and opens the session.
+The authoring model receives teacher-provided material, not student work. It returns structured draft fields only. It must mark unsupported misconception claims as needing teacher or research confirmation. The output remains editable and cannot open a class until the teacher completes the required fields.
 
-### Student loop
+### Student-response routing
 
-1. Student enters the shared class code and the name their teacher recognizes.
-2. Student reads the non-graded, teacher-governed disclosure.
-3. Student answers the beetle bristle-shape evidence task in 2–4 sentences and selects confidence.
-4. The response is locked. The constrained classifier identifies evidenced or missing relationships and possible alternative-conception language, then selects one approved prompt.
-5. A short, unclear, or out-of-scope response receives a clarification question. If all four target relationships are present and no incompatible claim is identified, the student receives a completion review question. It states that the key ideas are present and lets the student continue without forcing an unnecessary revision.
-6. Student sees the original response, answers the prompt, and locks a revision.
-7. ExitLoop summarizes the target ideas identified in the first explanation, ideas that were missing, and any possible misconceptions. The summary is automated feedback, not a grade, and does not claim the revision is correct.
-8. Original work is hidden. Student completes the plant seed-coat near-transfer explanation and confidence item after viewing the summary.
-9. Student rates clarity, pressure, and helpfulness and may leave an optional comment.
-10. Completion screen shows no score or mastery label.
+The routing model receives redacted response text and the approved content pack. Its output may contain only:
 
-### Teacher closeout
+- demonstrated target-idea IDs;
+- missing target-idea IDs;
+- possible-misconception IDs;
+- confidence and approved reason codes;
+- abstention status;
+- one prompt ID from the approved bank.
 
-1. Teacher monitors completion only while students work.
-2. Teacher closes the session.
-3. Dashboard shows class-level idea and possible-alternative-conception counts for routing evidence, plus teacher-authored two-minute response suggestions.
-4. Teacher records one intended action and optional rationale.
-5. Researcher exports CSV/JSON for blinded human coding.
+Server code validates all identifiers and checks that the chosen prompt targets the highest-priority identified pattern. Explicit incompatible claims take priority over omissions. Multiple patterns are recorded, but the student receives only one follow-up question. Low-confidence, unclear, contradictory, or out-of-scope responses receive the approved clarification question.
 
-## 7. Content model
+## 7. Teacher dashboard
 
-### Demonstrated relationships
+While a session is open, the dashboard shows completion status and individual submitted responses. After the teacher closes the session, it reveals class-pattern counts and example responses. This delay reduces the chance that preliminary labels influence instruction before the activity is complete.
 
-- `gene_trait_information`: gene as inherited trait-related information, distinct from the visible trait.
-- `gene_on_chromosome`: gene versions located on and carried by chromosomes.
-- `both_parent_contributions`: one relevant chromosome/gene version from each parent.
-- `evidence_linked_explanation`: evidence facts connected through reasoning to the offspring trait.
+The dashboard must answer:
 
-### Possible alternative conceptions
+1. Who has started and finished?
+2. Which target ideas are commonly missing?
+3. Which possible misconceptions need teacher review?
+4. What response text supports each count?
+5. What should the teacher clarify or check next?
 
-- `gene_is_the_trait`
-- `genes_lack_hereditary_information`
-- `genes_and_chromosomes_unrelated`
-- `one_parent_determines_trait`
-- `parents_contribute_different_traits`
-- `acquired_trait_is_inherited`
+It must not rank students or display an automated mastery score.
 
-These are response-pattern tags, not learner diagnoses. Absence of a relationship is recorded as missing evidence, not automatically as a misconception.
+## 8. Data and privacy
 
-## 8. AI design constraints
+- Students use a class code and a session-specific display name; no student account is created.
+- Names are stored in join events, shown only in authenticated teacher views, excluded from exports, and never sent to OpenAI.
+- Responses are locked by stage and stored with server timestamps and the content version shown.
+- OpenAI requests use `store: false` and an attempt-derived safety identifier.
+- Production uses Supabase with row-level security enabled and public roles revoked. The service-role key remains server-only.
+- Uploaded teacher files are sent for draft generation but not stored by ExitLoop.
 
-The model is a router, not a tutor or grader.
+## 9. Reliability and accessibility
 
-- Input: redacted response text and a fixed instruction block.
-- Output: allowed idea IDs, possible pattern IDs, confidence, reason codes, abstention, and one allowed prompt ID.
-- No tools, free-form teaching text, score, praise, mastery decision, or persistent student profile.
-- Strict schema validation and a 0.55 confidence threshold.
-- `store: false` and a hashed attempt safety identifier.
-- Deterministic fallback whenever AI is disabled, unapproved, timed out, invalid, or below threshold.
-- Teacher-authored prompts and teacher-reviewed content pack are versioned and frozen before data collection.
+- Persistent production state is required; the memory store is development-only.
+- The student draft autosaves and a student can resume in the same browser.
+- Duplicate stage submissions are rejected server-side.
+- Teacher and student API routes recheck authentication.
+- Inputs are schema validated and length limited.
+- The application includes no-store headers for teacher/API pages, security headers, clear error states, keyboard-operable controls, labeled fields, and readable status messages.
+- A 30-user load test must pass against the exact deployment before classroom use.
 
-### Lesson-draft authoring
+## 10. Research boundary
 
-- Input: a teacher-uploaded instructional file and optional pasted context. Student work and identifying information are prohibited.
-- Manual alternative: a teacher can open the same form without uploading anything and enter every field directly.
-- Output: editable lesson title, student context, explanation prompt, three to five target ideas, candidate misconceptions, a follow-up bank, source notes, and a teacher-review checklist.
-- The API uses direct file input, strict structured output, a 4 MB application limit, and `store: false`.
-- The model may only name source support present in the uploaded material. Otherwise it marks the misconception as needing research or teacher confirmation.
-- Generated content is a draft. It is not automatically approved, published, or used to classify student work.
+The current product can support teacher walkthroughs, usability feedback, routing audits with researcher-entered responses, and approved classroom sessions. Product logs and classifier labels do not prove learning. A student-learning study must separately specify approvals, recruitment, human scoring, analysis, data retention, and interpretation limits.
 
-## 9. Teacher summary requirements
+The built-in trait-inheritance activity remains a worked example and test fixture. It may support a future S7L3.a classroom study, but teacher-created activities are not automatically research-validated because they have been generated or saved by the platform.
 
-The dashboard must answer four questions in under two minutes:
+## 11. Acceptance criteria
 
-1. Did the session run successfully and who is still working?
-2. Which S7L3.a relationships appeared in adaptive-group responses?
-3. Which possible patterns deserve teacher review, and what is a two-minute response option?
-4. What instructional action will the teacher take next?
+- A teacher can build or generate, edit, validate, approve, and launch an activity.
+- Each launched activity has a unique frozen content version with no inherited demo content.
+- A student can join, complete every stage, resume, and receive only approved questions.
+- The teacher can see names privately, inspect classifications, close/reopen/delete sessions, record a next action, and export de-identified data.
+- The health endpoint detects missing production persistence, weak secrets, and incomplete AI configuration.
+- Database migrations, lint, typecheck, unit tests, production build, and the deployment load test pass.
 
-After outcomes are locked, it ranks the top one or two class patterns, shows a small set of supporting response excerpts, and offers a teacher-approved two-minute response. The teacher—not the system—chooses and records one action: proceed, clarify for the whole class, regroup for temporary small-group support, or review responses when the evidence is uncertain.
+## 12. Deferred work
 
-It must not display a student ranking, automated mastery score, human-scored outcomes before closure, or unsupported individual diagnosis.
-
-## 10. Reliability and accessibility
-
-- Shared production state in Supabase; in-memory state only for local demo.
-- Thirty concurrent complete flows must pass before classroom use.
-- Draft autosave and same-code resume.
-- Server-side stage locking prevents duplicate research responses.
-- Visible offline notice and prepared non-digital fallback.
-- Keyboard-operable controls, labels, live status text, readable contrast, and plain seventh-grade language.
-- Server timestamps remain authoritative; client timestamps are supplemental.
-
-## 11. Current research design embedded in product
-
-Five to ten secondary science teachers complete a 45–60 minute remote think-aloud usability session. Data include content edits, judgments on frozen classification examples, class-summary interpretation, a planned instructional action, confidence, four task times, ten System Usability Scale items, two ExitLoop-specific ratings, and open feedback. Short interviews provide qualitative explanation of what was useful, confusing, or missing.
-
-With this small sample, analysis is descriptive and formative. The study can support design decisions and preliminary claims about usability, interpretability, teacher control, and decision support. It cannot demonstrate student learning or classroom effectiveness.
-
-## 12. Future classroom research
-
-One classroom session pilots the same response-specific loop with approximately 30 students. Every student receives a teacher-approved follow-up question selected for the ideas in the initial explanation. Near-transfer responses are scored by blinded human raters using the frozen 0–8 rubric.
-
-Primary exploratory outcome: blinded targeted repair—whether the pre-specified missing or incompatible relationship in the initial explanation is corrected in the revision without a new incompatible claim.
-
-Secondary outcomes: near-transfer total score, initial-to-revision score change, classifier–human agreement, clarification rate, completion and timing, student clarity/pressure/helpfulness, teacher review time, recorded instructional action, response-tag audit, and four teacher utility ratings.
-
-Because this is one class with no comparison group, report targeted-repair proportions with exact numerators, denominators, and a Wilson confidence interval. Near-transfer and score changes remain secondary and descriptive. The study can examine feasibility, routing validity, and immediate revision, but it cannot establish that the adaptive question caused improvement.
-
-## 13. MVP acceptance criteria
-
-- One coherent demonstration content pack that teachers can review and edit.
-- Eighteen varied, researcher-written sample responses with frozen and inspectable routing output.
-- Classifier output is shown with the source response, routing reason, selected prewritten question, and confidence.
-- The class summary ranks common patterns and supports a written next-action decision.
-- Teacher task times, classification judgments, standardized usability ratings, ExitLoop-specific ratings, and open feedback are saved and exportable.
-- Lint, typecheck, unit tests, and production build pass.
-- The approved teacher-study consent, think-aloud, and interview procedure is followed before data collection.
-
-## 14. Deferred work
-
-- Longitudinal student progress dashboard
-- Multiple genetics topics or standards
-- Classroom data collection with students
-- Student-facing explanations or generative tutoring
-- Engineering/application extensions
-- Cross-classroom efficacy study
-
-These features can follow only after the misconception-detection loop is valid, usable, and demonstrably time-saving.
+- Cross-session student progress tracking
+- Automatic citation verification for generated misconception banks
+- Teacher accounts and role-based multi-school administration
+- Learning-management-system roster or gradebook integration
+- Longitudinal or causal effectiveness studies

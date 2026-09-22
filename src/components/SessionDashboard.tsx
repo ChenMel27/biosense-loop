@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { traitInheritancePack } from "@/content/trait-inheritance";
-import { applyTeacherContentDraft } from "@/content/teacher-draft";
+import { resolveContentPack } from "@/content/teacher-draft";
 import type { DashboardSnapshot, StudySession } from "@/lib/domain/types";
 import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 
@@ -32,14 +32,14 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
   const [savingAction, setSavingAction] = useState(false);
   const [showAllResponses, setShowAllResponses] = useState(false);
 
-  const contentPack = useMemo(
-    () =>
-      applyTeacherContentDraft(
-        traitInheritancePack,
-        snapshot.activityConfiguration?.contentDraft,
-      ),
-    [snapshot.activityConfiguration?.contentDraft],
+  const resolvedContentPack = useMemo(
+    () => resolveContentPack(
+      snapshot.session.contentVersionId,
+      snapshot.activityConfiguration,
+    ),
+    [snapshot.activityConfiguration, snapshot.session.contentVersionId],
   );
+  const contentPack = resolvedContentPack ?? traitInheritancePack;
   const contentLabels = useMemo(
     () =>
       Object.fromEntries([
@@ -212,6 +212,12 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
         </div>
       </section>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
+      {!resolvedContentPack ? (
+        <div className="callout warning" role="alert">
+          This session’s approved activity snapshot is unavailable. Close the session and contact
+          the site administrator before students continue.
+        </div>
+      ) : null}
 
       <section className="metrics-grid" aria-label="Session status summary">
         <article className="metric-card accent">

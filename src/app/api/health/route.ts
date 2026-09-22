@@ -1,9 +1,11 @@
 import { isLiveAiRoutingEnabled } from "@/lib/ai/classifier";
+import { productionConfigurationIssues } from "@/lib/config";
 import { isDemoMode, isPersistentStorageConfigured } from "@/lib/store";
 
 export async function GET() {
   const hasPersistentStorage = isPersistentStorageConfigured();
-  const productionReady = process.env.NODE_ENV !== "production" || hasPersistentStorage;
+  const configurationIssues = productionConfigurationIssues();
+  const productionReady = configurationIssues.length === 0;
 
   return Response.json(
     {
@@ -15,7 +17,9 @@ export async function GET() {
           ? "memory-demo"
           : "unconfigured",
       aiRouting: isLiveAiRoutingEnabled() ? "live" : "fallback",
-      contentPack: process.env.CONTENT_PACK_APPROVED === "true" ? "approved" : "draft",
+      contentPacks: "versioned-per-session",
+      configuration: productionReady ? "ready" : "needs-attention",
+      configurationIssues,
       timestamp: new Date().toISOString(),
     },
     { status: productionReady ? 200 : 503 },

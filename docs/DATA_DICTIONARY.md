@@ -1,153 +1,114 @@
-# ExitLoop Data Dictionary and Analysis Plan
+# ExitLoop Data Dictionary
 
-## Current study boundary
+This document describes data created by the current teacher-authored classroom workflow. It does not itself define an approved research protocol.
 
-The current research cycle aims to collect data from two to five secondary science teachers. Participants use the teacher usability workspace. The study does not collect student data. Its class contains 18 researcher-written simulations plus one live response entered by the researcher to demonstrate the student flow.
+## 1. Privacy boundary
 
-Current teacher-study fields are stored in `teacher_usability_submissions`:
+Students join with a shared class code and the name their teacher recognizes. ExitLoop assigns an internal participant slot and attempt ID. The name is stored only in a `student_joined` event so it can appear in the authenticated teacher dashboard. It is not sent to OpenAI and is not included in CSV or JSON exports.
+
+ExitLoop does not collect student email, school ID, date of birth, demographic profile, or a cross-session student identifier. Long-term progress tracking is not implemented.
+
+## 2. Approved content pack
+
+Every newly created session has a standalone content pack in `content_packs` and a copy in the `teacher_activity_configured` event.
 
 | Field | Purpose |
 | --- | --- |
-| `participant_tag`, `run_id` | Pseudonymously connect one teacher's study records |
-| `started_at`, `completed_at` | Overall study timing |
-| `authoring_draft` | Teacher edits to the activity, target ideas, misconceptions, and prewritten questions |
-| `reviews` | Agree, needs revision, or unsure judgment and optional correction for each reviewed example |
-| `class_summary` | Selected pattern, interpretation, next instructional action, and confidence |
-| `sus_responses`, `sus_score` | Ten System Usability Scale responses and calculated 0–100 score |
-| `summary_usefulness` | ExitLoop-specific 1–5 rating of the summary's decision support |
-| `prompt_control` | ExitLoop-specific 1–5 rating of teacher control over content |
-| `open_feedback` | Optional final feedback |
-| `task_metrics` | Completion and elapsed time for each of four study tasks |
+| `pack_id` | Identifies the activity definition |
+| `version_id` | Unique immutable version used by the session and every response |
+| `title`, `gradeBand`, `scopeBoundary` | Human-readable instructional scope |
+| `initialPrompt`, `nearTransferPrompt` | Student tasks |
+| `ideas` | Target scientific ideas the classifier may mark present or missing |
+| `alternativeConceptions` | Possible response patterns the classifier may identify |
+| `followUps`, `fallbackPrompt`, `completionPromptId` | Approved question bank and routing targets |
+| `authoringNotes`, `reviewChecks` | Source notes and checks retained from authoring |
+| `teacherReviewStatus`, `approvedAt` | Records that the reviewed snapshot was used to create a session |
 
-Task events are also written to `teacher_usability_events` to preserve task-level timing if a participant does not submit the final survey. CSV and JSON exports are available from `/api/teacher/usability/export` after teacher sign-in.
+The label `approved` means the teacher completed ExitLoop's review flow. It is not a claim that the activity has been externally validated by researchers.
 
-The demonstration session stores the same `run_id` in its configuration event. Its session export marks each response as `simulated` or `live_demo`, allowing the researcher's live routing result to be matched with the teacher's usability record without collecting a name.
+## 3. Session and participant fields
 
-The sections below document the deferred classroom research data model. They are not part of the current teacher usability study.
-
-## 1. Data-minimization rule
-
-For classroom operation, each student joins with a shared class code and the name their teacher recognizes. ExitLoop assigns an internal session-scoped record so concurrent responses remain separate and a browser can resume an activity during that session. The student-entered name is stored in the join event and shown only in authenticated teacher views. Names are not sent to OpenAI and are excluded from research exports. ExitLoop does not collect student email, school ID, birth date, or a demographic profile. Long-term progress tracking is intentionally deferred; a future longitudinal study would require a separate consented linkage design.
-
-## 2. Frozen outcome instrument
-
-The primary rubric is [Trait-Inheritance Explanation Rubric](../research/instruments/TRAIT_INHERITANCE_RUBRIC.md). Four dimensions are scored 0–2:
-
-- gene as inherited trait-related information;
-- gene–chromosome relationship;
-- contribution from both parents;
-- evidence-linked trait explanation.
-
-Total range: 0–8. Human raters score de-identified initial, final-revision, and near-transfer texts. Targeted repair from initial explanation to revision is the primary exploratory outcome; near-transfer is secondary.
-
-## 3. Core identifiers and session fields
-
-| Field | Type | Purpose |
-| --- | --- | --- |
-| `session_id` | UUID/string | Groups all records from one classroom administration |
-| `participant_tag` | string | Research-facing label such as P01; not a student identity |
-| `condition` | `adaptive` | Confirms that the shared response-specific routing workflow was used |
-| `content_version_id` | string | Exact approved prompt/taxonomy version |
-| `completion_state` | enum | Last completed workflow stage |
-| `started_at`, `completed_at` | server timestamps | Feasibility and completion time |
-| `technical_status` | enum | Normal, fallback, or interrupted flow |
+| Field | Purpose |
+| --- | --- |
+| `session_id` | Groups one classroom administration |
+| `join_code` | Shared code students use to enter the session |
+| `content_version_id` | Exact activity snapshot used |
+| `status` | Draft, active, or closed |
+| `duration_minutes` | Teacher's expected activity time |
+| `participant_tag` | De-identified export label such as P01 |
+| `assigned_condition` | `adaptive`; all current students use response-specific routing |
+| `started_at`, `completed_at` | Server timestamps for activity timing |
+| `completion_state` | Last workflow stage reached |
+| `technical_status` | Normal, fallback, or incident state |
 
 ## 4. Response fields
 
-| Field | Description |
+| Export field | Description |
 | --- | --- |
-| `initial_text` | Common beetle evidence explanation before any follow-up |
-| `initial_confidence` | Student confidence after initial response |
-| `final_text` | Revised beetle explanation after the response-specific prompt |
+| `initial_text` | Explanation before a follow-up question |
+| `initial_confidence` | Student confidence after the initial response |
+| `final_text` | Revised explanation after the follow-up question |
 | `final_confidence` | Student confidence after revision |
-| `near_transfer_text` | Common plant evidence explanation completed after the automated initial-response summary |
-| `near_transfer_confidence` | Student confidence after near transfer |
-| response server/client timestamps | Stage duration and technical auditing; server time is authoritative |
-| prompt and content IDs | Reproduces exactly what the student saw |
+| `near_transfer_text` | Explanation for the related example |
+| `near_transfer_confidence` | Student confidence after the related example |
+| `displayed_prompt_id` | Approved question actually shown |
+| `content_version_id` | Frozen activity version tied to the response |
+
+Draft text is temporary working state. Submitting a stage locks the response and clears that stage's draft.
 
 ## 5. Routing fields
 
-| Field | Description |
+| Export field | Description |
 | --- | --- |
-| `displayed_prompt_id` | Teacher-authored prompt actually shown |
-| `demonstrated_idea_ids` | Relationships explicitly evidenced in the response |
-| `missing_idea_ids` | Required relationships not evidenced |
-| `possible_alternative_conception_ids` | Reviewable response patterns, not diagnoses |
-| `classification_confidence` | Router confidence from 0 to 1 |
-| `abstain` | Whether the system declined a specific classification |
-| `reason_codes` | Structured reason for classification or abstention |
-| `provider`, `model`, `schema_version` | Reproducibility metadata |
-| `latency_ms`, `fallback_reason` | Operational performance and reliability |
+| `demonstrated_idea_ids` | Approved target ideas explicitly supported by the initial response |
+| `missing_idea_ids` | Required ideas not supported by the initial response |
+| `possible_alternative_conception_ids` | Explicit incompatible response patterns; these are not learner diagnoses |
+| `ai_confidence`, `ai_abstained` | Model certainty and abstention state |
+| `ai_provider`, `ai_model`, `ai_schema_version` | Reproducibility metadata |
+| `ai_reason_codes` | Structured reasons for the route |
+| `ai_latency_ms` | Routing time in milliseconds |
+| `fallback_reason` | Reason deterministic or clarification fallback was used |
 
-Allowed relationship IDs:
+The classifier can record multiple missing ideas or possible misconceptions. Server routing gives priority to the first explicit incompatible pattern in the teacher-reviewed order, otherwise the first missing idea. Only one approved follow-up question is shown.
 
-- `gene_trait_information`
-- `gene_on_chromosome`
-- `both_parent_contributions`
-- `evidence_linked_explanation`
+## 6. Student experience and teacher action
 
-Allowed pattern IDs:
-
-- `gene_is_the_trait`
-- `genes_lack_hereditary_information`
-- `genes_and_chromosomes_unrelated`
-- `one_parent_determines_trait`
-- `parents_contribute_different_traits`
-- `acquired_trait_is_inherited`
-
-## 6. Experience and teacher-action fields
-
-| Field | Scale/use |
+| Field | Scale or use |
 | --- | --- |
-| `clarity` | 1–5 student rating |
-| `pressure` | 1–5 student rating; lower is preferable |
-| `helpfulness` | 1–5 student rating |
-| `open_comment` | Optional text; screen for accidental identifiers before analysis |
-| `teacher_dashboard_review_seconds` | Time from opening locked summary to action decision, collected by observer or protocol timer |
+| `clarity` | Student rating from 1 to 5 |
+| `pressure` | Student rating from 1 to 5; lower indicates less pressure |
+| `helpfulness` | Student rating from 1 to 5 |
+| `open_comment` | Optional student comment |
 | `teacher_action_type` | Proceed, whole-class clarification, small group, review responses, or other |
-| `teacher_action_note` | Optional rationale |
+| `teacher_action_note` | Teacher's optional explanation |
+| `content_approved_at` | Timestamp for the activity snapshot used |
 
-## 7. Human-scored analysis dataset
+## 7. Teacher dashboard data
 
-Create a separate analysis file after export with:
+The authenticated dashboard may display:
 
-- `initial_rater1_*`, `initial_rater2_*`, consensus scores;
-- `revision_rater1_*`, `revision_rater2_*`, consensus scores;
-- `transfer_rater1_*`, `transfer_rater2_*`, consensus scores;
-- total scores for each stage;
-- targeted-repair indicator: whether the specific routed relationship improved from initial to revision;
-- misconception-pattern human codes for classifier agreement;
-- blind rater IDs and scoring timestamps.
+- student-entered display name;
+- internal participant tag;
+- current stage;
+- initial response;
+- demonstrated and missing idea labels;
+- possible-misconception labels;
+- routing provider, confidence, and displayed question;
+- class counts and up to three supporting responses per pattern after session closure.
 
-Raters must not see the displayed prompt ID, AI tags, or student confidence while scoring the primary outcome.
+Student display names are deliberately removed from exports. Teachers should follow school policy when entering, viewing, retaining, or deleting classroom sessions.
 
-## 8. One-session analysis
+## 8. Export behavior
 
-Primary descriptive outcome:
+Authenticated teachers can download:
 
-- targeted-repair proportion across all completed participants;
-- exact numerator and denominator plus a 95% Wilson confidence interval because the sample is small;
-- no causal comparison, risk difference, or between-group significance test.
+- `/api/teacher/sessions/{session_id}/export?format=csv`
+- `/api/teacher/sessions/{session_id}/export?format=json`
 
-Secondary descriptive outcomes:
+Exports contain one row per started attempt. Empty participant slots do not create response rows. Identifier arrays are serialized as JSON text in CSV-compatible database output. JSON export wraps the same rows with basic session metadata.
 
-- initial-to-revision total change;
-- near-transfer score distribution;
-- classifier–human agreement for each relationship/pattern and overall agreement statistic when cell counts permit;
-- abstention, deterministic fallback, completion, missing-data, and median latency rates;
-- student experience medians/distributions;
-- teacher review time and whether a concrete action was recorded.
+## 9. Research analysis boundary
 
-If the class is too small or outcome distributions are sparse, emphasize descriptive estimates and exact denominators. Treat p-values, if reported, as exploratory and never as the sole evidence of effectiveness.
+Classifier labels and revisions are operational data, not proof of learning. A research dataset may add blinded human scores, targeted-repair codes, rater identifiers, and reliability measures only under an approved protocol. Human raters should not see the AI route or prompt when scoring a primary learning outcome.
 
-## 9. Missing data and exclusions
-
-- Retain all internal session slots in the flow table even if a student does not start or finish.
-- Define completion before looking at group outcomes.
-- Do not silently replace missing near-transfer scores with revision scores.
-- Report technical failures and fallback use for the full session.
-- Exclude a response from text analysis only for a predeclared reason such as no assent, accidental identifying information that cannot be safely redacted, duplicate test account, or unusable blank response.
-
-## 10. Interpretation boundary
-
-The one-session study can show whether the tool operated reliably, selected prompts consistently with human coding, supported stronger immediate revision or near-transfer signals, felt low pressure, and produced an actionable teacher summary. It cannot establish retention, long-term progress, generalization to other biology units, or effectiveness across schools.
+A one-session descriptive study may examine completion, routing agreement, immediate revision, student experience, and teacher decision support. It cannot establish retention, long-term progress, general effectiveness, or causal impact without a suitable approved design.

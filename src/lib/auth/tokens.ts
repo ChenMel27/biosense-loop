@@ -1,5 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
+import { requireProductionSecret } from "@/lib/config";
+
 export const TEACHER_COOKIE = "exitloop_teacher";
 export const STUDENT_COOKIE = "exitloop_student";
 
@@ -11,12 +13,10 @@ interface TokenPayload {
 }
 
 function secret() {
-  const value = process.env.SESSION_SIGNING_SECRET;
-  if (value) return value;
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("SESSION_SIGNING_SECRET is required in production.");
-  }
-  return "development-only-session-secret-change-me";
+  return requireProductionSecret(
+    "SESSION_SIGNING_SECRET",
+    "development-only-session-secret-change-me",
+  );
 }
 
 function encode(value: string) {
@@ -54,7 +54,7 @@ export function verifyToken(token: string | undefined, role: TokenPayload["role"
 export function passwordMatches(value: string) {
   const expected = process.env.TEACHER_PASSWORD ||
     (process.env.NODE_ENV === "production" ? "" : "demo-teacher");
-  if (!expected) return false;
+  if (!expected || (process.env.NODE_ENV === "production" && expected.length < 16)) return false;
   const left = Buffer.from(value);
   const right = Buffer.from(expected);
   return left.length === right.length && timingSafeEqual(left, right);
@@ -66,4 +66,3 @@ export const secureCookieOptions = {
   secure: process.env.NODE_ENV === "production",
   path: "/",
 };
-

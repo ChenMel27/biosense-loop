@@ -62,4 +62,4 @@ Before classroom use, the biology teacher must confirm that:
 - the fictional single-gene model is described as a simplified case;
 - all prompts and the scoring rubric stay within the boundaries above.
 
-Set `CONTENT_PACK_APPROVED=true` only after this review is documented.
+Create the classroom session only after this review is documented. ExitLoop will save the reviewed activity as an approved, versioned content pack for that session.

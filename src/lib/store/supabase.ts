@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { traitInheritancePack } from "@/content/trait-inheritance";
+import { resolveContentPack } from "@/content/teacher-draft";
+import { requireProductionSecret } from "@/lib/config";
 
 import {
   adaptiveConditions,
@@ -282,7 +284,23 @@ export class SupabaseResearchStore implements ResearchStore {
       .maybeSingle();
     if (error) throw new Error(error.message);
     const payload = data?.payload as Record<string, unknown> | undefined;
-    return (payload?.configuration as TeacherActivityConfiguration | undefined) ?? null;
+    const storedConfiguration = payload?.configuration as TeacherActivityConfiguration | undefined;
+    if (storedConfiguration) return storedConfiguration;
+
+    const session = await this.getSession(sessionId);
+    if (!session) return null;
+    const packQuery = await this.client
+      .from("content_packs")
+      .select("content, approved_at")
+      .eq("version_id", session.contentVersionId)
+      .maybeSingle();
+    if (packQuery.error) throw new Error(packQuery.error.message);
+    if (!packQuery.data) return null;
+    return {
+      mode: "teacher_authored",
+      contentPack: packQuery.data.content,
+      approvedAt: packQuery.data.approved_at,
+    } as TeacherActivityConfiguration;
   }
 
   async claimAvailableAttempt(session: StudySession) {
@@ -550,23 +568,30 @@ export class SupabaseResearchStore implements ResearchStore {
 
   async createSession(input: CreateSessionInput): Promise<SessionCreationResult> {
     const sessionId = randomUUID();
-    const sessionRow = {
-      id: sessionId,
-      title: input.title,
-      join_code: generateJoinCode(),
-      content_version_id: input.contentVersionId,
-      status: "draft",
-      assignment_seed: randomUUID(),
-      duration_minutes: input.durationMinutes,
-    };
-    const sessionQuery = await this.client
-      .from("sessions")
-      .insert(sessionRow)
-      .select("*")
-      .single();
-    const session = mapSession(
-      requireData(sessionQuery.data as SessionRow | null, sessionQuery.error, "Create session"),
-    );
+    const contentVersionId = input.contentPack
+      ? input.contentPack.versionId
+      : input.contentVersionId;
+    let session: StudySession | null = null;
+    for (let attempt = 0; attempt < 5 && !session; attempt += 1) {
+      const sessionQuery = await this.client
+        .from("sessions")
+        .insert({
+          id: sessionId,
+          title: input.title,
+          join_code: generateJoinCode(),
+          content_version_id: contentVersionId,
+          status: "draft",
+          assignment_seed: randomUUID(),
+          duration_minutes: input.durationMinutes,
+        })
+        .select("*")
+        .single();
+      if (sessionQuery.error?.code === "23505") continue;
+      session = mapSession(
+        requireData(sessionQuery.data as SessionRow | null, sessionQuery.error, "Create session"),
+      );
+    }
+    if (!session) throw new Error("Could not allocate a unique class code.");
     const conditions = adaptiveConditions(input.participantCount);
     const participants = Array.from({ length: input.participantCount }, (_, index) => {
       return {
@@ -580,28 +605,55 @@ export class SupabaseResearchStore implements ResearchStore {
       participant_tag: participant.participantTag,
       code_hash: hashInternalSlotKey(
         randomUUID(),
-        process.env.INTERNAL_SLOT_PEPPER ||
-          process.env.SESSION_SIGNING_SECRET ||
-          "internal-slot",
+        requireProductionSecret("INTERNAL_SLOT_PEPPER", "development-internal-slot-pepper"),
       ),
       assigned_condition: participant.condition,
       eligible: true,
     }));
-    const participantQuery = await this.client.from("participants").insert(rows);
-    if (participantQuery.error) throw new Error(participantQuery.error.message);
-    if (input.contentDraft) {
-      const configuration: TeacherActivityConfiguration = {
-        mode: "teacher_authored",
-        contentDraft: input.contentDraft,
-      };
-      const configurationQuery = await this.client.from("events").insert({
-        id: randomUUID(),
-        session_id: session.id,
-        attempt_id: null,
-        event_type: "teacher_activity_configured",
-        payload: { configuration },
-      });
-      if (configurationQuery.error) throw new Error(configurationQuery.error.message);
+    try {
+      if (input.contentPack) {
+        const contentPackQuery = await this.client.from("content_packs").insert({
+          version_id: input.contentPack.versionId,
+          pack_id: input.contentPack.id,
+          title: input.contentPack.title,
+          content: structuredClone(input.contentPack),
+          approved_at: input.approvedAt,
+        });
+        if (contentPackQuery.error) {
+          throw new Error(`Store approved content pack: ${contentPackQuery.error.message}`);
+        }
+      }
+      const participantQuery = await this.client.from("participants").insert(rows);
+      if (participantQuery.error) throw new Error(participantQuery.error.message);
+      if (input.contentPack || input.contentDraft) {
+        const configuration: TeacherActivityConfiguration = input.contentPack
+          ? {
+              mode: "teacher_authored",
+              approvedAt: input.approvedAt,
+              contentPack: structuredClone(input.contentPack),
+            }
+          : {
+              mode: "teacher_authored",
+              contentDraft: structuredClone(input.contentDraft!),
+            };
+        const configurationQuery = await this.client.from("events").insert({
+          id: randomUUID(),
+          session_id: session.id,
+          attempt_id: null,
+          event_type: "teacher_activity_configured",
+          payload: { configuration },
+        });
+        if (configurationQuery.error) throw new Error(configurationQuery.error.message);
+      }
+    } catch (error) {
+      await this.client.from("sessions").delete().eq("id", session.id);
+      if (input.contentPack) {
+        await this.client
+          .from("content_packs")
+          .delete()
+          .eq("version_id", input.contentPack.versionId);
+      }
+      throw error;
     }
     return { session };
   }
@@ -616,12 +668,21 @@ export class SupabaseResearchStore implements ResearchStore {
   }
 
   async deleteSession(sessionId: string) {
+    const session = await this.getSession(sessionId);
+    if (!session) return false;
     const { data, error } = await this.client
       .from("sessions")
       .delete()
       .eq("id", sessionId)
       .select("id");
     if (error) throw new Error(error.message);
+    if (data?.length && session.contentVersionId.startsWith("teacher-")) {
+      const packDelete = await this.client
+        .from("content_packs")
+        .delete()
+        .eq("version_id", session.contentVersionId);
+      if (packDelete.error) throw new Error(packDelete.error.message);
+    }
     return Boolean(data?.length);
   }
 
@@ -659,6 +720,7 @@ export class SupabaseResearchStore implements ResearchStore {
     const participants = ((participantQuery.data ?? []) as ParticipantRow[]).map(mapParticipant);
     const attempts = ((attemptQuery.data ?? []) as AttemptRow[]).map(mapAttempt);
     const activityConfiguration = await this.getTeacherActivityConfiguration(sessionId);
+    const contentPack = resolveContentPack(session.contentVersionId, activityConfiguration);
     const displayNamesByAttempt = new Map<string, string>();
     for (const event of (nameEventQuery.data ?? []) as EventRow[]) {
       const displayName = event.payload.displayName;
@@ -762,7 +824,7 @@ export class SupabaseResearchStore implements ResearchStore {
         adaptive: participants.length,
       },
       fallbackCount: decisions.filter(
-        (item) => item.displayedPromptId === traitInheritancePack.fallbackPrompt.id,
+        (item) => item.displayedPromptId === (contentPack?.fallbackPrompt.id ?? traitInheritancePack.fallbackPrompt.id),
       ).length,
       ideaCounts,
       missingIdeaCounts,
@@ -777,6 +839,10 @@ export class SupabaseResearchStore implements ResearchStore {
   }
 
   async exportSession(sessionId: string) {
+    const [session, configuration] = await Promise.all([
+      this.getSession(sessionId),
+      this.getTeacherActivityConfiguration(sessionId),
+    ]);
     const { data, error } = await this.client
       .from("research_export")
       .select("*")
@@ -786,7 +852,12 @@ export class SupabaseResearchStore implements ResearchStore {
       const cleaned = { ...row } as Record<string, string | number | boolean | null>;
       delete cleaned.teacher_study_run_id;
       delete cleaned.response_source;
-      return { ...cleaned, condition: "adaptive" };
+      return {
+        ...cleaned,
+        condition: "adaptive",
+        content_version_id: session?.contentVersionId ?? null,
+        content_approved_at: configuration?.approvedAt ?? null,
+      };
     }) as Array<
       Record<string, string | number | boolean | null>
     >;

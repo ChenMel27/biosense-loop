@@ -1,4 +1,5 @@
 import type { Course, GradeLevel } from "@/lib/domain/curriculum";
+import type { ContentPack } from "@/content/trait-inheritance";
 
 export type Condition = "adaptive";
 
@@ -194,16 +195,26 @@ export interface TeacherContentDraft {
   misconceptionIds?: string[];
   misconceptionLabels?: Record<string, string>;
   misconceptionDescriptions: Record<string, string>;
+  misconceptionSourceSupport?: Record<string, string>;
   misconceptionTeacherActions?: Record<string, string>;
   followUpIds?: string[];
   followUpTitles?: Record<string, string>;
   followUpPrompts: Record<string, string>;
   followUpTargetIds?: Record<string, string[]>;
+  sourceNotes?: string[];
+  teacherReviewChecks?: string[];
 }
 
 export interface TeacherActivityConfiguration {
   mode: "teacher_authored";
-  contentDraft: TeacherContentDraft;
+  /**
+   * Complete, immutable activity content used for this session. New sessions
+   * always store this snapshot so later edits cannot change a live activity.
+   */
+  contentPack?: ContentPack;
+  approvedAt?: string;
+  /** Legacy overlay retained only so sessions created before content snapshots continue to load. */
+  contentDraft?: TeacherContentDraft;
 }
 
 export interface TeacherUsabilitySubmission {

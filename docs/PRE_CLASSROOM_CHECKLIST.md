@@ -8,7 +8,7 @@ Do not run the student session until every required item is complete.
 - [ ] The school and research team have confirmed whether IRB review, district permission, parental permission, and student assent are required.
 - [ ] Participation and alternatives are explained without grade pressure or coercion.
 - [ ] If student-entered names are enabled, the school and research team have approved their storage and teacher-only display.
-- [ ] Students receive only their own access code and do not see the class roster.
+- [ ] Students receive the shared class code and do not see the class roster.
 - [ ] Research exports have been checked to confirm that student names, emails, and student IDs are absent.
 - [ ] Data retention, deletion, access, and incident-response responsibilities are documented.
 
@@ -19,15 +19,15 @@ Do not run the student session until every required item is complete.
 - [ ] The teacher has reviewed the beetle initial task, every response-specific probe, the clarification prompt, and the plant near-transfer task.
 - [ ] The teacher confirms that Punnett squares, probability, cell-division stages, and complex human traits are not required.
 - [ ] The misconception evidence map and scoring rubric have been reviewed by the advisor or a biology-education content expert.
-- [ ] The frozen content version is recorded and `CONTENT_PACK_APPROVED=true` is set only after approval.
+- [ ] The teacher has reviewed the generated or manually entered content and confirmed the version shown for the session.
+- [ ] The saved content pack has `teacherReviewStatus: approved`, a unique version ID, and an approval timestamp.
 
 ## Deployment and concurrency
 
 - [ ] The production deployment uses Supabase, not the in-memory demo store.
-- [ ] Database migration `001_initial.sql` has been applied.
-- [ ] Database migration `002_teacher_usability.sql` has been applied.
+- [ ] All files in `supabase/migrations` have been applied in numeric order, including `003_content_packs.sql`.
 - [ ] Production secrets are strong, unique, and unavailable to students.
-- [ ] The health endpoint reports the expected storage and classifier configuration.
+- [ ] The health endpoint returns HTTP 200 with `configuration: ready` and `storage: supabase`.
 - [ ] A 30-student load test has passed against the exact deployment build.
 - [ ] Student join, draft autosave, resume, revision, near-transfer, survey, teacher dashboard, and CSV export have been tested on school devices and network.
 - [ ] The teacher knows the class code and has told students which form of their name to enter.

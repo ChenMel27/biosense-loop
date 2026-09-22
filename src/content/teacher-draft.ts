@@ -4,6 +4,7 @@ import { formatGradeCourse } from "@/lib/domain/curriculum";
 import type { TeacherContentDraft } from "@/lib/domain/types";
 
 export const TEACHER_COMPLETION_PROMPT_ID = "teacher_complete_review";
+export const TEACHER_FALLBACK_PROMPT_ID = "teacher_clarification";
 
 export function lessonDraftToContentDraft(draft: EditableLessonDraft): TeacherContentDraft {
   const ideaIds = draft.targetIdeas.map((item) => item.id);
@@ -38,6 +39,9 @@ export function lessonDraftToContentDraft(draft: EditableLessonDraft): TeacherCo
     misconceptionDescriptions: Object.fromEntries(
       draft.possibleMisconceptions.map((item) => [item.id, item.description]),
     ),
+    misconceptionSourceSupport: Object.fromEntries(
+      draft.possibleMisconceptions.map((item) => [item.id, item.sourceSupport]),
+    ),
     misconceptionTeacherActions: Object.fromEntries(
       draft.possibleMisconceptions.map((item) => [item.id, item.suggestedTeacherResponse]),
     ),
@@ -45,19 +49,152 @@ export function lessonDraftToContentDraft(draft: EditableLessonDraft): TeacherCo
     followUpTitles: Object.fromEntries([
       ...questions.map((item) => [item.id, item.title]),
       [TEACHER_COMPLETION_PROMPT_ID, "Review your explanation"],
-      [traitInheritancePack.fallbackPrompt.id, "Clarify your explanation"],
+      [TEACHER_FALLBACK_PROMPT_ID, "Clarify your explanation"],
     ]),
     followUpPrompts: Object.fromEntries([
       ...questions.map((item) => [item.id, item.question]),
       [TEACHER_COMPLETION_PROMPT_ID, draft.completionQuestion],
-      [traitInheritancePack.fallbackPrompt.id, draft.clarificationQuestion],
+      [TEACHER_FALLBACK_PROMPT_ID, draft.clarificationQuestion],
     ]),
     followUpTargetIds: Object.fromEntries([
       ...questions.map((item) => [item.id, [item.targetId]]),
       [TEACHER_COMPLETION_PROMPT_ID, ideaIds],
-      [traitInheritancePack.fallbackPrompt.id, [...ideaIds, ...misconceptionIds]],
+      [TEACHER_FALLBACK_PROMPT_ID, [...ideaIds, ...misconceptionIds]],
     ]),
+    sourceNotes: draft.sourceNotes,
+    teacherReviewChecks: draft.teacherReviewChecks,
   };
+}
+
+interface ApprovedPackMetadata {
+  id: string;
+  versionId: string;
+  approvedAt: string;
+  estimatedMinutes: number;
+}
+
+/** Build a standalone classroom pack without inheriting content from the demo activity. */
+export function buildApprovedContentPack(
+  draft: TeacherContentDraft,
+  metadata: ApprovedPackMetadata,
+): ContentPack {
+  const ideaIds = draft.ideaIds ?? Object.keys(draft.ideaDescriptions);
+  const misconceptionIds = draft.misconceptionIds ?? Object.keys(draft.misconceptionDescriptions);
+  const activeTargetIds = new Set([...ideaIds, ...misconceptionIds]);
+  const completionPromptId = draft.completionPromptId ?? TEACHER_COMPLETION_PROMPT_ID;
+  const requestedFollowUpIds = draft.followUpIds ?? Object.keys(draft.followUpPrompts);
+  const followUpIds = requestedFollowUpIds.filter(
+    (id) => id !== TEACHER_FALLBACK_PROMPT_ID,
+  );
+
+  if (!ideaIds.length) throw new Error("The approved activity needs at least one target idea.");
+  if (!followUpIds.includes(completionPromptId)) {
+    throw new Error("The approved activity is missing its complete-response question.");
+  }
+  if (!draft.followUpPrompts[TEACHER_FALLBACK_PROMPT_ID]) {
+    throw new Error("The approved activity is missing its clarification question.");
+  }
+
+  const followUps = followUpIds.map((id) => {
+    const targets = id === completionPromptId
+      ? ideaIds
+      : (draft.followUpTargetIds?.[id] ?? []).filter((targetId) =>
+          activeTargetIds.has(targetId),
+        );
+    if (!draft.followUpPrompts[id]) {
+      throw new Error(`The approved activity is missing follow-up question ${id}.`);
+    }
+    if (!targets.length) {
+      throw new Error(`Follow-up question ${id} is not connected to an active idea.`);
+    }
+    return {
+      id,
+      title: draft.followUpTitles?.[id] || "Follow up on your explanation",
+      text: draft.followUpPrompts[id],
+      targets,
+      sourceIds: [],
+    };
+  });
+
+  for (const targetId of activeTargetIds) {
+    const hasQuestion = followUps.some(
+      (prompt) => prompt.id !== completionPromptId && prompt.targets.includes(targetId),
+    );
+    if (!hasQuestion) {
+      throw new Error(`The approved activity needs a follow-up question for ${targetId}.`);
+    }
+  }
+
+  return {
+    id: metadata.id,
+    versionId: metadata.versionId,
+    title: draft.title || "Teacher-authored biology activity",
+    gradeBand:
+      draft.gradeBand ||
+      formatGradeCourse(draft.gradeLevel, draft.course) ||
+      "K–12 Biology",
+    standards: [],
+    scopeBoundary:
+      draft.scopeBoundary ||
+      "Classify only the scientific ideas and possible misconceptions approved for this activity.",
+    estimatedMinutes: metadata.estimatedMinutes,
+    teacherReviewStatus: "approved",
+    initialPrompt: {
+      id: "teacher_initial_explanation",
+      title: "Explain your thinking",
+      text: draft.initialPrompt,
+    },
+    completionPromptId,
+    fallbackPrompt: {
+      id: TEACHER_FALLBACK_PROMPT_ID,
+      title: draft.followUpTitles?.[TEACHER_FALLBACK_PROMPT_ID] || "Clarify your explanation",
+      text: draft.followUpPrompts[TEACHER_FALLBACK_PROMPT_ID],
+      targets: [...activeTargetIds],
+      sourceIds: [],
+    },
+    followUps,
+    nearTransferPrompt: {
+      id: "teacher_near_transfer",
+      title: "Apply your reasoning to a related example",
+      text:
+        draft.nearTransferPrompt ||
+        "Use the same scientific reasoning to explain this related example.",
+    },
+    ideas: ideaIds.map((id) => ({
+      id,
+      label: draft.ideaLabels?.[id] || "Target scientific idea",
+      description: draft.ideaDescriptions[id],
+      teacherAction: draft.ideaTeacherActions?.[id] || "Review selected student responses.",
+    })),
+    alternativeConceptions: misconceptionIds.map((id) => ({
+      id,
+      label: draft.misconceptionLabels?.[id] || "Possible misconception",
+      description: draft.misconceptionDescriptions[id],
+      teacherAction:
+        draft.misconceptionTeacherActions?.[id] || "Review selected student responses.",
+      sourceIds: [],
+      sourceSupport: draft.misconceptionSourceSupport?.[id] || "Teacher review required.",
+    })),
+    researchSources: [],
+    authoringNotes: draft.sourceNotes ?? [],
+    reviewChecks: draft.teacherReviewChecks ?? [],
+    approvedAt: metadata.approvedAt,
+    surveyDisclosure:
+      "ExitLoop selected one follow-up question from a list your teacher reviewed. The activity does not grade your response or decide whether you have mastered the lesson.",
+  };
+}
+
+export function resolveContentPack(
+  contentVersionId: string,
+  configuration: { contentPack?: ContentPack; contentDraft?: TeacherContentDraft } | null | undefined,
+) {
+  if (configuration?.contentPack?.versionId === contentVersionId) {
+    return configuration.contentPack;
+  }
+  const basePack = contentVersionId === traitInheritancePack.versionId
+    ? traitInheritancePack
+    : null;
+  return basePack ? applyTeacherContentDraft(basePack, configuration?.contentDraft) : null;
 }
 
 export function applyTeacherContentDraft(
@@ -129,6 +266,7 @@ export function applyTeacherContentDraft(
           original?.teacherAction ||
           "Teacher response not added yet.",
         sourceIds: original?.sourceIds ?? [],
+        sourceSupport: draft.misconceptionSourceSupport?.[id] || original?.sourceSupport,
       };
     }),
     followUps: followUpIds.map((id) => {

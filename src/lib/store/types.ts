@@ -15,14 +15,18 @@ import type {
   TeacherUsabilityEvent,
   TeacherUsabilitySubmission,
 } from "@/lib/domain/types";
+import type { ContentPack } from "@/content/trait-inheritance";
 
-export interface CreateSessionInput {
+interface CreateSessionBase {
   title: string;
   participantCount: number;
   durationMinutes: number;
-  contentVersionId: string;
-  contentDraft?: TeacherContentDraft;
 }
+
+export type CreateSessionInput = CreateSessionBase & (
+  | { contentPack: ContentPack; approvedAt: string; contentVersionId?: never; contentDraft?: never }
+  | { contentPack?: never; contentVersionId: string; contentDraft?: TeacherContentDraft }
+);
 
 export interface ResearchStore {
   getSessionByJoinCode(joinCode: string): Promise<StudySession | null>;

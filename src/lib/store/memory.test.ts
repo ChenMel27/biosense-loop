@@ -2,10 +2,36 @@ import { randomUUID } from "node:crypto";
 
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { traitInheritancePack } from "@/content/trait-inheritance";
 import { MemoryResearchStore, resetMemoryStore } from "@/lib/store/memory";
 
 describe("memory research store", () => {
   beforeEach(() => resetMemoryStore());
+
+  it("freezes a complete approved content pack for a new session", async () => {
+    const store = new MemoryResearchStore();
+    const contentPack = structuredClone(traitInheritancePack);
+    contentPack.id = "teacher-test-pack";
+    contentPack.versionId = "teacher-test-pack-v1";
+    contentPack.title = "Approved test activity";
+    contentPack.teacherReviewStatus = "approved";
+    contentPack.approvedAt = "2026-09-21T20:00:00.000Z";
+
+    const created = await store.createSession({
+      title: "Frozen content test",
+      participantCount: 2,
+      durationMinutes: 15,
+      contentPack,
+      approvedAt: contentPack.approvedAt,
+    });
+    contentPack.title = "Changed after session creation";
+
+    const configuration = await store.getTeacherActivityConfiguration(created.session.id);
+    expect(created.session.contentVersionId).toBe("teacher-test-pack-v1");
+    expect(configuration?.approvedAt).toBe("2026-09-21T20:00:00.000Z");
+    expect(configuration?.contentPack?.title).toBe("Approved test activity");
+    expect(configuration?.contentPack?.teacherReviewStatus).toBe("approved");
+  });
 
   it("shows a student-entered name to teachers but leaves it out of research exports", async () => {
     const store = new MemoryResearchStore();
