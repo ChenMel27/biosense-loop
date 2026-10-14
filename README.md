@@ -93,6 +93,7 @@ pnpm load-test
 ## Documentation
 
 - [Product design specification](docs/PRODUCT_DESIGN_SPEC.md)
+- [API reference](docs/API_REFERENCE.md)
 - [Data dictionary](docs/DATA_DICTIONARY.md)
 - [Production and classroom checklist](docs/PRE_CLASSROOM_CHECKLIST.md)
 - [Student experience design](docs/STUDENT_EXPERIENCE_REDESIGN.md)
