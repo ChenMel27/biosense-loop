@@ -563,24 +563,12 @@ code { padding: 2px 5px; border-radius: 5px; background: #eaf1ee; color: var(--t
 .dashboard-response-heading, .dashboard-response-heading > div { display: flex; align-items: center; justify-content: space-between; gap: 9px; }
 .dashboard-response-heading > div { justify-content: flex-start; }
 .dashboard-response-text { margin: 12px 0; padding: 12px 14px; border-radius: 8px; background: white; color: #3f514d; font-size: .8rem; line-height: 1.55; }
-.response-follow-up { display: grid; gap: 5px; margin-top: 2px; padding: 13px 15px; border-left: 3px solid var(--teal); background: #f2f8f5; }
-.response-follow-up > span { color: var(--teal-dark); font-size: .68rem; font-weight: 800; }
-.response-follow-up p { color: #304744; font-size: .82rem; line-height: 1.55; }
-.analysis-details { margin-top: 10px; border-top: 1px solid var(--line); }
-.analysis-details > summary, .full-analysis-details > summary { min-height: 44px; display: flex; align-items: center; width: fit-content; cursor: pointer; color: var(--teal-dark); font-size: .76rem; font-weight: 800; }
-.analysis-details > summary:hover, .full-analysis-details > summary:hover { color: var(--teal); }
-.analysis-details[open] > summary { margin-bottom: 10px; }
 .dashboard-routing-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .dashboard-routing-summary > div { display: grid; gap: 4px; padding: 10px; border-radius: 8px; background: #eaf3ef; }
 .dashboard-routing-summary small { color: var(--teal-dark); font-size: .62rem; font-weight: 850; text-transform: uppercase; letter-spacing: .04em; }
 .dashboard-routing-summary span { color: var(--ink-soft); font-size: .72rem; line-height: 1.45; }
 .dashboard-routing-summary em { color: #5c6d68; font-size: .68rem; line-height: 1.45; }
 .dashboard-routing-summary .routing-evidence-review { grid-column: 1 / -1; padding: 13px; border: 1px solid #c7d8f4; background: #f4f7ff; }
-.full-analysis-details { padding: 20px 25px; }
-.full-analysis-details[open] > summary { margin-bottom: 6px; }
-.analysis-intro { max-width: 720px; margin-bottom: 20px; color: var(--ink-soft); font-size: .78rem; }
-.analysis-section { min-width: 0; padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; background: #fafcfb; }
-.analysis-section .section-heading h2 { font-size: 1.35rem; }
 .routing-evidence-review ul { display: grid; gap: 10px; margin: 6px 0 0; padding: 0; list-style: none; }
 .routing-evidence-review li { display: grid; gap: 4px; }
 .routing-evidence-review li > span { color: #294e93; font-weight: 800; }
