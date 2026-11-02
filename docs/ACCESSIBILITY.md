@@ -33,9 +33,9 @@ Test these routes on the deployed build:
 | --- | --- | --- | --- | --- |
 | Home and role selection | Required | Required | Required | Required |
 | Student join | Required | Required | Required | Required |
-| Initial response through survey | Required | Required | Required | Required |
+| Application response through learning summary | Required | Required | Required | Required |
 | Teacher login and workspace | Required | Required | Required | Required |
-| Activity upload and five review steps | Required | Required | Required | Required |
+| Activity upload and four review steps | Required | Required | Required | Required |
 | Live and closed session dashboard | Required | Required | Required | Required |
 | Delete confirmation and error recovery | Required | Required | Required | Required |
 

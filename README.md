@@ -1,36 +1,35 @@
 # ExitLoop
 
-ExitLoop is a teacher-governed formative-assessment platform for biology classrooms. A teacher prepares a short explanation activity, reviews the scientific ideas and possible misconceptions the system may use, and approves a bank of follow-up questions. Students respond with a class code and their name. ExitLoop uses constrained AI to select one approved follow-up question, then gives the teacher a concise view of common class patterns.
+ExitLoop is a teacher-governed formative-assessment platform for biology classrooms. A teacher prepares one short, application-based explanation activity and reviews the scientific ideas and possible misconceptions the system may use. Students respond with a class code and their name. ExitLoop uses constrained AI to analyze each explanation, gives the student a brief answer-neutral learning summary, and gives the teacher a concise view of common class patterns.
 
-ExitLoop does not generate questions during a student session, assign grades, or decide mastery.
+ExitLoop does not generate feedback during a student session, assign grades, or decide mastery.
 
 ## Current product flow
 
 ### Teacher
 
 1. Sign in and open **Create activity**.
-2. Upload lesson materials for an AI-created draft, or start with the guided blank form.
-3. Review and edit the student reading, explanation question, target ideas, possible misconceptions, question mappings, clarification question, and related example.
-4. Create a session. ExitLoop saves the reviewed activity as a standalone, approved content pack with a unique version ID. That snapshot cannot be changed by later edits.
+2. Upload PDF, PowerPoint, Word, or text lesson materials for an AI-created draft, or start with the guided blank form. Optional objective, evidence, common-confusion, and vocabulary fields can make the draft more focused.
+3. Review and edit the grade-appropriate student reading, application question, target ideas, and possible misconceptions. The question must require explanation, prediction, evidence use, or another form of application rather than simple recall.
+4. Create a four-to-six-minute session. ExitLoop saves the reviewed activity as a standalone, approved content pack with a unique version ID. That snapshot cannot be changed by later edits.
 5. Share the class code and monitor completion.
 6. Close the session, inspect named submissions and class patterns, record a next instructional action, and export de-identified CSV or JSON data.
 
 ### Student
 
 1. Join with the shared class code and the name the teacher recognizes.
-2. Read the lesson-specific information and submit an initial explanation.
-3. Receive one response-specific question selected from the teacher-reviewed bank.
-4. Revise the explanation.
-5. Review a low-stakes summary of the initial response: the learning goal, ideas already supported, the focus of the follow-up, and two strategy checks. The summary does not regrade the revision.
-6. Apply the same reasoning to a feedback-supported related example and complete a short experience survey.
+2. Read one lesson-specific application scenario and write at least three complete sentences using evidence from the question.
+3. Submit once and receive a brief learning summary showing ideas the response demonstrated and one relationship to keep thinking about.
+4. Finish without a score. The teacher reviews class patterns and the responses behind them.
 
 ## How AI is used
 
 Lesson authoring and student routing are separate AI tasks.
 
-- During authoring, OpenAI can organize teacher-provided lesson materials into an editable draft. The teacher must review the science, scope, possible misconceptions, and questions before opening a session.
-- During routing, OpenAI receives redacted response text and the frozen content pack. Its structured output is limited to approved idea IDs, approved possible-misconception IDs, exact supporting quotes, confidence, reason codes, and an approved prompt ID. Server code verifies every quote against the submitted response, removes unsupported positive labels, validates the route, and displays the stored question text.
-- If routing is disabled, unavailable, invalid, or uncertain, ExitLoop uses the approved clarification question. The built-in inheritance demonstration also has a deterministic keyword fallback for local testing.
+- During authoring, OpenAI can organize teacher-provided lesson materials into an editable draft. The selected grade controls the surrounding language while required scientific vocabulary is preserved. The teacher must review the science, wording, scope, and possible misconceptions before opening a session.
+- During response analysis, OpenAI receives redacted response text and the frozen content pack. Its structured output is limited to approved idea IDs, approved possible-misconception IDs, exact supporting quotes, confidence, reason codes, and one internal focus ID. Server code verifies every quote, removes unsupported positive labels, and uses the focus to organize the summary. No generated answer or follow-up question is shown.
+- The model may separately flag up to two exact phrases for teacher review when reasoning appears incompatible, irrelevant, or outside the approved bank. Teachers can confirm or dismiss the suggestion. These flags never reroute the student, change the live bank, enter class counts, or appear in student feedback.
+- If live analysis is disabled, unavailable, invalid, or uncertain, ExitLoop records a fallback state and gives the student a neutral summary that asks the teacher to review the response. The built-in inheritance demonstration also has a deterministic keyword fallback for local testing.
 
 Uploaded files are used to produce the draft and are not saved by ExitLoop. Student names are not sent to OpenAI and are excluded from research exports.
 

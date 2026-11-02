@@ -37,6 +37,18 @@ export function createClassificationSchema(pack: ContentPack) {
         "insufficient_evidence",
       ]),
     ),
+    teacher_review_signals: z.array(
+      z.object({
+        category: z.enum([
+          "incompatible_with_approved_idea",
+          "irrelevant_or_off_topic",
+          "possible_out_of_bank_reasoning",
+        ]),
+        evidence_quote: z.string().min(1).max(500),
+        proposed_interpretation: z.string().min(1).max(240),
+        rationale: z.string().min(1).max(400),
+      }),
+    ).max(2),
   });
 }
 
@@ -44,4 +56,4 @@ export const classificationSchema = createClassificationSchema(traitInheritanceP
 
 export type RawClassification = z.infer<typeof classificationSchema>;
 
-export const CLASSIFIER_SCHEMA_VERSION = "teacher-approved-classifier-v3";
+export const CLASSIFIER_SCHEMA_VERSION = "teacher-approved-classifier-v4";

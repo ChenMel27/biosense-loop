@@ -7,9 +7,36 @@ import {
   TEACHER_COMPLETION_PROMPT_ID,
   TEACHER_FALLBACK_PROMPT_ID,
 } from "@/content/teacher-draft";
+import { approveTeacherContentPack } from "@/content/approve-teacher-pack";
 import { traitInheritancePack } from "@/content/trait-inheritance";
 
 describe("teacher content draft", () => {
+  it("forces every newly approved activity into the single-response flow", () => {
+    const contentDraft = lessonDraftToContentDraft({
+      lessonTitle: "Cell transport",
+      gradeLevel: "Grade 10",
+      course: "Biology",
+      topic: "Osmosis",
+      scopeBoundary: "Evaluate only water movement and membrane evidence.",
+      studentContext: "A cell is placed in salt water during a lab investigation.",
+      studentPrompt: "Predict which way water moves, explain why, and use one fact from the scenario as evidence.",
+      requiredVocabulary: "osmosis, concentration gradient",
+      targetIdeas: [{ id: "water_direction", label: "Water movement", description: "The response states the direction of water movement.", suggestedTeacherResponse: "Draw a concentration diagram." }],
+      possibleMisconceptions: [{ id: "water_pulled", label: "Salt pulls water", description: "The response describes a pulling force.", sourceSupport: "Teacher review", suggestedTeacherResponse: "Contrast a force claim with particle movement." }],
+      sourceNotes: [],
+      teacherReviewChecks: [],
+    });
+    const approved = approveTeacherContentPack(
+      { ...contentDraft, activityFlow: "legacy_learning_loop", includeTransfer: true },
+      6,
+      "2026-10-31T16:00:00.000Z",
+    );
+
+    expect(approved.contentPack.activityFlow).toBe("single_response");
+    expect(approved.contentPack.includeTransfer).toBe(false);
+    expect(approved.contentPack.minimumInitialSentences).toBe(3);
+  });
+
   it("builds a standalone approved snapshot without inheriting demo content", () => {
     const draft = {
       title: "Photosynthesis and plant growth",
@@ -69,12 +96,9 @@ describe("teacher content draft", () => {
       scopeBoundary: "Evaluate only water movement and membrane evidence.",
       studentContext: "A cell is placed in salt water.",
       studentPrompt: "Explain which way water moves and why.",
-      nearTransferPrompt: "Explain water movement for a cell placed in fresh water.",
-      completionQuestion: "Review the evidence link before continuing.",
+      requiredVocabulary: "osmosis, concentration gradient",
       targetIdeas: [{ id: "water_direction", label: "Water movement", description: "The response states the direction of water movement.", suggestedTeacherResponse: "Draw a concentration diagram." }],
       possibleMisconceptions: [{ id: "water_pulled", label: "Salt pulls water", description: "The response describes a pulling force.", sourceSupport: "Teacher review", suggestedTeacherResponse: "Contrast a force claim with particle movement." }],
-      followUpQuestions: [{ id: "trace_water", title: "Trace the water", question: "Where is water more concentrated?", targetKind: "target_idea", targetId: "water_direction" }, { id: "check_pull", title: "Check the force claim", question: "Does salt pull water, or do particles move down a concentration gradient?", targetKind: "possible_misconception", targetId: "water_pulled" }],
-      clarificationQuestion: "Describe what is inside and outside the cell.",
       sourceNotes: [],
       teacherReviewChecks: [],
     });
@@ -83,11 +107,13 @@ describe("teacher content draft", () => {
     expect(pack.title).toBe("Cell transport");
     expect(pack.gradeBand).toBe("Grade 10 Biology");
     expect(pack.initialPrompt.text).toContain("A cell is placed in salt water.");
-    expect(pack.nearTransferPrompt.text).toContain("fresh water");
+    expect(pack.activityFlow).toBe("single_response");
+    expect(pack.includeTransfer).toBe(false);
+    expect(pack.essentialVocabulary).toEqual(["osmosis", "concentration gradient"]);
     expect(pack.completionPromptId).toBe(TEACHER_COMPLETION_PROMPT_ID);
     expect(pack.followUps.map((item) => item.id)).toEqual([
-      "trace_water",
-      "check_pull",
+      "analysis_idea_01",
+      "analysis_misconception_01",
       TEACHER_COMPLETION_PROMPT_ID,
     ]);
   });

@@ -16,7 +16,8 @@ export async function GET() {
   if (!pack) return apiError("The lesson content version is unavailable.", 503);
   const initialResponse = bundle.responses.find((item) => item.stage === "initial");
   const finalResponse = bundle.responses.find((item) => item.stage === "final");
-  const followUp = bundle.decision
+  const singleResponseFlow = pack.activityFlow === "single_response";
+  const followUp = bundle.decision && !singleResponseFlow
     ? [...pack.followUps, pack.fallbackPrompt].find(
         (prompt) => prompt.id === bundle.decision?.displayedPromptId,
       ) ?? pack.fallbackPrompt
@@ -28,9 +29,12 @@ export async function GET() {
       attemptKey: bundle.attempt.id,
       title: pack.title,
       gradeBand: pack.gradeBand,
+      activityFlow: pack.activityFlow ?? "legacy_learning_loop",
+      minimumInitialSentences: pack.minimumInitialSentences ?? 3,
       disclosure: pack.surveyDisclosure,
       initialPrompt: pack.initialPrompt,
-      nearTransferPrompt: pack.nearTransferPrompt,
+      includeTransfer: singleResponseFlow ? false : pack.includeTransfer ?? true,
+      nearTransferPrompt: singleResponseFlow ? null : pack.nearTransferPrompt,
       followUp,
       learningSummary: bundle.decision
         ? buildStudentLearningSummary(pack, bundle.decision, followUp)

@@ -3,6 +3,12 @@ import { randomUUID } from "node:crypto";
 import { traitInheritancePack } from "@/content/trait-inheritance";
 import { resolveContentPack } from "@/content/teacher-draft";
 import {
+  aggregateTeacherReviewSignals,
+  createTeacherReviewJudgmentEvent,
+  TEACHER_REVIEW_SIGNAL_JUDGED_EVENT,
+  TEACHER_REVIEW_SIGNAL_PROPOSED_EVENT,
+} from "@/lib/ai/teacher-review";
+import {
   adaptiveConditions,
   generateJoinCode,
   hashInternalSlotKey,
@@ -56,7 +62,7 @@ function buildDemoState(): MemoryState {
     contentVersionId: traitInheritancePack.versionId,
     status: "active",
     assignmentSeed: "demo-balanced-v1",
-    durationMinutes: 15,
+    durationMinutes: 6,
     createdAt: now(),
     launchedAt: now(),
     closedAt: null,
@@ -104,6 +110,20 @@ function removeWhere<T>(items: T[], predicate: (item: T) => boolean) {
   for (let index = items.length - 1; index >= 0; index -= 1) {
     if (predicate(items[index])) items.splice(index, 1);
   }
+}
+
+function canonicalDecisions(decisions: AiDecision[]) {
+  const seenAttempts = new Set<string>();
+  return [...decisions]
+    .sort(
+      (a, b) =>
+        b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id),
+    )
+    .filter((decision) => {
+      if (seenAttempts.has(decision.attemptId)) return false;
+      seenAttempts.add(decision.attemptId);
+      return true;
+    });
 }
 
 export function resetMemoryStore() {
@@ -220,7 +240,7 @@ export class MemoryResearchStore implements ResearchStore {
   }
 
   async appendDecision(decision: AiDecision) {
-    this.state.decisions.push(decision);
+    this.state.decisions.push({ ...decision, teacherReviewSignals: [] });
     if (decision.fallbackReason) {
       const attempt = this.state.attempts.find((item) => item.id === decision.attemptId);
       if (attempt) attempt.technicalStatus = "fallback";
@@ -237,6 +257,80 @@ export class MemoryResearchStore implements ResearchStore {
 
   async appendEvent(event: StudyEvent) {
     this.state.events.push(event);
+  }
+
+  async saveTeacherReviewJudgment(input: {
+    id: string;
+    sessionId: string;
+    signalId: string;
+    judgment: "confirmed" | "dismissed";
+    createdAt: string;
+  }) {
+    const sessionEvents = this.state.events.filter(
+      (event) =>
+        event.sessionId === input.sessionId &&
+        (event.eventType === TEACHER_REVIEW_SIGNAL_PROPOSED_EVENT ||
+          event.eventType === TEACHER_REVIEW_SIGNAL_JUDGED_EVENT),
+    );
+    const sessionDecisions = canonicalDecisions(
+      this.state.decisions.filter((decision) =>
+        this.state.attempts.some(
+          (attempt) =>
+            attempt.id === decision.attemptId && attempt.sessionId === input.sessionId,
+        ),
+      ),
+    );
+    const initialResponses = this.state.responses.filter(
+      (response) => response.stage === "initial",
+    );
+    const matches = [
+      ...aggregateTeacherReviewSignals(sessionEvents, {
+        sessionId: input.sessionId,
+        decisionIdsByAttempt: new Map(
+          sessionDecisions.map((decision) => [
+            decision.attemptId,
+            new Set([decision.id]),
+          ]),
+        ),
+        responseTextByAttempt: new Map(
+          initialResponses.map((response) => [
+            response.attemptId,
+            response.responseText,
+          ]),
+        ),
+      }).entries(),
+    ]
+      .flatMap(([attemptId, signals]) =>
+        signals
+          .filter((signal) => signal.id === input.signalId)
+          .map((signal) => ({ attemptId, signal })),
+      );
+    if (matches.length !== 1) return null;
+    const [{ attemptId, signal }] = matches;
+    const attempt = this.state.attempts.find(
+      (item) => item.id === attemptId && item.sessionId === input.sessionId,
+    );
+    const decision = this.state.decisions.find(
+      (item) => item.id === signal.decisionId && item.attemptId === attemptId,
+    );
+    const response = this.state.responses.find(
+      (item) => item.attemptId === attemptId && item.stage === "initial",
+    );
+    if (
+      !attempt ||
+      !decision ||
+      !response ||
+      response.responseText.slice(signal.startIndex, signal.endIndex) !== signal.quote
+    ) {
+      return null;
+    }
+    const event = createTeacherReviewJudgmentEvent({
+      ...input,
+      attemptId,
+      decisionId: signal.decisionId,
+    });
+    this.state.events.push(event);
+    return event;
   }
 
   async saveTeacherAction(action: TeacherInstructionalAction) {
@@ -366,11 +460,36 @@ export class MemoryResearchStore implements ResearchStore {
       complete: 0,
     };
     for (const attempt of attempts) counts[attempt.stage] += 1;
-    const decisions = this.state.decisions.filter((decision) =>
-      attempts.some((attempt) => attempt.id === decision.attemptId),
+    const decisions = canonicalDecisions(
+      this.state.decisions.filter((decision) =>
+        attempts.some((attempt) => attempt.id === decision.attemptId),
+      ),
     );
     const activityConfiguration = await this.getTeacherActivityConfiguration(sessionId);
     const contentPack = resolveContentPack(session.contentVersionId, activityConfiguration);
+    const teacherReviewEvents = this.state.events.filter(
+      (event) =>
+        event.sessionId === sessionId &&
+        (event.eventType === TEACHER_REVIEW_SIGNAL_PROPOSED_EVENT ||
+          event.eventType === TEACHER_REVIEW_SIGNAL_JUDGED_EVENT),
+    );
+    const teacherReviewSignalsByAttempt = aggregateTeacherReviewSignals(
+      teacherReviewEvents,
+      {
+        sessionId,
+        decisionIdsByAttempt: new Map(
+          decisions.map((decision) => [
+            decision.attemptId,
+            new Set([decision.id]),
+          ]),
+        ),
+        responseTextByAttempt: new Map(
+          this.state.responses
+            .filter((response) => response.stage === "initial")
+            .map((response) => [response.attemptId, response.responseText]),
+        ),
+      },
+    );
     const displayNamesByAttempt = new Map<string, string>();
     for (const event of this.state.events) {
       const displayName = event.payload.displayName;
@@ -429,6 +548,7 @@ export class MemoryResearchStore implements ResearchStore {
         );
         const decision = decisions.find((item) => item.attemptId === attempt.id);
         return {
+          attemptId: attempt.id,
           participantTag: attempt.participantTag,
           displayName: displayNamesByAttempt.get(attempt.id) ?? null,
           stage: attempt.stage,
@@ -442,6 +562,7 @@ export class MemoryResearchStore implements ResearchStore {
           provider: decision?.provider ?? null,
           evidenceSpans: decision?.evidenceSpans ?? [],
           routingTargetId: decision?.routingTargetId ?? null,
+          teacherReviewSignals: teacherReviewSignalsByAttempt.get(attempt.id) ?? [],
         };
       })
       .sort((a, b) => a.participantTag.localeCompare(b.participantTag));
@@ -475,6 +596,10 @@ export class MemoryResearchStore implements ResearchStore {
   async exportSession(sessionId: string) {
     const session = this.state.sessions.find((item) => item.id === sessionId);
     const configuration = await this.getTeacherActivityConfiguration(sessionId);
+    const contentPack = session
+      ? resolveContentPack(session.contentVersionId, configuration)
+      : null;
+    const singleResponseFlow = contentPack?.activityFlow === "single_response";
     const attempts = this.state.attempts.filter((item) => item.sessionId === sessionId);
     const teacherAction = [...this.state.teacherActions]
       .reverse()
@@ -497,7 +622,12 @@ export class MemoryResearchStore implements ResearchStore {
         completed_at: attempt.completedAt,
         initial_text: response("initial")?.responseText ?? null,
         initial_confidence: response("initial")?.confidenceChoice ?? null,
-        displayed_prompt_id: decision?.displayedPromptId ?? null,
+        activity_flow: contentPack?.activityFlow ?? "legacy_learning_loop",
+        displayed_prompt_id: singleResponseFlow ? null : decision?.displayedPromptId ?? null,
+        selected_feedback_focus_id: singleResponseFlow
+          ? decision?.displayedPromptId ?? null
+          : null,
+        prompt_displayed: Boolean(decision && !singleResponseFlow),
         ai_provider: decision?.provider ?? null,
         ai_model: decision?.model ?? null,
         ai_confidence: decision?.classificationConfidence ?? null,

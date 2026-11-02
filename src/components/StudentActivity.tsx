@@ -2,6 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import {
+  buildRevisionInstruction,
+  type LearningFocusKind,
+} from "@/lib/student/learning-summary";
+import { studentProgressSteps } from "@/lib/student/flow";
+import {
+  applicationResponseIssue,
+  countCompleteSentences,
+} from "@/lib/student/response-validation";
+
 type Stage = "initial" | "revision" | "transfer" | "survey" | "complete";
 type Confidence = "not_sure" | "somewhat_sure" | "very_sure";
 
@@ -16,15 +26,18 @@ interface ActivityState {
   attemptKey: string;
   title: string;
   gradeBand: string;
+  activityFlow: "single_response" | "legacy_learning_loop";
+  minimumInitialSentences: number;
   disclosure: string;
+  includeTransfer: boolean;
   initialPrompt: Prompt;
-  nearTransferPrompt: Prompt;
+  nearTransferPrompt: Prompt | null;
   followUp: Prompt | null;
   learningSummary: {
     initiallyCovered: string[];
     missingIdeas: string[];
     possibleMisconceptions: string[];
-    focusKind: "missing_idea" | "claim_to_reconsider" | "clarify_reasoning" | "evidence_check";
+    focusKind: LearningFocusKind;
     focusLabel: string;
     promptTitle: string;
     uncertain: boolean;
@@ -40,7 +53,6 @@ const confidenceOptions: Array<{ value: Confidence; label: string; note: string 
   { value: "very_sure", label: "Very sure", note: "My explanation feels connected" },
 ];
 
-const stageOrder: Stage[] = ["initial", "revision", "transfer", "survey", "complete"];
 function ConfidencePicker({
   value,
   onChange,
@@ -188,7 +200,16 @@ export function StudentActivity() {
   async function submit(action: "initial" | "revision" | "transfer" | "survey") {
     if (submitting) return;
     setError("");
-    if (action !== "survey" && (!confidence || text.trim().length < 20)) {
+    if (action === "initial" && activity?.activityFlow === "single_response") {
+      const responseIssue = applicationResponseIssue(
+        text,
+        activity.minimumInitialSentences,
+      );
+      if (responseIssue) {
+        setError(responseIssue);
+        return;
+      }
+    } else if (action !== "survey" && (!confidence || text.trim().length < 20)) {
       setError("Write at least one complete sentence and choose how sure you are.");
       return;
     }
@@ -204,7 +225,7 @@ export function StudentActivity() {
           : {
               action,
               responseText: text,
-              confidenceChoice: confidence,
+              ...(confidence ? { confidenceChoice: confidence } : {}),
               clientTimestamp: new Date().toISOString(),
             };
       const response = await fetch("/api/student/submit", {
@@ -242,9 +263,33 @@ export function StudentActivity() {
     );
   }
 
-  const currentIndex = stageOrder.indexOf(activity.stage);
-  const prompt = activity.stage === "transfer" ? activity.nearTransferPrompt : activity.initialPrompt;
+  const singleResponseFlow = activity.activityFlow === "single_response";
+  const progressSteps = studentProgressSteps(activity.includeTransfer, activity.activityFlow);
+  const currentIndex = activity.stage === "complete"
+    ? singleResponseFlow
+      ? progressSteps.findIndex((step) => step.id === "complete")
+      : progressSteps.length
+    : progressSteps.findIndex((step) => step.id === activity.stage);
+  const instructionalStepCount = activity.includeTransfer ? 3 : 2;
+  const prompt = activity.stage === "transfer"
+    ? activity.nearTransferPrompt ?? activity.initialPrompt
+    : activity.initialPrompt;
   const action = activity.stage as "initial" | "revision" | "transfer";
+  const responseGuidance =
+    singleResponseFlow && activity.stage === "initial"
+      ? `Write at least ${activity.minimumInitialSentences} complete sentences. Explain your thinking and use evidence from the question.`
+      :
+    activity.stage === "revision"
+      ? "One added or changed sentence is enough. Keep your full revised answer in the box."
+      : activity.stage === "transfer"
+        ? "Write 1 to 2 sentences about this new example."
+        : "Write 1 to 3 sentences in your own words.";
+  const responsePlaceholder =
+    activity.stage === "revision"
+      ? "Edit your first answer here"
+      : activity.stage === "transfer"
+        ? "Write about the new example here"
+        : "Explain what happens, why it happens, and which detail supports your thinking";
 
   return (
     <div className="activity-shell">
@@ -258,21 +303,86 @@ export function StudentActivity() {
           <p className="participant-label">Your class activity</p>
         </div>
         <ol className="progress-list" aria-label="Activity progress">
-          {["Explain", "Review and revise", "New example", "Finish"].map((label, index) => (
+          {progressSteps.map((step, index) => (
             <li
-              key={label}
+              key={step.id}
               className={index < currentIndex ? "done" : index === currentIndex ? "current" : ""}
               aria-current={index === currentIndex ? "step" : undefined}
             >
               <span>{index < currentIndex ? "✓" : index + 1}</span>
-              {label}
+              {step.label}
             </li>
           ))}
         </ol>
       </aside>
 
       <main className="activity-main" id="main-content" tabIndex={-1}>
-        {activity.stage === "complete" ? (
+        {activity.stage === "complete" && singleResponseFlow ? (
+          <section className="activity-card feedback-stage stack-xl">
+            <div className="feedback-hero">
+              <span className="feedback-check" aria-hidden="true">✓</span>
+              <div>
+                <span className="eyebrow">Response saved</span>
+                <h1>Here is a quick look at your explanation.</h1>
+                <p>This is feedback for reflection, not a grade or a complete answer.</p>
+              </div>
+            </div>
+
+            <div className="feedback-progress-grid">
+              <section className="feedback-strengths">
+                <span>Ideas you explained</span>
+                {activity.learningSummary?.initiallyCovered.length ? (
+                  <>
+                    <ul>
+                      {activity.learningSummary.initiallyCovered.slice(0, 2).map((idea) => (
+                        <li key={idea}><span aria-hidden="true">✓</span>{idea}</li>
+                      ))}
+                    </ul>
+                    {activity.learningSummary.initiallyCovered.length > 2 ? (
+                      <p>
+                        And {activity.learningSummary.initiallyCovered.length - 2} more approved
+                        {activity.learningSummary.initiallyCovered.length - 2 === 1 ? " idea" : " ideas"}.
+                      </p>
+                    ) : null}
+                  </>
+                ) : (
+                  <p>Your response gave your teacher a starting point, but ExitLoop could not confidently identify one of the approved ideas.</p>
+                )}
+              </section>
+
+              <section className="feedback-next-step">
+                <span className="feedback-step-number" aria-hidden="true">→</span>
+                <div>
+                  <span>One idea to keep thinking about</span>
+                  {activity.learningSummary?.uncertain ? (
+                    <p>Your teacher may need to read your response before identifying a specific next step.</p>
+                  ) : activity.learningSummary?.possibleMisconceptions[0] ? (
+                    <>
+                      <h2>{activity.learningSummary.possibleMisconceptions[0]}</h2>
+                      <p>Look back at the evidence and ask whether every part of this claim fits the scientific relationship.</p>
+                    </>
+                  ) : activity.learningSummary?.missingIdeas[0] ? (
+                    <>
+                      <h2>{activity.learningSummary.missingIdeas[0]}</h2>
+                      <p>This relationship was not clear in your response. Think about how it connects to your conclusion.</p>
+                    </>
+                  ) : (
+                    <>
+                      <h2>Connect your evidence and conclusion</h2>
+                      <p>Your response included the approved ideas. Keep checking that each conclusion is supported by a fact from the scenario.</p>
+                    </>
+                  )}
+                </div>
+              </section>
+            </div>
+
+            <p className="ai-disclosure">
+              This summary comes from automated analysis of your response using ideas and possible
+              misconceptions reviewed by your teacher. Your teacher can review the response and the analysis.
+            </p>
+            <div className="callout compact">You are finished. You may close this tab.</div>
+          </section>
+        ) : activity.stage === "complete" ? (
           <section className="activity-card completion-card stack-lg">
             <span className="status-icon success" aria-hidden="true">✓</span>
             <span className="eyebrow">Activity complete</span>
@@ -413,21 +523,28 @@ export function StudentActivity() {
             <div className="question-heading">
               <div className="heading-meta">
                 <span className="eyebrow">
-                  {activity.stage === "initial"
-                    ? "Step 1 of 3: Explain"
+                  {singleResponseFlow && activity.stage === "initial"
+                    ? "Application response"
+                    : activity.stage === "initial"
+                    ? `Step 1 of ${instructionalStepCount}: Explain`
                     : activity.stage === "revision"
-                      ? "Step 2 of 3: Review and revise"
-                      : "Step 3 of 3: Try a new example"}
+                      ? `Step 2 of ${instructionalStepCount}: Review and revise`
+                      : `Step ${instructionalStepCount} of ${instructionalStepCount}: Try a new example`}
                 </span>
                 <span className="save-status" aria-live="polite">
                   {saved === "saving" ? "Saving draft…" : saved === "saved" ? "Draft saved" : ""}
                 </span>
               </div>
-              <h1>{activity.stage === "revision" ? activity.followUp?.title ?? "Reconsider one idea" : prompt.title}</h1>
-              <p className="prompt-text">
-                {activity.stage === "revision" ? activity.followUp?.text : prompt.text}
-              </p>
+              <h1>{activity.stage === "revision" ? "Revise your first answer" : prompt.title}</h1>
+              {activity.stage !== "revision" ? <p className="prompt-text">{prompt.text}</p> : null}
             </div>
+
+            {activity.stage === "revision" ? (
+              <div className="callout compact neutral">
+                <strong>Question to help you</strong>
+                <p>{activity.followUp?.text ?? "What scientific connection could you make clearer?"}</p>
+              </div>
+            ) : null}
 
             {activity.stage === "revision" && activity.initialResponse ? (
               <>
@@ -441,6 +558,13 @@ export function StudentActivity() {
                   <p>{activity.initialResponse}</p>
                 </div>
               </>
+            ) : null}
+
+            {activity.stage === "revision" ? (
+              <div className="callout compact" id="revision-instruction">
+                <strong>What to change</strong>
+                <p>{buildRevisionInstruction(activity.learningSummary?.focusKind)}</p>
+              </div>
             ) : null}
 
             {activity.stage === "transfer" ? (
@@ -463,30 +587,42 @@ export function StudentActivity() {
                   setSaved("saving");
                   if (error) setError("");
                 }}
-                placeholder="Write your explanation here"
-                aria-describedby="explanation-help explanation-count"
+                placeholder={responsePlaceholder}
+                aria-describedby={`${activity.stage === "revision" ? "revision-instruction " : ""}explanation-help explanation-count`}
                 aria-invalid={Boolean(error)}
                 aria-errormessage={error ? "activity-error" : undefined}
               />
               <div className="field-meta">
-                <span id="explanation-help">Write 2 to 4 sentences in your own words.</span>
-                <span id="explanation-count">{text.length}/2000</span>
+                <span id="explanation-help">{responseGuidance}</span>
+                <span id="explanation-count">
+                  {singleResponseFlow
+                    ? `${countCompleteSentences(text)} of ${activity.minimumInitialSentences} sentences`
+                    : `${text.length}/2000`}
+                </span>
               </div>
             </div>
 
-            <ConfidencePicker value={confidence} onChange={setConfidence} errorId={error ? "activity-error" : undefined} />
+            {!singleResponseFlow ? (
+              <ConfidencePicker value={confidence} onChange={setConfidence} errorId={error ? "activity-error" : undefined} />
+            ) : null}
             <p className="ai-disclosure">{activity.disclosure}</p>
             {error ? <p className="form-error" id="activity-error" role="alert">{error}</p> : null}
             <button className="button primary submit-response" type="button" onClick={() => submit(action)} disabled={submitting || !online}>
               {submitting
                 ? activity.stage === "initial"
-                  ? "Choosing your next question…"
-                  : "Saving response…"
+                  ? singleResponseFlow
+                    ? "Reviewing your explanation…"
+                    : "Choosing your next question…"
+                  : activity.stage === "revision"
+                    ? "Saving revised answer…"
+                    : "Saving response…"
                 : activity.stage === "transfer"
                   ? "Submit new example"
                   : activity.stage === "revision"
-                    ? "Save revision and continue"
-                    : "Submit explanation"}
+                    ? "Save my revised answer"
+                    : singleResponseFlow
+                      ? "Submit response"
+                      : "Submit explanation"}
             </button>
           </section>
         )}

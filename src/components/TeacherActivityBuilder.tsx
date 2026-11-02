@@ -6,6 +6,7 @@ import Link from "next/link";
 import { LessonDraftGenerator } from "@/components/LessonDraftGenerator";
 import { lessonDraftToContentDraft } from "@/content/teacher-draft";
 import type { EditableLessonDraft } from "@/lib/ai/lesson-draft";
+import { applicationQuestionIssue } from "@/lib/authoring/application-question";
 
 interface CreatedSession {
   session: { id: string; joinCode: string; title: string };
@@ -14,35 +15,14 @@ interface CreatedSession {
 function validateDraft(draft: EditableLessonDraft) {
   if (!draft.lessonTitle.trim()) return "Add a lesson title.";
   if (!draft.gradeLevel) return "Select a grade.";
-  if (draft.studentContext.trim().length < 20 || draft.studentPrompt.trim().length < 20) {
-    return "Complete the student reading and first explanation question.";
-  }
-  if (draft.nearTransferPrompt.trim().length < 20) return "Add a complete related example for students.";
+  const applicationIssue = applicationQuestionIssue(draft.studentContext, draft.studentPrompt);
+  if (applicationIssue) return applicationIssue;
   if (!draft.targetIdeas.length) return "Keep at least one target idea.";
   if (draft.targetIdeas.some((item) => !item.label.trim() || item.description.trim().length < 4)) {
     return "Give every target idea a name and a clear description.";
   }
   if (draft.possibleMisconceptions.some((item) => !item.label.trim() || item.description.trim().length < 4)) {
     return "Give every misconception a name and a clear description.";
-  }
-  if (!draft.followUpQuestions.length) return "Keep at least one follow-up question.";
-  const activeTargets = new Set([
-    ...draft.targetIdeas.map((item) => item.id),
-    ...draft.possibleMisconceptions.map((item) => item.id),
-  ]);
-  if (draft.followUpQuestions.some((question) =>
-    !question.title.trim() ||
-    question.question.trim().length < 4 ||
-    !activeTargets.has(question.targetId)
-  )) {
-    return "Complete every follow-up question and connect it to a current idea or misconception.";
-  }
-  const uncovered = [...activeTargets].find(
-    (targetId) => !draft.followUpQuestions.some((question) => question.targetId === targetId),
-  );
-  if (uncovered) return "Every target idea and misconception needs a matching follow-up question.";
-  if (draft.completionQuestion.trim().length < 4 || draft.clarificationQuestion.trim().length < 4) {
-    return "Add both the complete-response and clarification questions.";
   }
   return "";
 }
@@ -51,7 +31,7 @@ export function TeacherActivityBuilder() {
   const [draft, setDraft] = useState<EditableLessonDraft | null>(null);
   const [title, setTitle] = useState("");
   const [participantCount, setParticipantCount] = useState(1);
-  const [durationMinutes, setDurationMinutes] = useState(15);
+  const [durationMinutes, setDurationMinutes] = useState(6);
   const [created, setCreated] = useState<CreatedSession | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
@@ -131,7 +111,7 @@ export function TeacherActivityBuilder() {
 
       <ol className="builder-progress" aria-label="Activity setup progress">
         <li className={!draft ? "current" : "complete"} aria-current={!draft ? "step" : undefined}><span>1</span><div><strong>Build the activity</strong><small>Add lesson materials or use the guided form</small></div></li>
-        <li className={created ? "complete" : draft ? "current" : ""} aria-current={draft && !created ? "step" : undefined}><span>2</span><div><strong>Review the draft</strong><small>Check the student activity and follow-up questions</small></div></li>
+        <li className={created ? "complete" : draft ? "current" : ""} aria-current={draft && !created ? "step" : undefined}><span>2</span><div><strong>Review the draft</strong><small>Check the application question and learning focus</small></div></li>
         <li className={created ? "current" : ""} aria-current={created ? "step" : undefined}><span>3</span><div><strong>Open the class</strong><small>Create and share one class code</small></div></li>
       </ol>
 
@@ -164,8 +144,10 @@ export function TeacherActivityBuilder() {
             </div>
             <div className="field">
               <label htmlFor="activity-duration">Expected time <span>(minutes)</span></label>
-              <input id="activity-duration" type="number" min={8} max={25} value={durationMinutes} onChange={(event) => setDurationMinutes(Number(event.target.value))} required aria-describedby="activity-duration-help" />
-              <span className="field-note" id="activity-duration-help">Choose 8 to 25 minutes.</span>
+              <input id="activity-duration" type="number" min={4} max={15} value={durationMinutes} onChange={(event) => setDurationMinutes(Number(event.target.value))} required aria-describedby="activity-duration-help" />
+              <span className="field-note" id="activity-duration-help">
+                Most students should finish in about four to six minutes. This is an estimate, not a countdown.
+              </span>
             </div>
           </div>
           <div className="callout compact neutral">

@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: { default: "ExitLoop", template: "%s | ExitLoop" },
-  description: "A biology exit ticket that helps students revise their thinking and helps teachers find common gaps.",
+  description: "A biology exit ticket that helps students explain their thinking and helps teachers find common gaps.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

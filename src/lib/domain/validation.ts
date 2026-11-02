@@ -23,7 +23,7 @@ export const studentSubmissionSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("initial"),
     responseText: responseTextSchema,
-    confidenceChoice: confidenceChoiceSchema,
+    confidenceChoice: confidenceChoiceSchema.optional(),
     clientTimestamp: z.string().datetime().optional(),
   }),
   z.object({
@@ -55,7 +55,7 @@ export const joinSchema = z.object({
 export const teacherSessionSchema = z.object({
   title: z.string().trim().min(4).max(120),
   participantCount: z.number().int().min(1).max(40),
-  durationMinutes: z.number().int().min(8).max(25).default(15),
+  durationMinutes: z.number().int().min(4).max(15).default(6),
 });
 
 const participantTagSchema = z
@@ -79,8 +79,12 @@ export const teacherContentDraftSchema = z.object({
   gradeBand: z.string().trim().min(2).max(160).optional(),
   gradeLevel: gradeLevelSchema.optional(),
   course: z.literal("Biology").optional(),
+  essentialVocabulary: z.array(z.string().trim().min(1).max(120)).max(30).optional(),
+  minimumInitialSentences: z.number().int().min(3).max(8).optional(),
   scopeBoundary: z.string().trim().min(10).max(2_000).optional(),
   initialPrompt: z.string().trim().min(20).max(4_000),
+  activityFlow: z.enum(["single_response", "legacy_learning_loop"]).optional(),
+  includeTransfer: z.boolean().optional(),
   nearTransferPrompt: z.string().trim().min(20).max(4_000).optional(),
   completionPromptId: z.string().trim().min(2).max(120).optional(),
   ideaIds: z.array(z.string().trim().min(2).max(120)).min(1).max(10).optional(),

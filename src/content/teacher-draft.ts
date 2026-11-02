@@ -1,4 +1,7 @@
-import { traitInheritancePack, type ContentPack } from "@/content/trait-inheritance";
+import {
+  getContentPack,
+  type ContentPack,
+} from "@/content/trait-inheritance";
 import type { EditableLessonDraft } from "@/lib/ai/lesson-draft";
 import { formatGradeCourse } from "@/lib/domain/curriculum";
 import type { TeacherContentDraft } from "@/lib/domain/types";
@@ -6,23 +9,46 @@ import type { TeacherContentDraft } from "@/lib/domain/types";
 export const TEACHER_COMPLETION_PROMPT_ID = "teacher_complete_review";
 export const TEACHER_FALLBACK_PROMPT_ID = "teacher_clarification";
 
-export function lessonDraftToContentDraft(draft: EditableLessonDraft): TeacherContentDraft {
+export function lessonDraftToContentDraft(
+  draft: EditableLessonDraft,
+): TeacherContentDraft {
   const ideaIds = draft.targetIdeas.map((item) => item.id);
   const misconceptionIds = draft.possibleMisconceptions.map((item) => item.id);
-  const activeTargetIds = new Set([...ideaIds, ...misconceptionIds]);
-  const questions = draft.followUpQuestions.filter((item) => activeTargetIds.has(item.targetId));
-  const followUpIds = [...questions.map((item) => item.id), TEACHER_COMPLETION_PROMPT_ID];
+  const analysisFocuses = [
+    ...draft.targetIdeas.map((item, index) => ({
+      id: `analysis_idea_${String(index + 1).padStart(2, "0")}`,
+      title: item.label,
+      text: `Primary analysis focus: missing or unclear relationship for ${item.label}.`,
+      targetId: item.id,
+    })),
+    ...draft.possibleMisconceptions.map((item, index) => ({
+      id: `analysis_misconception_${String(index + 1).padStart(2, "0")}`,
+      title: item.label,
+      text: `Primary analysis focus: possible incompatible claim for ${item.label}.`,
+      targetId: item.id,
+    })),
+  ];
+  const followUpIds = [
+    ...analysisFocuses.map((item) => item.id),
+    TEACHER_COMPLETION_PROMPT_ID,
+  ];
 
   return {
     title: draft.lessonTitle,
     gradeLevel: draft.gradeLevel || undefined,
     course: draft.course,
+    essentialVocabulary: draft.requiredVocabulary
+      .split(/[\n,;]+/)
+      .map((item) => item.trim())
+      .filter(Boolean),
+    minimumInitialSentences: 3,
     gradeBand: formatGradeCourse(draft.gradeLevel, draft.course),
     scopeBoundary: draft.scopeBoundary,
     initialPrompt: [draft.studentContext.trim(), draft.studentPrompt.trim()]
       .filter(Boolean)
       .join("\n\n"),
-    nearTransferPrompt: draft.nearTransferPrompt,
+    activityFlow: "single_response",
+    includeTransfer: false,
     completionPromptId: TEACHER_COMPLETION_PROMPT_ID,
     ideaIds,
     ideaLabels: Object.fromEntries(draft.targetIdeas.map((item) => [item.id, item.label])),
@@ -47,17 +73,17 @@ export function lessonDraftToContentDraft(draft: EditableLessonDraft): TeacherCo
     ),
     followUpIds,
     followUpTitles: Object.fromEntries([
-      ...questions.map((item) => [item.id, item.title]),
-      [TEACHER_COMPLETION_PROMPT_ID, "Review your explanation"],
-      [TEACHER_FALLBACK_PROMPT_ID, "Clarify your explanation"],
+      ...analysisFocuses.map((item) => [item.id, item.title]),
+      [TEACHER_COMPLETION_PROMPT_ID, "All approved ideas identified"],
+      [TEACHER_FALLBACK_PROMPT_ID, "Teacher review may be needed"],
     ]),
     followUpPrompts: Object.fromEntries([
-      ...questions.map((item) => [item.id, item.question]),
-      [TEACHER_COMPLETION_PROMPT_ID, draft.completionQuestion],
-      [TEACHER_FALLBACK_PROMPT_ID, draft.clarificationQuestion],
+      ...analysisFocuses.map((item) => [item.id, item.text]),
+      [TEACHER_COMPLETION_PROMPT_ID, "No missing or incompatible approved idea was selected as the primary focus."],
+      [TEACHER_FALLBACK_PROMPT_ID, "The response was too unclear or outside the approved scope for a confident primary focus."],
     ]),
     followUpTargetIds: Object.fromEntries([
-      ...questions.map((item) => [item.id, [item.targetId]]),
+      ...analysisFocuses.map((item) => [item.id, [item.targetId]]),
       [TEACHER_COMPLETION_PROMPT_ID, ideaIds],
       [TEACHER_FALLBACK_PROMPT_ID, [...ideaIds, ...misconceptionIds]],
     ]),
@@ -89,10 +115,10 @@ export function buildApprovedContentPack(
 
   if (!ideaIds.length) throw new Error("The approved activity needs at least one target idea.");
   if (!followUpIds.includes(completionPromptId)) {
-    throw new Error("The approved activity is missing its complete-response question.");
+    throw new Error("The approved activity is missing its complete-response analysis mapping.");
   }
   if (!draft.followUpPrompts[TEACHER_FALLBACK_PROMPT_ID]) {
-    throw new Error("The approved activity is missing its clarification question.");
+    throw new Error("The approved activity is missing its clarification analysis mapping.");
   }
 
   const followUps = followUpIds.map((id) => {
@@ -102,10 +128,10 @@ export function buildApprovedContentPack(
           activeTargetIds.has(targetId),
         );
     if (!draft.followUpPrompts[id]) {
-      throw new Error(`The approved activity is missing follow-up question ${id}.`);
+      throw new Error(`The approved activity is missing analysis mapping ${id}.`);
     }
     if (!targets.length) {
-      throw new Error(`Follow-up question ${id} is not connected to an active idea.`);
+      throw new Error(`Analysis mapping ${id} is not connected to an active idea.`);
     }
     return {
       id,
@@ -121,7 +147,7 @@ export function buildApprovedContentPack(
       (prompt) => prompt.id !== completionPromptId && prompt.targets.includes(targetId),
     );
     if (!hasQuestion) {
-      throw new Error(`The approved activity needs a follow-up question for ${targetId}.`);
+      throw new Error(`The approved activity needs an analysis mapping for ${targetId}.`);
     }
   }
 
@@ -133,6 +159,9 @@ export function buildApprovedContentPack(
       draft.gradeBand ||
       formatGradeCourse(draft.gradeLevel, draft.course) ||
       "K–12 Biology",
+    gradeLevel: draft.gradeLevel,
+    essentialVocabulary: draft.essentialVocabulary ?? [],
+    minimumInitialSentences: draft.minimumInitialSentences ?? 3,
     standards: [],
     scopeBoundary:
       draft.scopeBoundary ||
@@ -144,6 +173,8 @@ export function buildApprovedContentPack(
       title: "Explain your thinking",
       text: draft.initialPrompt,
     },
+    activityFlow: draft.activityFlow ?? "legacy_learning_loop",
+    includeTransfer: draft.includeTransfer ?? true,
     completionPromptId,
     fallbackPrompt: {
       id: TEACHER_FALLBACK_PROMPT_ID,
@@ -179,8 +210,9 @@ export function buildApprovedContentPack(
     authoringNotes: draft.sourceNotes ?? [],
     reviewChecks: draft.teacherReviewChecks ?? [],
     approvedAt: metadata.approvedAt,
-    surveyDisclosure:
-      "ExitLoop selected one follow-up question from a list your teacher reviewed. The activity does not grade your response or decide whether you have mastered the lesson.",
+    surveyDisclosure: draft.activityFlow === "single_response"
+      ? "ExitLoop compares your explanation with ideas and possible misconceptions reviewed by your teacher. It does not grade your response or decide whether you have mastered the lesson."
+      : "ExitLoop selected one follow-up question from a list your teacher reviewed. The activity does not grade your response or decide whether you have mastered the lesson.",
   };
 }
 
@@ -191,9 +223,7 @@ export function resolveContentPack(
   if (configuration?.contentPack?.versionId === contentVersionId) {
     return configuration.contentPack;
   }
-  const basePack = contentVersionId === traitInheritancePack.versionId
-    ? traitInheritancePack
-    : null;
+  const basePack = getContentPack(contentVersionId);
   return basePack ? applyTeacherContentDraft(basePack, configuration?.contentDraft) : null;
 }
 
@@ -228,12 +258,18 @@ export function applyTeacherContentDraft(
       draft.gradeBand ||
       formatGradeCourse(draft.gradeLevel, draft.course) ||
       pack.gradeBand,
+    gradeLevel: draft.gradeLevel ?? pack.gradeLevel,
+    essentialVocabulary: draft.essentialVocabulary ?? pack.essentialVocabulary,
+    minimumInitialSentences:
+      draft.minimumInitialSentences ?? pack.minimumInitialSentences ?? 3,
     scopeBoundary: draft.scopeBoundary || pack.scopeBoundary,
     completionPromptId,
     initialPrompt: {
       ...pack.initialPrompt,
       text: draft.initialPrompt || pack.initialPrompt.text,
     },
+    activityFlow: draft.activityFlow ?? pack.activityFlow ?? "legacy_learning_loop",
+    includeTransfer: draft.includeTransfer ?? pack.includeTransfer ?? true,
     nearTransferPrompt: {
       ...pack.nearTransferPrompt,
       text: draft.nearTransferPrompt || pack.nearTransferPrompt.text,

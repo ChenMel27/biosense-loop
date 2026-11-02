@@ -1,5 +1,7 @@
 # Trait-Inheritance Misconception Evidence Map
 
+> **Current labels with legacy prompt notes:** The target and misconception definitions still inform the built-in demonstration. References below to probes, revision, and displayed prompt routing describe the earlier learning-loop design. In the current single-response flow, the same mappings select an internal summary focus; no follow-up question is shown to the student.
+
 ## Purpose and interpretation
 
 These categories are observable response patterns used to choose a teacher-authored probe. They are not AI-generated diagnoses, stable traits of a learner, or research outcome scores. A relationship that is absent from a short answer is coded as missing evidence unless the student makes an explicit incompatible claim.

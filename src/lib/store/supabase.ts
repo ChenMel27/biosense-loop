@@ -5,6 +5,12 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { traitInheritancePack } from "@/content/trait-inheritance";
 import { resolveContentPack } from "@/content/teacher-draft";
 import { requireProductionSecret } from "@/lib/config";
+import {
+  aggregateTeacherReviewSignals,
+  createTeacherReviewJudgmentEvent,
+  TEACHER_REVIEW_SIGNAL_JUDGED_EVENT,
+  TEACHER_REVIEW_SIGNAL_PROPOSED_EVENT,
+} from "@/lib/ai/teacher-review";
 
 import {
   adaptiveConditions,
@@ -204,7 +210,17 @@ function mapDecision(row: DecisionRow): AiDecision {
     latencyMs: row.latency_ms,
     fallbackReason: row.fallback_reason,
     createdAt: row.created_at,
+    teacherReviewSignals: [],
   };
+}
+
+function canonicalDecisions(decisions: AiDecision[]) {
+  const seenAttempts = new Set<string>();
+  return decisions.filter((decision) => {
+    if (seenAttempts.has(decision.attemptId)) return false;
+    seenAttempts.add(decision.attemptId);
+    return true;
+  });
 }
 
 function mapSurvey(row: SurveyRow): StudentSurvey {
@@ -489,6 +505,75 @@ export class SupabaseResearchStore implements ResearchStore {
     if (error) throw new Error(error.message);
   }
 
+  async saveTeacherReviewJudgment(input: {
+    id: string;
+    sessionId: string;
+    signalId: string;
+    judgment: "confirmed" | "dismissed";
+    createdAt: string;
+  }) {
+    const reviewEventQuery = await this.client
+      .from("events")
+      .select("*")
+      .eq("session_id", input.sessionId)
+      .in("event_type", [
+        TEACHER_REVIEW_SIGNAL_PROPOSED_EVENT,
+        TEACHER_REVIEW_SIGNAL_JUDGED_EVENT,
+      ])
+      .order("created_at", { ascending: true });
+    if (reviewEventQuery.error) throw new Error(reviewEventQuery.error.message);
+    const reviewEvents = ((reviewEventQuery.data ?? []) as EventRow[]).map(mapEvent);
+    const matches = [...aggregateTeacherReviewSignals(reviewEvents).entries()]
+      .flatMap(([attemptId, signals]) =>
+        signals
+          .filter((signal) => signal.id === input.signalId)
+          .map((signal) => ({ attemptId, signal })),
+      );
+    if (matches.length !== 1) return null;
+    const [{ attemptId, signal }] = matches;
+    const [attemptQuery, decisionQuery, responseQuery] = await Promise.all([
+      this.client
+        .from("attempts")
+        .select("id")
+        .eq("id", attemptId)
+        .eq("session_id", input.sessionId)
+        .maybeSingle(),
+      this.client
+        .from("ai_decisions")
+        .select("id")
+        .eq("attempt_id", attemptId)
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      this.client
+        .from("response_stages")
+        .select("response_text")
+        .eq("attempt_id", attemptId)
+        .eq("stage", "initial")
+        .maybeSingle(),
+    ]);
+    if (attemptQuery.error) throw new Error(attemptQuery.error.message);
+    if (decisionQuery.error) throw new Error(decisionQuery.error.message);
+    if (responseQuery.error) throw new Error(responseQuery.error.message);
+    const responseText = responseQuery.data?.response_text;
+    if (
+      !attemptQuery.data ||
+      decisionQuery.data?.id !== signal.decisionId ||
+      typeof responseText !== "string" ||
+      responseText.slice(signal.startIndex, signal.endIndex) !== signal.quote
+    ) {
+      return null;
+    }
+    const event = createTeacherReviewJudgmentEvent({
+      ...input,
+      attemptId,
+      decisionId: signal.decisionId,
+    });
+    await this.appendEvent(event);
+    return event;
+  }
+
   async saveTeacherAction(action: TeacherInstructionalAction) {
     const { error } = await this.client.from("teacher_actions").insert({
       id: action.id,
@@ -695,7 +780,14 @@ export class SupabaseResearchStore implements ResearchStore {
   async getDashboardSnapshot(sessionId: string): Promise<DashboardSnapshot | null> {
     const session = await this.getSession(sessionId);
     if (!session) return null;
-    const [participantQuery, attemptQuery, eventQuery, nameEventQuery, teacherActionQuery] = await Promise.all([
+    const [
+      participantQuery,
+      attemptQuery,
+      eventQuery,
+      nameEventQuery,
+      teacherReviewEventQuery,
+      teacherActionQuery,
+    ] = await Promise.all([
       this.client.from("participants").select("*").eq("session_id", sessionId),
       this.client.from("attempts").select("*").eq("session_id", sessionId),
       this.client
@@ -711,6 +803,15 @@ export class SupabaseResearchStore implements ResearchStore {
         .eq("event_type", "student_joined")
         .order("created_at", { ascending: true }),
       this.client
+        .from("events")
+        .select("*")
+        .eq("session_id", sessionId)
+        .in("event_type", [
+          TEACHER_REVIEW_SIGNAL_PROPOSED_EVENT,
+          TEACHER_REVIEW_SIGNAL_JUDGED_EVENT,
+        ])
+        .order("created_at", { ascending: true }),
+      this.client
         .from("teacher_actions")
         .select("*")
         .eq("session_id", sessionId)
@@ -722,6 +823,9 @@ export class SupabaseResearchStore implements ResearchStore {
     if (attemptQuery.error) throw new Error(attemptQuery.error.message);
     if (eventQuery.error) throw new Error(eventQuery.error.message);
     if (nameEventQuery.error) throw new Error(nameEventQuery.error.message);
+    if (teacherReviewEventQuery.error) {
+      throw new Error(teacherReviewEventQuery.error.message);
+    }
     if (teacherActionQuery.error) throw new Error(teacherActionQuery.error.message);
     const participants = ((participantQuery.data ?? []) as ParticipantRow[]).map(mapParticipant);
     const attempts = ((attemptQuery.data ?? []) as AttemptRow[]).map(mapAttempt);
@@ -751,9 +855,13 @@ export class SupabaseResearchStore implements ResearchStore {
         .in(
           "attempt_id",
           attempts.map((attempt) => attempt.id),
-        );
+        )
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false });
       if (decisionQuery.error) throw new Error(decisionQuery.error.message);
-      decisions = ((decisionQuery.data ?? []) as DecisionRow[]).map(mapDecision);
+      decisions = canonicalDecisions(
+        ((decisionQuery.data ?? []) as DecisionRow[]).map(mapDecision),
+      );
     }
     const ideaCounts: Record<string, number> = {};
     const missingIdeaCounts: Record<string, number> = {};
@@ -781,6 +889,21 @@ export class SupabaseResearchStore implements ResearchStore {
       if (responseQuery.error) throw new Error(responseQuery.error.message);
       responses = ((responseQuery.data ?? []) as ResponseRow[]).map(mapResponse);
     }
+    const teacherReviewSignalsByAttempt = aggregateTeacherReviewSignals(
+      ((teacherReviewEventQuery.data ?? []) as EventRow[]).map(mapEvent),
+      {
+        sessionId,
+        decisionIdsByAttempt: new Map(
+          decisions.map((decision) => [
+            decision.attemptId,
+            new Set([decision.id]),
+          ]),
+        ),
+        responseTextByAttempt: new Map(
+          responses.map((response) => [response.attemptId, response.responseText]),
+        ),
+      },
+    );
     if (session.status === "closed" && attempts.length) {
       for (const decision of decisions) {
         const attempt = attempts.find((item) => item.id === decision.attemptId);
@@ -810,6 +933,7 @@ export class SupabaseResearchStore implements ResearchStore {
         const response = responses.find((item) => item.attemptId === attempt.id);
         const decision = decisions.find((item) => item.attemptId === attempt.id);
         return {
+          attemptId: attempt.id,
           participantTag: attempt.participantTag,
           displayName: displayNamesByAttempt.get(attempt.id) ?? null,
           stage: attempt.stage,
@@ -823,6 +947,7 @@ export class SupabaseResearchStore implements ResearchStore {
           provider: decision?.provider ?? null,
           evidenceSpans: decision?.evidenceSpans ?? [],
           routingTargetId: decision?.routingTargetId ?? null,
+          teacherReviewSignals: teacherReviewSignalsByAttempt.get(attempt.id) ?? [],
         };
       })
       .sort((a, b) => a.participantTag.localeCompare(b.participantTag));
@@ -859,6 +984,10 @@ export class SupabaseResearchStore implements ResearchStore {
       .select("*")
       .eq("session_id", sessionId);
     if (error) throw new Error(error.message);
+    const contentPack = session
+      ? resolveContentPack(session.contentVersionId, configuration)
+      : null;
+    const singleResponseFlow = contentPack?.activityFlow === "single_response";
     return (data ?? []).map((row) => {
       const cleaned = { ...row } as Record<string, string | number | boolean | null>;
       delete cleaned.teacher_study_run_id;
@@ -866,6 +995,12 @@ export class SupabaseResearchStore implements ResearchStore {
       return {
         ...cleaned,
         condition: "adaptive",
+        activity_flow: contentPack?.activityFlow ?? "legacy_learning_loop",
+        displayed_prompt_id: singleResponseFlow ? null : cleaned.displayed_prompt_id,
+        selected_feedback_focus_id: singleResponseFlow
+          ? cleaned.displayed_prompt_id
+          : null,
+        prompt_displayed: Boolean(cleaned.displayed_prompt_id && !singleResponseFlow),
         content_version_id: session?.contentVersionId ?? null,
         content_approved_at: configuration?.approvedAt ?? null,
       };

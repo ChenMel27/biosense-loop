@@ -4,7 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 
 import { traitInheritancePack } from "@/content/trait-inheritance";
 import { resolveContentPack } from "@/content/teacher-draft";
-import type { DashboardSnapshot, StudySession } from "@/lib/domain/types";
+import type {
+  DashboardSnapshot,
+  StudySession,
+  TeacherReviewJudgment,
+  TeacherReviewSignalCategory,
+} from "@/lib/domain/types";
 import { DeleteSessionButton } from "@/components/DeleteSessionButton";
 
 const actionOptions = [
@@ -21,6 +26,12 @@ const statusLabels: Record<StudySession["status"], string> = {
   closed: "Closed",
 };
 
+const teacherReviewCategoryLabels: Record<TeacherReviewSignalCategory, string> = {
+  incompatible_with_approved_idea: "May conflict with an approved idea",
+  irrelevant_or_off_topic: "May be irrelevant or off topic",
+  possible_out_of_bank_reasoning: "Possible reasoning outside the approved bank",
+};
+
 export function SessionDashboard({ initialSnapshot }: { initialSnapshot: DashboardSnapshot }) {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [updating, setUpdating] = useState(false);
@@ -31,6 +42,11 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
   const [actionNote, setActionNote] = useState(initialSnapshot.teacherAction?.note ?? "");
   const [savingAction, setSavingAction] = useState(false);
   const [showAllResponses, setShowAllResponses] = useState(false);
+  const [savingReviewKey, setSavingReviewKey] = useState<string | null>(null);
+  const [reviewError, setReviewError] = useState<{
+    key: string;
+    message: string;
+  } | null>(null);
 
   const resolvedContentPack = useMemo(
     () => resolveContentPack(
@@ -40,6 +56,8 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
     [snapshot.activityConfiguration, snapshot.session.contentVersionId],
   );
   const contentPack = resolvedContentPack ?? traitInheritancePack;
+  const singleResponseFlow = contentPack.activityFlow === "single_response";
+  const includeTransfer = !singleResponseFlow && (contentPack.includeTransfer ?? true);
   const contentLabels = useMemo(
     () =>
       Object.fromEntries([
@@ -108,18 +126,42 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
   const priorityRows = useMemo(
     () =>
       [
-        ...missingRows,
-        ...misconceptionRows.map((idea) => ({
+        ...misconceptionRows.map((idea, bankOrder) => ({
           ...idea,
-          kind: "Possible alternative conception" as const,
+          kind: "Possible misconception from approved bank" as const,
+          kindPriority: 0,
+          bankOrder,
+        })),
+        ...missingRows.map((idea, bankOrder) => ({
+          ...idea,
+          kindPriority: 1,
+          bankOrder,
         })),
       ]
         .filter((item) => item.count > 0)
-        .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
-        .slice(0, 2),
+        .sort(
+          (a, b) =>
+            a.kindPriority - b.kindPriority ||
+            b.count - a.count ||
+            a.bankOrder - b.bankOrder,
+        ),
     [missingRows, misconceptionRows],
   );
+  const primaryPattern = priorityRows[0] ?? null;
+  const primaryPatternExample = primaryPattern
+    ? snapshot.patternExamples[primaryPattern.id]?.[0] ?? null
+    : null;
+  const additionalPatterns = priorityRows.slice(1);
   const submittedRows = snapshot.submissionRows.filter((row) => row.responseText);
+  const teacherReviewSignalCount = submittedRows.reduce(
+    (count, row) => count + row.teacherReviewSignals.length,
+    0,
+  );
+  const pendingTeacherReviewCount = submittedRows.reduce(
+    (count, row) =>
+      count + row.teacherReviewSignals.filter((signal) => !signal.judgment).length,
+    0,
+  );
 
   async function setStatus(status: StudySession["status"]) {
     setUpdating(true);
@@ -180,6 +222,59 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
     }
   }
 
+  async function saveClassificationReview(
+    signalId: string,
+    judgment: TeacherReviewJudgment,
+  ) {
+    const reviewKey = signalId;
+    setSavingReviewKey(reviewKey);
+    setReviewError(null);
+    try {
+      const response = await fetch(
+        `/api/teacher/sessions/${snapshot.session.id}/classification-review`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ signalId, judgment }),
+        },
+      );
+      const result = (await response.json()) as {
+        error?: string;
+        review?: {
+          signalId: string;
+          judgment: TeacherReviewJudgment;
+          reviewedAt: string;
+        };
+      };
+      if (!response.ok || !result.review) {
+        throw new Error(result.error || "Unable to save this review.");
+      }
+      const savedReview = result.review;
+      setSnapshot((current) => ({
+        ...current,
+        submissionRows: current.submissionRows.map((row) => ({
+          ...row,
+          teacherReviewSignals: row.teacherReviewSignals.map((signal) =>
+            signal.id === savedReview.signalId
+              ? {
+                  ...signal,
+                  judgment: savedReview.judgment,
+                  reviewedAt: savedReview.reviewedAt,
+                }
+              : signal,
+          ),
+        })),
+      }));
+    } catch (caught) {
+      setReviewError({
+        key: reviewKey,
+        message: caught instanceof Error ? caught.message : "Unable to save this review.",
+      });
+    } finally {
+      setSavingReviewKey(null);
+    }
+  }
+
   return (
     <div className="teacher-dashboard stack-xl">
       <section className="session-hero">
@@ -221,85 +316,272 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
 
       <section className="metrics-grid" aria-label="Session status summary">
         <article className="metric-card accent">
-          <span>Completed</span>
+          <span>Students finished</span>
           <strong>{snapshot.counts.complete}<small> / {snapshot.participantCount}</small></strong>
           <div className="metric-bar"><span style={{ width: `${completionPercent}%` }} /></div>
-          <p>{completionPercent}% of assigned participants</p>
+          <p>{completionPercent}% of the class</p>
         </article>
         <article className="metric-card">
-          <span>Started</span>
+          <span>Students joined</span>
           <strong>{started}</strong>
-          <p>{snapshot.counts.not_started} not started</p>
+          <p>{snapshot.counts.not_started} have not started</p>
         </article>
         <article className="metric-card">
-          <span>In progress</span>
+          <span>Still working</span>
           <strong>{started - snapshot.counts.complete}</strong>
-          <p>{snapshot.counts.transfer} working on the new example</p>
+          <p>{singleResponseFlow
+            ? `${snapshot.counts.initial} writing their response`
+            : includeTransfer
+            ? `${snapshot.counts.transfer} on the related example`
+            : `${snapshot.counts.revision} revising their explanation`}</p>
         </article>
         <article className="metric-card">
-          <span>Needs clarification</span>
+          <span>{singleResponseFlow ? "Needs closer review" : "Clarification used"}</span>
           <strong>{snapshot.fallbackCount}</strong>
-          <p>Approved clarification question used</p>
+          <p>{singleResponseFlow
+            ? "Responses the system could not classify confidently"
+            : "Responses that needed a clearer starting point"}</p>
         </article>
       </section>
+
+      {snapshot.session.status === "closed" ? (
+        <section className="panel class-pattern-summary stack-lg">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Class snapshot</span>
+              <h2>What may need attention</h2>
+            </div>
+            <span className="small-note">Based on initial explanations. Review the students&apos; words before acting.</span>
+          </div>
+          {primaryPattern ? (
+            <>
+              <article className="primary-pattern-card">
+                <div className="primary-pattern-heading">
+                  <div>
+                    <span className="start-here-label">Start here</span>
+                    <span className="pattern-type-label">{primaryPattern.kind}</span>
+                    <h3>{primaryPattern.label}</h3>
+                  </div>
+                  <div className="primary-pattern-count" aria-label={`${primaryPattern.count} students showed this pattern`}>
+                    <strong>{primaryPattern.count}</strong>
+                    <span>student{primaryPattern.count === 1 ? "" : "s"}</span>
+                  </div>
+                </div>
+                <p className="pattern-priority-note">
+                  ExitLoop shows approved misconception patterns first, then the most common missing
+                  relationships in your reviewed order. Use this as a starting point, not a mastery decision.
+                </p>
+                <div className="primary-pattern-evidence">
+                  {primaryPatternExample?.evidenceSpans[0] ? (
+                    <>
+                      <small>Matched phrase from {primaryPatternExample.displayName ?? primaryPatternExample.participantTag}</small>
+                      <blockquote>“{primaryPatternExample.evidenceSpans[0].quote}”</blockquote>
+                    </>
+                  ) : primaryPatternExample ? (
+                    <>
+                      <small>Example response from {primaryPatternExample.displayName ?? primaryPatternExample.participantTag}</small>
+                      <blockquote>“{primaryPatternExample.responseText}”</blockquote>
+                      <span>No exact phrase supported this required relationship. An omission is not automatically a misconception.</span>
+                    </>
+                  ) : (
+                    <span>No example response is available for this pattern.</span>
+                  )}
+                </div>
+                <div className="primary-pattern-action">
+                  <strong>Suggested teacher move</strong>
+                  <p>{primaryPattern.teacherAction}</p>
+                </div>
+              </article>
+              {additionalPatterns.length ? (
+                <details className="additional-patterns-details">
+                  <summary>View {additionalPatterns.length} more class pattern{additionalPatterns.length === 1 ? "" : "s"}</summary>
+                  <div className="signal-list warning">
+                    {additionalPatterns.map((item) => (
+                      <div key={`${item.kind}-${item.id}`}>
+                        <span>
+                          <small className="pattern-type-label">{item.kind}</small>
+                          <strong>{item.label}</strong>
+                          <small>{item.count} student{item.count === 1 ? "" : "s"} showed this pattern</small>
+                          <small className="action-tip">{item.teacherAction}</small>
+                        </span>
+                        <b>{item.count}</b>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              ) : null}
+            </>
+          ) : (
+            <p className="small-note left">No common gaps were identified. Review individual responses before deciding what to do next.</p>
+          )}
+        </section>
+      ) : (
+        <section className="panel stack-lg">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Class snapshot</span>
+              <h2>Results will appear when you close the session</h2>
+            </div>
+          </div>
+          <p className="small-note left">For now, use the progress view below to see who is still working.</p>
+        </section>
+      )}
 
       <section className="panel stack-lg">
         <div className="section-heading">
           <div>
-            <span className="eyebrow">Student progress</span>
-            <h2>Activity progress</h2>
+            <span className="eyebrow">Live class view</span>
+            <h2>Where students are now</h2>
           </div>
           <span className="small-note">This view updates automatically while students work.</span>
         </div>
         <div className="stage-grid">
-          {[
-            ["Not started", snapshot.counts.not_started],
-            ["Initial explanation", snapshot.counts.initial],
-            ["Revising", snapshot.counts.revision],
-            ["New example", snapshot.counts.transfer],
-            ["Short survey", snapshot.counts.survey],
-            ["Complete", snapshot.counts.complete],
-          ].map(([label, count]) => (
+          {(singleResponseFlow
+            ? [
+                ["Not started", snapshot.counts.not_started],
+                ["Writing response", snapshot.counts.initial],
+                ["Complete", snapshot.counts.complete],
+              ]
+            : [
+                ["Not started", snapshot.counts.not_started],
+                ["Initial explanation", snapshot.counts.initial],
+                ["Revising", snapshot.counts.revision],
+                ...(includeTransfer ? [["New example", snapshot.counts.transfer]] : []),
+                ["Short survey", snapshot.counts.survey],
+                ["Complete", snapshot.counts.complete],
+              ]).map(([label, count]) => (
             <div key={String(label)}><strong>{count}</strong><span>{label}</span></div>
           ))}
         </div>
       </section>
 
-      <section className="panel stack-lg">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">Response review</span>
-            <h2>Responses and follow-up questions</h2>
-          </div>
-          <span className="small-note">
-            {submittedRows.length} of {snapshot.participantCount} initial responses
+      <details className="panel response-review-details">
+        <summary className="response-review-summary">
+          <span>
+            <span className="eyebrow">Student work</span>
+            <strong>Review all responses</strong>
           </span>
-        </div>
+          <small>
+            {submittedRows.length} of {snapshot.participantCount} initial responses
+            {pendingTeacherReviewCount
+              ? ` · ${pendingTeacherReviewCount} suggestion${pendingTeacherReviewCount === 1 ? "" : "s"} to review`
+              : teacherReviewSignalCount
+                ? " · Suggestions reviewed"
+                : ""}
+          </small>
+        </summary>
+        <div className="response-review-body stack-lg">
         {submittedRows.length ? <div className="dashboard-response-list">
           {(showAllResponses ? submittedRows : submittedRows.slice(0, 5)).map((row) => {
             const prompt = row.displayedPromptId ? prompts[row.displayedPromptId] : null;
             return (
-              <article className="dashboard-response" key={row.participantTag}>
+              <article className="dashboard-response" key={row.attemptId}>
                 <div className="dashboard-response-heading">
                   <div>
                     <span className="sample-id">{row.participantTag}</span>
                     <strong>{row.displayName ?? `Participant ${row.participantTag}`}</strong>
                   </div>
-                  <span className="confidence-chip">
-                    {row.classificationConfidence === null
-                      ? "Analyzing response"
-                      : row.provider === "openai"
-                        ? `OpenAI · ${Math.round(row.classificationConfidence * 100)}% confidence`
-                        : "Rule-based routing"}
-                  </span>
+                  {row.classificationConfidence === null ? (
+                    <span className="confidence-chip">Analyzing response</span>
+                  ) : null}
                 </div>
                 <p className="dashboard-response-text">
                   {row.responseText ?? "This participant has not submitted an initial explanation."}
                 </p>
+                {row.teacherReviewSignals.length ? (
+                  <section
+                    className="teacher-review-suggestions"
+                    aria-label={`Teacher review suggestions for ${row.displayName ?? row.participantTag}`}
+                  >
+                    <div className="teacher-review-intro">
+                      <strong>Teacher review suggestion</strong>
+                      <span>
+                        This is outside the approved bank. It did not change the student&apos;s
+                        feedback or the class counts.
+                      </span>
+                    </div>
+                    {row.teacherReviewSignals.map((signal) => {
+                      const saving = savingReviewKey === signal.id;
+                      const labelId = `teacher-review-${signal.id}`;
+                      return (
+                        <article
+                          className="teacher-review-suggestion"
+                          key={`${signal.decisionId}-${signal.id}`}
+                          aria-labelledby={labelId}
+                        >
+                          <div className="teacher-review-suggestion-heading">
+                            <strong id={labelId}>
+                              {teacherReviewCategoryLabels[signal.category]}
+                            </strong>
+                            <span className={`review-status ${signal.judgment ?? "pending"}`}>
+                              {signal.judgment === "confirmed"
+                                ? "Confirmed"
+                                : signal.judgment === "dismissed"
+                                  ? "Dismissed"
+                                  : "Needs review"}
+                            </span>
+                          </div>
+                          <p className="teacher-review-interpretation">
+                            {signal.proposedInterpretation}
+                          </p>
+                          <blockquote>“{signal.quote}”</blockquote>
+                          <p className="teacher-review-rationale">
+                            <strong>Why it was flagged:</strong> {signal.rationale}
+                          </p>
+                          <div
+                            className="teacher-review-actions"
+                            role="group"
+                            aria-label={`Review ${teacherReviewCategoryLabels[signal.category]}`}
+                          >
+                            <button
+                              className="button secondary"
+                              type="button"
+                              aria-busy={saving}
+                              aria-pressed={signal.judgment === "confirmed"}
+                              disabled={saving || signal.judgment === "confirmed"}
+                              onClick={() => saveClassificationReview(signal.id, "confirmed")}
+                            >
+                              Confirm as a possible issue
+                            </button>
+                            <button
+                              className="button ghost"
+                              type="button"
+                              aria-busy={saving}
+                              aria-pressed={signal.judgment === "dismissed"}
+                              disabled={saving || signal.judgment === "dismissed"}
+                              onClick={() => saveClassificationReview(signal.id, "dismissed")}
+                            >
+                              Dismiss suggestion
+                            </button>
+                          </div>
+                          {reviewError?.key === signal.id ? (
+                            <p className="form-error" role="alert">{reviewError.message}</p>
+                          ) : (
+                            <p className="teacher-review-result" aria-live="polite">
+                              {signal.judgment === "confirmed"
+                                ? "Saved as a possible issue for teacher review. The approved bank and student path are unchanged."
+                                : signal.judgment === "dismissed"
+                                  ? "Suggestion dismissed. The approved bank and student path are unchanged."
+                                  : "Choose whether this is useful for your review."}
+                            </p>
+                          )}
+                        </article>
+                      );
+                    })}
+                  </section>
+                ) : null}
+                {prompt && !singleResponseFlow ? (
+                  <div className="response-follow-up">
+                    <span>Follow-up question</span>
+                    <p>{prompt.text}</p>
+                  </div>
+                ) : null}
                 {prompt ? (
-                  <div className="dashboard-routing-summary">
+                  <details className="analysis-details">
+                    <summary>View analysis details</summary>
+                    <div className="dashboard-routing-summary">
                     <div className="routing-evidence-review">
-                      <small>Exact response evidence</small>
+                      <small>Evidence found in the response</small>
                       {row.evidenceSpans.length ? (
                         <ul>
                           {row.evidenceSpans.map((evidence) => (
@@ -310,25 +592,28 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
                           ))}
                         </ul>
                       ) : (
-                        <span>No positive label was supported by a server-verified quote.</span>
+                        <span>No target idea was supported by an exact phrase in this response.</span>
                       )}
                     </div>
                     <div>
-                      <small>Target ideas not identified</small>
+                      <small>Ideas not yet shown</small>
                       <span>{row.missingIdeaIds.map((id) => contentLabels[id] ?? id).join(", ") || "None"}</span>
                       {row.missingIdeaIds.length ? (
                         <em>No matching relationship was found. An omission is not automatically a misconception.</em>
                       ) : null}
                     </div>
                     <div>
-                      <small>Misconception to review</small>
+                      <small>Possible misconception</small>
                       <span>{row.possibleAlternativeConceptionIds.map((id) => contentLabels[id] ?? id).join(", ") || "None"}</span>
                     </div>
                     <div>
-                      <small>Follow-up shown</small>
-                      <span>{prompt.text}</span>
+                      <small>Analysis method</small>
+                      <span>{row.provider === "openai" && row.classificationConfidence !== null
+                        ? `AI classification · ${Math.round(row.classificationConfidence * 100)}% confidence`
+                        : "Rule-based classification"}</span>
                     </div>
                   </div>
+                  </details>
                 ) : null}
               </article>
             );
@@ -344,58 +629,14 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
             {showAllResponses ? "Show fewer responses" : `Show all ${submittedRows.length} responses`}
           </button>
         ) : null}
-      </section>
+        </div>
+      </details>
 
-      {snapshot.session.status === "closed" ? (
-        <section className="panel stack-lg">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">Class patterns</span>
-              <h2>Review these patterns first</h2>
-            </div>
-            <span className="small-note">Counts are signals for review, not grades.</span>
-          </div>
-          {priorityRows.length ? (
-            <div className="signal-list warning">
-              {priorityRows.map((item) => (
-                <div key={`${item.kind}-${item.id}`}>
-                  <span>
-                    <strong>{item.label}</strong>
-                    <small>{item.count} response{item.count === 1 ? "" : "s"}. {item.kind}</small>
-                    <small className="action-tip">{item.teacherAction}</small>
-                    {(snapshot.patternExamples[item.id] ?? []).map((example) => (
-                      <span key={`${item.id}-${example.participantTag}`} className="response-example">
-                        <small>{example.displayName ?? example.participantTag}: “{example.responseText}”</small>
-                        {example.evidenceSpans[0] ? (
-                          <small className="matched-evidence">Matched phrase: “{example.evidenceSpans[0].quote}”</small>
-                        ) : (
-                          <small className="missing-evidence-note">No phrase matched this required relationship.</small>
-                        )}
-                      </span>
-                    ))}
-                  </span>
-                  <b>{item.count}</b>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="small-note left">No common gaps were identified. Review individual responses before deciding what to do next.</p>
-          )}
-        </section>
-      ) : (
-        <section className="panel stack-lg">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">Class results</span>
-              <h2>Patterns will appear after the session closes.</h2>
-            </div>
-          </div>
-          <p className="small-note">While students work, this page only shows completion and technical information.</p>
-        </section>
-      )}
-
-      {snapshot.session.status === "closed" ? <div className="dashboard-columns">
-        <section className="panel stack-lg">
+      {snapshot.session.status === "closed" ? <details className="panel full-analysis-details">
+        <summary>View full concept analysis</summary>
+        <p className="analysis-intro">Use this detailed view when you want to inspect every approved idea and misconception, including patterns that did not appear.</p>
+        <div className="dashboard-columns">
+        <section className="analysis-section stack-lg">
           <div className="section-heading">
             <div>
               <span className="eyebrow">All responses</span>
@@ -416,7 +657,7 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           </div>
         </section>
 
-        <section className="panel stack-lg">
+        <section className="analysis-section stack-lg">
           <div className="section-heading">
             <div>
               <span className="eyebrow">Check these patterns</span>
@@ -436,27 +677,14 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
             ))}
           </div>
         </section>
-      </div> : null}
-
-      <section className="research-boundary">
-        <div className="boundary-icon">T</div>
-        <div>
-          <span className="eyebrow">Teacher review</span>
-          <h2>Start with the pattern, then read the students&apos; words.</h2>
-          <p>ExitLoop organizes responses for review. Open the responses behind each pattern before deciding what the class needs next.</p>
         </div>
-        <div className="condition-balance">
-          <span>Response-based follow-ups</span>
-          <strong>On</strong>
-          <small>Uses your approved question set</small>
-        </div>
-      </section>
+      </details> : null}
 
       {snapshot.session.status === "closed" ? <form className="panel teacher-action-form stack-lg" onSubmit={saveInstructionalAction}>
         <div className="section-heading">
           <div>
-            <span className="eyebrow">Your next step</span>
-            <h2>What will you teach or clarify next?</h2>
+            <span className="eyebrow">Plan your response</span>
+            <h2>What does your class need next?</h2>
           </div>
           {snapshot.teacherAction ? (
             <span className="info-chip">Recorded</span>
@@ -480,18 +708,18 @@ export function SessionDashboard({ initialSnapshot }: { initialSnapshot: Dashboa
           ))}
         </fieldset>
         <div className="field">
-          <label htmlFor="teacher-action-note">Brief rationale or implementation note <span>(optional)</span></label>
+          <label htmlFor="teacher-action-note">Add a note <span>(optional)</span></label>
           <textarea
             id="teacher-action-note"
             rows={3}
             maxLength={2000}
             value={actionNote}
             onChange={(event) => setActionNote(event.target.value)}
-            placeholder="For example: Several responses treated genes and chromosomes as unrelated, so I will trace one gene location on chromosome strips…"
+            placeholder="What will you revisit, and how?"
           />
         </div>
         <button className="button primary" type="submit" disabled={savingAction}>
-          {savingAction ? "Recording…" : snapshot.teacherAction ? "Update instructional response" : "Record instructional response"}
+          {savingAction ? "Saving…" : snapshot.teacherAction ? "Update next step" : "Save next step"}
         </button>
       </form> : null}
     </div>

@@ -14,22 +14,23 @@ Do not run the student session until every required item is complete.
 
 ## Content validity
 
-- [ ] The teacher confirms the target is Georgia GSE S7L3.a.
-- [ ] Students have completed relevant instruction on genes, chromosomes, and trait inheritance.
-- [ ] The teacher has reviewed the beetle initial task, every response-specific probe, the clarification prompt, and the plant near-transfer task.
-- [ ] The teacher confirms that Punnett squares, probability, cell-division stages, and complex human traits are not required.
-- [ ] The misconception evidence map and scoring rubric have been reviewed by the advisor or a biology-education content expert.
+- [ ] The teacher confirms one focused biology learning objective and the applicable local standard or curriculum goal.
+- [ ] Students have completed the instruction needed to answer the application question.
+- [ ] The teacher has reviewed the scenario, application question, minimum response guidance, target ideas, possible misconceptions, and student-summary wording.
+- [ ] The teacher confirms that the question requires application and evidence-linked reasoning rather than definition or recall alone.
+- [ ] The selected grade, surrounding language, and required scientific vocabulary fit the students and lesson.
+- [ ] The misconception and target-idea bank has been reviewed by the teacher and, when used for research, the appropriate content expert.
 - [ ] The teacher has reviewed the generated or manually entered content and confirmed the version shown for the session.
 - [ ] The saved content pack has `teacherReviewStatus: approved`, a unique version ID, and an approval timestamp.
 
 ## Deployment and concurrency
 
 - [ ] The production deployment uses Supabase, not the in-memory demo store.
-- [ ] All files in `supabase/migrations` have been applied in numeric order, including `004_ai_decision_evidence.sql`.
+- [ ] All files in `supabase/migrations` have been applied in numeric order, including `005_short_exit_ticket_duration.sql`.
 - [ ] Production secrets are strong, unique, and unavailable to students.
 - [ ] The health endpoint returns HTTP 200 with `configuration: ready` and `storage: supabase`.
 - [ ] A 30-student load test has passed against the exact deployment build.
-- [ ] Student join, draft autosave, resume, revision, near-transfer, survey, teacher dashboard, and CSV export have been tested on school devices and network.
+- [ ] Student join, draft autosave, resume, three-sentence validation, response submission, learning summary, teacher dashboard, and CSV export have been tested on school devices and network.
 - [ ] The teacher knows the class code and has told students which form of their name to enter.
 - [ ] A static paper or form fallback is ready if the network or deployment fails.
 
@@ -37,10 +38,10 @@ Do not run the student session until every required item is complete.
 
 - [ ] AI routing is disabled unless minor-data safeguards and school approval are confirmed.
 - [ ] The API sends only response text after likely identifiers are redacted, uses `store: false`, and cannot call tools.
-- [ ] The classifier schema accepts only frozen idea, misconception, and prompt identifiers.
+- [ ] The classifier schema accepts only frozen idea, misconception, and internal focus identifiers.
 - [ ] Every positive AI label shown in a test response has a server-verified exact quote; unsupported labels are discarded.
-- [ ] Low-confidence, invalid, or timed-out classifications route to the teacher-authored fallback prompt.
-- [ ] Staff understand that classifier tags are hypotheses for routing, not diagnoses or grades.
+- [ ] Low-confidence, invalid, or timed-out classifications produce neutral student wording and a teacher-review state rather than a guessed label.
+- [ ] Staff understand that classifier tags are response-level hypotheses for review, not diagnoses or grades.
 
 ## Accessibility
 
@@ -54,14 +55,13 @@ Do not run the student session until every required item is complete.
 
 ## Study execution
 
-- [ ] Approximately 15 minutes are reserved for the shared student workflow.
-- [ ] The session capacity is large enough for the expected class and response-specific routing is enabled.
+- [ ] Approximately four to six minutes are reserved for the shared student workflow, with extra time if required by student accommodations.
+- [ ] The session capacity is large enough for the expected class and constrained response analysis is enabled.
 - [ ] The teacher will give the same neutral instructions and support to all students.
-- [ ] Initial, revision, and near-transfer responses are locked by stage.
-- [ ] The near-transfer task hides the student's earlier response.
-- [ ] Human raters will be blinded to classifier output and the displayed follow-up question.
+- [ ] Each application response is locked once, and duplicate submissions are rejected or safely resumed after interruption.
+- [ ] If responses will be human coded for research, raters will be blinded to classifier output.
 - [ ] The teacher will record dashboard-review time and one intended instructional action.
 
 ## Stop conditions
 
-Stop or switch to the fallback activity if authentication fails repeatedly, multiple responses cannot be saved, the wrong content version appears, response-specific routing fails, personally identifying information is exposed, or students experience unexpected distress or pressure.
+Stop or switch to the fallback activity if authentication fails repeatedly, multiple responses cannot be saved, the wrong content version appears, response analysis or summaries fail, personally identifying information is exposed, or students experience unexpected distress or pressure.

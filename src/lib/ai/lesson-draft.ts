@@ -9,32 +9,14 @@ import {
   type Course,
   type GradeLevel,
 } from "@/lib/domain/curriculum";
+import {
+  isAcceptedLessonFilename,
+  LESSON_FILE_FORMAT_LABEL,
+  MAX_LESSON_FILE_BYTES,
+  resolveLessonFileMime,
+} from "@/lib/lesson-files";
 
-export const MAX_LESSON_FILE_BYTES = 4_000_000;
-
-const acceptedExtensions = new Set([
-  "pdf",
-  "doc",
-  "docx",
-  "ppt",
-  "pptx",
-  "txt",
-  "md",
-  "rtf",
-  "odt",
-]);
-
-const mimeByExtension: Record<string, string> = {
-  pdf: "application/pdf",
-  doc: "application/msword",
-  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  ppt: "application/vnd.ms-powerpoint",
-  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  txt: "text/plain",
-  md: "text/markdown",
-  rtf: "application/rtf",
-  odt: "application/vnd.oasis.opendocument.text",
-};
+export { MAX_LESSON_FILE_BYTES } from "@/lib/lesson-files";
 
 export const lessonDraftModelSchema = z.object({
   lesson_title: z.string(),
@@ -43,8 +25,6 @@ export const lessonDraftModelSchema = z.object({
   scope_boundary: z.string(),
   student_context: z.string(),
   student_prompt: z.string(),
-  near_transfer_prompt: z.string(),
-  completion_question: z.string(),
   target_ideas: z.array(
     z.object({
       label: z.string(),
@@ -60,15 +40,6 @@ export const lessonDraftModelSchema = z.object({
       suggested_teacher_response: z.string(),
     }),
   ),
-  follow_up_questions: z.array(
-    z.object({
-      title: z.string(),
-      question: z.string(),
-      target_kind: z.enum(["target_idea", "possible_misconception"]),
-      target_index: z.number().int(),
-    }),
-  ),
-  clarification_question: z.string(),
   source_notes: z.array(z.string()),
   teacher_review_checks: z.array(z.string()),
 });
@@ -83,8 +54,7 @@ export interface EditableLessonDraft {
   scopeBoundary: string;
   studentContext: string;
   studentPrompt: string;
-  nearTransferPrompt: string;
-  completionQuestion: string;
+  requiredVocabulary: string;
   targetIdeas: Array<{
     id: string;
     label: string;
@@ -98,14 +68,6 @@ export interface EditableLessonDraft {
     sourceSupport: string;
     suggestedTeacherResponse: string;
   }>;
-  followUpQuestions: Array<{
-    id: string;
-    title: string;
-    question: string;
-    targetKind: "target_idea" | "possible_misconception";
-    targetId: string;
-  }>;
-  clarificationQuestion: string;
   sourceNotes: string[];
   teacherReviewChecks: string[];
 }
@@ -113,8 +75,62 @@ export interface EditableLessonDraft {
 export interface LessonDraftRequest {
   file: File | null;
   lessonNotes: string;
-  teacherContext: string;
+  gradeLevel: GradeLevel;
+  course: Course;
+  learningObjective: string;
+  essentialContent: string;
+  evidenceStudentsShouldUse: string;
+  commonConfusion: string;
+  requiredVocabulary: string;
   teacherIdentity: string;
+}
+
+export function languageGuidanceForGrade(gradeLevel: GradeLevel) {
+  if (gradeLevel === "Kindergarten") {
+    return "Use very short, concrete sentences and one direction at a time. Keep required science words, and explain them with familiar surrounding language.";
+  }
+  const grade = Number(gradeLevel.replace("Grade ", ""));
+  if (grade <= 5) {
+    return "Use short, concrete sentences and one main task per question. Keep required science words, and explain them with familiar surrounding language.";
+  }
+  if (grade <= 9) {
+    return "Use short, direct sentences, familiar everyday wording, and one clear task per question. Preserve required scientific words from the lesson, but simplify the language around them. For example, write 'there is very little carbon dioxide around the leaves' instead of 'carbon dioxide is greatly reduced.'";
+  }
+  return "Use concise, grade-appropriate directions and avoid unnecessary complexity. Preserve the lesson's scientific vocabulary and use it accurately.";
+}
+
+export function buildLessonDraftContext(input: Pick<
+  LessonDraftRequest,
+  | "lessonNotes"
+  | "gradeLevel"
+  | "course"
+  | "learningObjective"
+  | "essentialContent"
+  | "evidenceStudentsShouldUse"
+  | "commonConfusion"
+  | "requiredVocabulary"
+>) {
+  const guidance = [
+    ["Learning objective", input.learningObjective],
+    ["Essential content", input.essentialContent],
+    ["Evidence students should use", input.evidenceStudentsShouldUse],
+    ["Common confusion to watch for", input.commonConfusion],
+    ["Required vocabulary and terms", input.requiredVocabulary],
+  ]
+    .filter(([, value]) => value.trim())
+    .map(([label, value]) => `${label}:\n${value.trim()}`)
+    .join("\n\n");
+
+  return [
+    `Selected grade and course:\n${input.gradeLevel} ${input.course}`,
+    `Student-facing language guidance:\n${languageGuidanceForGrade(input.gradeLevel)}`,
+    guidance ? `Optional teacher guidance:\n${guidance}` : "",
+    input.lessonNotes.trim()
+      ? `Pasted lesson material:\n${input.lessonNotes.trim()}`
+      : "Use the attached lesson file as the lesson material.",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 function cleanLine(value: string | undefined, fallback: string) {
@@ -122,20 +138,19 @@ function cleanLine(value: string | undefined, fallback: string) {
   return cleaned || fallback;
 }
 
-function clampIndex(index: number, length: number) {
-  if (length <= 1) return 0;
-  return Math.min(Math.max(index, 0), length - 1);
-}
-
-export function toEditableLessonDraft(raw: LessonDraftModelOutput): EditableLessonDraft {
-  const targetIdeas = raw.target_ideas.slice(0, 5).map((idea, index) => ({
+export function toEditableLessonDraft(
+  raw: LessonDraftModelOutput,
+  selection?: Pick<LessonDraftRequest, "gradeLevel" | "course"> &
+    Partial<Pick<LessonDraftRequest, "requiredVocabulary">>,
+): EditableLessonDraft {
+  const targetIdeas = raw.target_ideas.slice(0, 3).map((idea, index) => ({
     id: `target_idea_${String(index + 1).padStart(2, "0")}`,
     label: cleanLine(idea.label, `Target idea ${index + 1}`),
     description: idea.description.trim(),
     suggestedTeacherResponse: idea.suggested_teacher_response.trim(),
   }));
   const possibleMisconceptions = raw.possible_misconceptions
-    .slice(0, 6)
+    .slice(0, 4)
     .map((item, index) => ({
       id: `possible_misconception_${String(index + 1).padStart(2, "0")}`,
       label: cleanLine(item.label, `Possible misconception ${index + 1}`),
@@ -144,25 +159,10 @@ export function toEditableLessonDraft(raw: LessonDraftModelOutput): EditableLess
       suggestedTeacherResponse: item.suggested_teacher_response.trim(),
     }));
 
-  const seenTargets = new Set<string>();
-  const followUpQuestions = raw.follow_up_questions.slice(0, 12).map((item, index) => {
-    const targets = item.target_kind === "target_idea" ? targetIdeas : possibleMisconceptions;
-    const target = targets[clampIndex(item.target_index, targets.length)];
-    const targetId = target?.id ?? targetIdeas[0]?.id ?? possibleMisconceptions[0]?.id ?? "clarification";
-    seenTargets.add(targetId);
-    return {
-      id: `follow_up_${String(index + 1).padStart(2, "0")}`,
-      title: cleanLine(item.title, `Follow-up question ${index + 1}`),
-      question: item.question.trim(),
-      targetKind: item.target_kind,
-      targetId,
-    };
-  });
-
   return {
     lessonTitle: cleanLine(raw.lesson_title, "Untitled lesson"),
-    gradeLevel: normalizeGradeLevel(raw.grade_band),
-    course: "Biology",
+    gradeLevel: selection?.gradeLevel ?? normalizeGradeLevel(raw.grade_band),
+    course: selection?.course ?? "Biology",
     topic: cleanLine(raw.topic, "Teacher review needed"),
     scopeBoundary: cleanLine(
       raw.scope_boundary,
@@ -170,23 +170,16 @@ export function toEditableLessonDraft(raw: LessonDraftModelOutput): EditableLess
     ),
     studentContext: raw.student_context.trim(),
     studentPrompt: raw.student_prompt.trim(),
-    nearTransferPrompt:
-      raw.near_transfer_prompt?.trim() ||
-      "Explain the same scientific relationship in a new example from this lesson.",
-    completionQuestion:
-      raw.completion_question?.trim() ||
-      "Your explanation includes the target ideas. Reread it and revise only if you can connect your evidence and conclusion more clearly.",
+    requiredVocabulary: selection?.requiredVocabulary?.trim() ?? "",
     targetIdeas,
     possibleMisconceptions,
-    followUpQuestions,
-    clarificationQuestion: raw.clarification_question.trim(),
     sourceNotes: raw.source_notes.map((note) => note.trim()).filter(Boolean).slice(0, 10),
     teacherReviewChecks: [
       ...raw.teacher_review_checks.map((check) => check.trim()).filter(Boolean),
-      ...(seenTargets.size < targetIdeas.length
-        ? ["Add or revise follow-up questions so every target idea has a matching question."]
-        : []),
-      "Confirm the science content, misconceptions, and question wording before using this draft.",
+      "Confirm that the question asks students to apply or explain the science, not only define a term.",
+      "Confirm that students can answer thoughtfully in three to five complete sentences.",
+      "Confirm that the language fits the selected grade while keeping required scientific vocabulary.",
+      "Confirm the science content and possible misconceptions before using this draft.",
     ].filter((value, index, values) => values.indexOf(value) === index).slice(0, 8),
   };
 }
@@ -200,16 +193,19 @@ export function validateLessonDraftInput(file: File | null, lessonNotes: string)
   if (file.size > MAX_LESSON_FILE_BYTES) {
     throw new Error("Keep the lesson file under 4 MB.");
   }
-  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-  if (!acceptedExtensions.has(extension)) {
-    throw new Error("Use a PDF, Word, PowerPoint, text, Markdown, RTF, or ODT file.");
+  if (!isAcceptedLessonFilename(file.name)) {
+    throw new Error(`Use one of these file formats: ${LESSON_FILE_FORMAT_LABEL}.`);
   }
 }
 
 function authoringInstructions() {
   return `You help a biology teacher turn lesson materials into an editable ExitLoop activity draft. The draft is for teacher review, not automatic classroom use.
 
-Use only information in the supplied lesson material and teacher context. Write clear, age-appropriate language. Return one specific grade from Kindergarten through Grade 12 when the material states or strongly supports it; otherwise leave grade_band empty for teacher review. Create one short explanation task that students can complete after the lesson. Create a related transfer prompt that checks the same reasoning in a new example without requiring new content. State a short scope boundary for what the classifier should and should not evaluate. Identify three to five scientific relationships that a strong explanation should state. Identify three to six possible misconceptions that are directly relevant to the lesson. Do not call a misconception research-based unless the supplied materials include a supporting source. In source_support, name the exact source or section found in the supplied materials; otherwise write "Needs research or teacher confirmation." Create at least one focused follow-up question for each target idea and each possible misconception. A follow-up should help the student explain the missing or incompatible relationship without giving away a final answer. Create one completion question for a response that already includes every target idea and one clarification question for short, unclear, or off-topic responses.
+Use only information in the supplied lesson material and teacher guidance. Treat the selected grade and course as authoritative. Write every student-facing passage and question for that grade using the supplied language guidance. Preserve important scientific vocabulary from the lesson and any required vocabulary the teacher lists; simplify the surrounding language instead of replacing precise scientific terms with vague words. Return the selected grade in grade_band.
+
+Focus the activity on one clearly defined scientific concept or relationship. Break that focus into no more than three essential target ideas only when the explanation genuinely requires separate parts. Create one application-based scenario and one open-ended question. The question must ask students to predict, explain a causal relationship, interpret evidence, or apply a scientific idea to the scenario. Do not create a definition-only or recall-only question. Tell students to use at least one detail from the scenario as evidence and write at least three complete sentences; three to five sentences should be enough. Keep the context brief enough for a four-to-six-minute exit ticket, and keep each direction direct and easy to follow.
+
+State a short scope boundary for what the classifier should and should not evaluate. Identify two to four possible misconceptions that are directly relevant to the same focus. Do not call a misconception research-based unless the supplied materials include a supporting source. In source_support, name the exact source or section found in the supplied materials; otherwise write "Needs research or teacher confirmation."
 
 Do not grade students, assign mastery, invent citations, or create facts that are not supported by the lesson materials. Include a short checklist of items the teacher still needs to verify. Return only the requested structured data.`;
 }
@@ -226,8 +222,7 @@ export async function createLessonDraft(input: LessonDraftRequest) {
   > = [];
   if (input.file) {
     const bytes = Buffer.from(await input.file.arrayBuffer());
-    const extension = input.file.name.split(".").pop()?.toLowerCase() ?? "";
-    const mime = input.file.type || mimeByExtension[extension] || "application/octet-stream";
+    const mime = resolveLessonFileMime(input.file.name, input.file.type);
     content.push({
       type: "input_file",
       filename: input.file.name,
@@ -237,10 +232,7 @@ export async function createLessonDraft(input: LessonDraftRequest) {
   }
   content.push({
     type: "input_text",
-    text: [
-      input.teacherContext.trim() ? `Teacher context:\n${input.teacherContext.trim()}` : "",
-      input.lessonNotes.trim() ? `Pasted lesson material:\n${input.lessonNotes.trim()}` : "",
-    ].filter(Boolean).join("\n\n") || "Use the attached lesson file to create the draft.",
+    text: buildLessonDraftContext(input),
   });
 
   const client = new OpenAI({
@@ -251,7 +243,7 @@ export async function createLessonDraft(input: LessonDraftRequest) {
   try {
     const response = await client.responses.parse({
       model: process.env.OPENAI_MODEL || "gpt-5.6",
-      instructions: `${authoringInstructions()}\n\nThe target_index field is zero-based: use 0 for the first item in the chosen target list, 1 for the second, and so on.`,
+      instructions: authoringInstructions(),
       input: [{ role: "user", content }],
       text: { format: zodTextFormat(lessonDraftModelSchema, "exitloop_lesson_draft") },
       max_output_tokens: 3_500,
@@ -263,7 +255,7 @@ export async function createLessonDraft(input: LessonDraftRequest) {
     });
     if (!response.output_parsed) throw new Error("OpenAI did not return a lesson draft.");
     return {
-      draft: toEditableLessonDraft(response.output_parsed),
+      draft: toEditableLessonDraft(response.output_parsed, input),
       model: response.model,
     };
   } catch (error) {

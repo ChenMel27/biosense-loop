@@ -1,5 +1,7 @@
 # Trait-Inheritance Explanation Rubric
 
+> **Historical research instrument:** This rubric was written for an earlier study with initial, revised, and near-transfer responses. It may inform future human coding, but the current single-response product does not collect the revision or transfer outcomes described below.
+
 ## Construct and use
 
 Use this analytic rubric for the common initial, revised, and near-transfer explanations. It operationalizes Georgia GSE S7L3.a. Do not award or remove points for Punnett squares, probability, dominance terminology, memorized meiosis/mitosis stages, DNA mechanisms, or writing mechanics unless they change the scientific meaning.

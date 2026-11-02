@@ -19,31 +19,31 @@ Ask about the teacher's current practice:
 
 ### 2. Build and review an activity
 
-Show both authoring paths: upload lesson material for an AI-created draft, or start with the guided blank form. Ask the teacher to inspect the student task, target ideas, possible misconceptions, question wording, and routing mappings. Make clear that generated content is a draft and that creating the session records the teacher-reviewed version as an immutable content pack.
+Show both authoring paths: upload lesson material for an AI-created draft, or start with the guided blank form. Ask the teacher to inspect the student scenario, application question, target ideas, possible misconceptions, grade-level wording, and required vocabulary. Make clear that generated content is a draft and that creating the session records the teacher-reviewed version as an immutable content pack.
 
 Observe whether the teacher can answer:
 
 - What will students read and explain?
 - What can the classifier identify?
-- Which question is connected to each idea or misconception?
+- Is the target-idea and misconception bank specific enough to interpret the response?
 - What still needs content or source review?
 
 ### 3. Demonstrate the student loop
 
-Create a one-person session. The researcher or another adult joins with the class code and a demo name, completes the initial explanation, receives one approved follow-up question, revises, views the learning summary, completes the related example, and finishes the survey.
+Create a one-person session. The researcher or another adult joins with the class code and a demo name, reads the application scenario, writes at least three complete sentences, submits once, and reviews the brief answer-neutral summary.
 
 This is a product demonstration, not student-learning evidence.
 
 ### 4. Review the teacher dashboard
 
-Return to the teacher view. Ask the teacher to inspect the response, labels, exact supporting quotes, missing-relationship notes, routing target, confidence, routing provider, selected question, and session controls. If a larger synthetic class is needed for later research, it should be generated and documented in a separate approved test protocol rather than presented as current product data.
+Return to the teacher view. Ask the teacher to inspect the response, approved labels, exact supporting quotes, missing-relationship notes, internal focus, model confidence, analysis provider, teacher-only review suggestions, and session controls. If a larger synthetic class is needed for later research, it should be generated and documented in a separate approved test protocol rather than presented as current product data.
 
 Ask:
 
-- Does the route match the evidence in the response?
+- Does the classification match the evidence in the response?
 - Does the quoted phrase actually support the label, or would you change it?
 - Is it clear that a missing idea means the relationship was not found, rather than that the student holds a misconception?
-- Is the selected question useful without giving away the answer?
+- Is the student summary useful without giving away the answer or overstating certainty?
 - What additional context would you need before trusting the label?
 - Is the student name and progress information sufficient?
 - What should the class summary show first when many students respond?
@@ -57,9 +57,9 @@ Show how closing the session reveals pattern counts and supporting responses, th
 Depending on the approved protocol, useful measures may include:
 
 - task completion and time for activity authoring, session launch, dashboard review, and export;
-- teacher corrections to target ideas, misconceptions, question mappings, or AI routes;
+- teacher corrections to target ideas, misconceptions, student wording, or AI classifications;
 - System Usability Scale responses;
-- ratings of content control, summary usefulness, and routing transparency;
+- ratings of content control, summary usefulness, and classification transparency;
 - the next instructional action selected from a demonstrated response;
 - think-aloud and interview comments about trust, workload, and missing information.
 
@@ -67,7 +67,7 @@ With a small teacher sample, report individual results, medians, ranges, and qua
 
 ## AI explanation for participants
 
-ExitLoop uses AI twice. First, it can organize teacher-provided materials into an editable activity draft. Second, after an initial response, it can select labels, copy exact supporting phrases, and select one question ID from the content pack the teacher reviewed. Server code rejects any quote that is not found verbatim in the response, removes unsupported positive labels, validates the question mapping, and displays the stored question. The model cannot add a new misconception, write a new student question during class, grade the response, or determine mastery.
+ExitLoop uses AI twice. First, it can organize teacher-provided materials into an editable activity draft. Second, after a student submits one application response, it can select approved labels, copy exact supporting phrases, and select one internal focus from the content pack the teacher reviewed. Server code rejects any quote that is not found verbatim in the response, removes unsupported positive labels, and validates the focus mapping. The student receives a short answer-neutral summary, not a generated question or answer. The model cannot add a new approved misconception, grade the response, or determine mastery.
 
 ## Data handling
 

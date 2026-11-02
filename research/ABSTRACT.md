@@ -1,5 +1,7 @@
 # ExitLoop: Constrained AI for Trait-Inheritance Explanations
 
+> **Historical draft:** This abstract describes the earlier probe, revision, and transfer study design. It is retained for research history and does not describe the current single-response product flow. New sessions now use one application response followed by an answer-neutral summary; the current flow cannot measure targeted repair or near transfer.
+
 *Seventh-Grade Biology Pilot · Georgia GSE S7L3.a*
 
 ## Draft ASEE Abstract

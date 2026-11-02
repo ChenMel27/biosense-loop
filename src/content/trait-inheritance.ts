@@ -1,3 +1,5 @@
+import type { GradeLevel } from "@/lib/domain/curriculum";
+
 export interface IdeaDefinition {
   id: string;
   label: string;
@@ -34,11 +36,18 @@ export interface ContentPack {
   versionId: string;
   title: string;
   gradeBand: string;
+  gradeLevel?: GradeLevel;
+  essentialVocabulary?: string[];
+  minimumInitialSentences?: number;
   standards: string[];
   scopeBoundary: string;
   estimatedMinutes: number;
   teacherReviewStatus: "draft" | "approved";
   initialPrompt: { id: string; title: string; text: string };
+  /** Missing on older saved packs, which continue to use the original learning loop. */
+  activityFlow?: "single_response" | "legacy_learning_loop";
+  /** Legacy-loop setting only. Current single-response activities always omit transfer. */
+  includeTransfer?: boolean;
   completionPromptId: string;
   fallbackPrompt: FollowUpPrompt;
   followUps: FollowUpPrompt[];
@@ -54,20 +63,25 @@ export interface ContentPack {
 
 export const traitInheritancePack: ContentPack = {
   id: "genes-chromosomes-trait-inheritance",
-  versionId: "genes-chromosomes-trait-inheritance-v1.1.0-draft",
+  versionId: "genes-chromosomes-trait-inheritance-v1.2.0-draft",
   title: "Genes, chromosomes, and inheritance of a specific trait",
   gradeBand: "Georgia Grade 7 life science",
+  gradeLevel: "Grade 7",
+  essentialVocabulary: ["gene", "chromosome", "inherited trait"],
+  minimumInitialSentences: 3,
   standards: ["Georgia Standards of Excellence S7L3.a"],
   scopeBoundary:
     "Students construct an evidence-supported explanation of how genes and chromosomes contribute to inheriting one specific trait. The activity does not assess Punnett-square procedures, probability calculations, memorized meiosis or mitosis stages, DNA replication, protein synthesis, or complex human inheritance.",
-  estimatedMinutes: 12,
+  estimatedMinutes: 6,
   teacherReviewStatus: "draft",
   initialPrompt: {
     id: "inheritance_initial_01",
     title: "Explain an inherited beetle trait",
     text:
-      "Researchers study bristle shape in a fictional beetle species. Evidence card: (1) a bristle-shape gene is located at a marked position on chromosome 3; (2) each parent has gene versions B and b; (3) the offspring inherited one chromosome 3 from each parent and has b and b; and (4) beetles with b and b grow curved bristles, while beetles with at least one B grow straight bristles. Construct an explanation of how this offspring inherited curved bristles. Explain the roles of the gene and chromosomes and use at least two pieces of evidence from the card. Write 2–4 sentences.",
+      "Researchers are studying bristle shape in a fictional beetle. The bristle-shape gene is on chromosome 3. Each parent has gene versions B and b. The offspring received one chromosome 3 from each parent and has b and b. Beetles with b and b grow curved bristles, while beetles with at least one B grow straight bristles. Explain how the offspring inherited curved bristles. Describe how the gene and chromosomes are connected, and use at least two facts from the case as evidence. Write at least three complete sentences.",
   },
+  activityFlow: "single_response",
+  includeTransfer: false,
   completionPromptId: "inheritance_complete_check_01",
   fallbackPrompt: {
     id: "inheritance_clarify_01",
@@ -282,10 +296,26 @@ export const traitInheritancePack: ContentPack = {
     },
   ],
   surveyDisclosure:
+    "ExitLoop compares your explanation with ideas and possible misconceptions reviewed by your teacher. It does not grade your response or decide whether you have mastered the lesson.",
+};
+
+export const legacyTraitInheritancePack: ContentPack = {
+  ...traitInheritancePack,
+  versionId: "genes-chromosomes-trait-inheritance-v1.1.0-draft",
+  estimatedMinutes: 12,
+  activityFlow: "legacy_learning_loop",
+  includeTransfer: true,
+  initialPrompt: {
+    id: "inheritance_initial_01",
+    title: "Explain an inherited beetle trait",
+    text:
+      "Researchers study bristle shape in a fictional beetle species. Evidence card: (1) a bristle-shape gene is located at a marked position on chromosome 3; (2) each parent has gene versions B and b; (3) the offspring inherited one chromosome 3 from each parent and has b and b; and (4) beetles with b and b grow curved bristles, while beetles with at least one B grow straight bristles. Construct an explanation of how this offspring inherited curved bristles. Explain the roles of the gene and chromosomes and use at least two pieces of evidence from the card. Write 2–4 sentences.",
+  },
+  surveyDisclosure:
     "AI selects one follow up question from a list approved by your teacher, based on the ideas in your explanation. The activity is not graded. Your teacher decides what the class should review next.",
 };
 
-export const contentPacks = [traitInheritancePack] as const;
+export const contentPacks = [traitInheritancePack, legacyTraitInheritancePack] as const;
 
 export function getContentPack(versionId?: string) {
   if (!versionId) return traitInheritancePack;

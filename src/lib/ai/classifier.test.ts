@@ -3,9 +3,12 @@ import { describe, expect, it } from "vitest";
 import { applyTeacherContentDraft } from "@/content/teacher-draft";
 import { traitInheritancePack } from "@/content/trait-inheritance";
 import {
+  classifyForRouting,
   isLiveAiRoutingEnabled,
   normalizeClassificationResult,
+  normalizeTeacherReviewSignals,
 } from "@/lib/ai/classifier";
+import { createClassificationSchema } from "@/lib/ai/schema";
 
 describe("live AI routing configuration", () => {
   it("allows an adult demonstration when routing and a key are configured", () => {
@@ -162,5 +165,108 @@ describe("teacher-approved prompt mappings", () => {
       }),
     ]);
     expect(result.missingIdeaIds).toContain("gene_trait_information");
+  });
+});
+
+describe("teacher-only review signals", () => {
+  it("keeps only verified quotes and copies their exact submitted casing", () => {
+    const responseText = "A mutation makes an organism choose the trait it needs.";
+    const result = normalizeTeacherReviewSignals([
+      {
+        category: "possible_out_of_bank_reasoning",
+        evidence_quote: "an organism choose the trait it needs",
+        proposed_interpretation: "The student may be describing need-directed trait change.",
+        rationale: "This reasoning is not represented in the approved misconception bank.",
+      },
+      {
+        category: "irrelevant_or_off_topic",
+        evidence_quote: "This quote is not in the response.",
+        proposed_interpretation: "The response may be off topic.",
+        rationale: "The quoted text does not address the activity.",
+      },
+    ], responseText);
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        category: "possible_out_of_bank_reasoning",
+        quote: "an organism choose the trait it needs",
+        startIndex: 17,
+        endIndex: 54,
+      }),
+    ]);
+  });
+
+  it("caps and de-duplicates server-normalized suggestions", () => {
+    const responseText = "First claim. Second claim. Third claim.";
+    const result = normalizeTeacherReviewSignals([
+      {
+        category: "incompatible_with_approved_idea",
+        evidence_quote: "First claim",
+        proposed_interpretation: "Possible first issue.",
+        rationale: "First rationale.",
+      },
+      {
+        category: "incompatible_with_approved_idea",
+        evidence_quote: "First claim",
+        proposed_interpretation: "Duplicate first issue.",
+        rationale: "Duplicate rationale.",
+      },
+      {
+        category: "irrelevant_or_off_topic",
+        evidence_quote: "Second claim",
+        proposed_interpretation: "Possible second issue.",
+        rationale: "Second rationale.",
+      },
+      {
+        category: "possible_out_of_bank_reasoning",
+        evidence_quote: "Third claim",
+        proposed_interpretation: "Possible third issue.",
+        rationale: "Third rationale.",
+      },
+    ], responseText);
+
+    expect(result).toHaveLength(2);
+    expect(result.map((signal) => signal.quote)).toEqual([
+      "First claim",
+      "Second claim",
+    ]);
+  });
+
+  it("rejects a live structured result with more than two suggestions", () => {
+    const baseSignal = {
+      category: "irrelevant_or_off_topic" as const,
+      evidence_quote: "Unrelated statement",
+      proposed_interpretation: "The response may be off topic.",
+      rationale: "It does not address the requested relationship.",
+    };
+    const parsed = createClassificationSchema(traitInheritancePack).safeParse({
+      demonstrated_idea_ids: [],
+      missing_idea_ids: traitInheritancePack.ideas.map((idea) => idea.id),
+      possible_alternative_conception_ids: [],
+      evidence_spans: [],
+      classification_confidence: 0.8,
+      recommended_prompt_id: traitInheritancePack.fallbackPrompt.id,
+      abstain: false,
+      reason_codes: ["insufficient_evidence"],
+      teacher_review_signals: [baseSignal, baseSignal, baseSignal],
+    });
+
+    expect(parsed.success).toBe(false);
+  });
+
+  it("returns no teacher-review suggestions from deterministic fallback", async () => {
+    const previous = process.env.AI_ROUTING_ENABLED;
+    process.env.AI_ROUTING_ENABLED = "false";
+    try {
+      const decision = await classifyForRouting({
+        attemptId: "deterministic-review-test",
+        responseText: "Only one parent determines the trait.",
+      });
+      expect(decision.provider).toBe("deterministic");
+      expect(decision.teacherReviewSignals).toEqual([]);
+    } finally {
+      if (previous === undefined) delete process.env.AI_ROUTING_ENABLED;
+      else process.env.AI_ROUTING_ENABLED = previous;
+    }
   });
 });

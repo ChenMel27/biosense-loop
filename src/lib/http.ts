@@ -11,7 +11,12 @@ export function validationMessage(error: ZodError) {
 
 export function csvEscape(value: unknown) {
   if (value === null || value === undefined) return "";
-  const text = String(value);
+  const raw = String(value);
+  // Spreadsheet programs may evaluate untrusted cell text as a formula. Keep
+  // the visible text while forcing student- or teacher-entered strings to text.
+  const text = typeof value === "string" && /^[\t\r\n ]*[=+\-@]/.test(raw)
+    ? `'${raw}`
+    : raw;
   return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
@@ -23,4 +28,3 @@ export function rowsToCsv(rows: Array<Record<string, unknown>>) {
     ...rows.map((row) => headers.map((header) => csvEscape(row[header])).join(",")),
   ].join("\n");
 }
-

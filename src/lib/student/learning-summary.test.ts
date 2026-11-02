@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { traitInheritancePack } from "@/content/trait-inheritance";
 import type { AiDecision } from "@/lib/domain/types";
-import { buildStudentLearningSummary } from "@/lib/student/learning-summary";
+import {
+  buildRevisionInstruction,
+  buildStudentLearningSummary,
+  type LearningFocusKind,
+} from "@/lib/student/learning-summary";
 
 function decision(overrides: Partial<AiDecision>): AiDecision {
   return {
@@ -24,6 +28,7 @@ function decision(overrides: Partial<AiDecision>): AiDecision {
     recommendedPromptId: "inheritance_gene_trait_probe_01",
     abstain: false,
     reasonCodes: [],
+    teacherReviewSignals: [],
     ...overrides,
   };
 }
@@ -84,6 +89,49 @@ describe("buildStudentLearningSummary", () => {
     expect(result.focusKind).toBe("evidence_check");
     expect(result.focusLabel).toBe(
       "Check that the evidence and conclusion are clearly connected",
+    );
+  });
+
+  it("does not expose teacher-only review suggestions in the student summary", () => {
+    const result = buildStudentLearningSummary(
+      traitInheritancePack,
+      decision({
+        teacherReviewSignals: [{
+          id: "teacher-only-signal",
+          category: "possible_out_of_bank_reasoning",
+          quote: "the beetle wants the trait",
+          startIndex: 0,
+          endIndex: 26,
+          proposedInterpretation: "Teacher-only proposed interpretation.",
+          rationale: "Teacher-only rationale.",
+        }],
+      }),
+      traitInheritancePack.followUps[0],
+    );
+
+    expect(JSON.stringify(result)).not.toContain("Teacher-only");
+    expect(JSON.stringify(result)).not.toContain("teacher-only-signal");
+  });
+});
+
+describe("buildRevisionInstruction", () => {
+  it.each<[LearningFocusKind, string]>([
+    ["missing_idea", "Add one sentence"],
+    ["claim_to_reconsider", "Edit one sentence"],
+    ["clarify_reasoning", "Edit or add one sentence"],
+    ["evidence_check", "connects your evidence to your conclusion"],
+  ])("gives a direct, answer-neutral instruction for %s", (focusKind, expectedText) => {
+    const instruction = buildRevisionInstruction(focusKind);
+
+    expect(instruction).toContain(expectedText);
+    expect(instruction).toContain("Keep the parts of your first answer that still fit.");
+    expect(instruction).toContain("You do not need to start over.");
+    expect(instruction.toLowerCase()).not.toMatch(/gene|chromosome|parent|offspring/);
+  });
+
+  it("uses a neutral clarification instruction when no focus is available", () => {
+    expect(buildRevisionInstruction()).toContain(
+      "make the scientific connection easier to follow",
     );
   });
 });

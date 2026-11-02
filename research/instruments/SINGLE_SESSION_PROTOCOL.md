@@ -1,5 +1,7 @@
 # Single-Session Classroom Protocol
 
+> **Historical proposed protocol:** This document describes the retired probe, revision, transfer, confidence, and survey workflow. It is not the current classroom procedure and must not be used without a new approved research protocol. New ExitLoop sessions collect one application response and show a brief answer-neutral summary.
+
 ## Study question
 
 Can ExitLoop select a teacher-approved, misconception-sensitive follow-up question that matches the scientific relationship missing or incompatible in a student's explanation, and do students repair that relationship in their immediate revisions? Secondarily, does the class summary help one teacher decide what to do next quickly and interpretably?

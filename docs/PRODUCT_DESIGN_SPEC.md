@@ -2,14 +2,14 @@
 
 ## 1. Product purpose
 
-ExitLoop helps biology teachers find gaps in understanding before class ends. It extends a one-response exit ticket into a short cycle: explain, receive a targeted question, revise, review a learning summary, and apply the reasoning to a related case. The teacher controls the scientific content and question bank. AI classifies and routes; it does not grade, diagnose a learner, or write a new question during class.
+ExitLoop helps biology teachers find gaps in understanding before class ends. A student completes one short, application-based explanation and receives a brief learning summary. The teacher controls the prompt, target ideas, and possible misconceptions. AI classifies the explanation against that approved content; it does not grade, diagnose a learner, or generate an answer during class.
 
 ## 2. Users and core needs
 
 ### Teacher
 
 - Turn lesson material into a focused check for understanding without building every field from scratch.
-- Review exactly what the classifier can identify and which question each pattern can trigger.
+- Review exactly what the classifier can identify.
 - Open one class session with a shareable code.
 - See named submissions privately while students work.
 - Identify common missing ideas or possible misconceptions without reading every response first.
@@ -18,41 +18,38 @@ ExitLoop helps biology teachers find gaps in understanding before class ends. It
 ### Student
 
 - Explain a scientific relationship in their own words.
-- Reconsider one important part of the explanation without being given the answer.
+- Receive a brief, answer-neutral summary of what the response showed and one idea to keep considering.
 - See supportive, task-focused feedback rather than a grade or mastery label.
-- Apply the reasoning to a related example.
+- Finish a meaningful exit ticket without completing a long multi-screen activity.
 
 ## 3. Teacher workflow
 
 1. The teacher signs in and chooses **Create activity**.
-2. The teacher either uploads lesson materials for an AI-created draft or starts with the guided blank form.
-3. The teacher reviews and edits the lesson title, grade, student reading, first explanation question, scope boundary, related example, target ideas, possible misconceptions, follow-up questions, and routing mappings.
-4. ExitLoop checks that every active idea and possible misconception has a matching question. A complete-response question and clarification question are also required.
+2. The teacher either uploads PDF, PowerPoint, Word, or text lesson materials for an AI-created draft or starts with the guided blank form. Optional objective, essential-content, expected-evidence, common-confusion, and vocabulary fields improve generation focus when the source is broad.
+3. The teacher reviews and edits the lesson title, grade, student reading, application question, scope boundary, target ideas, and possible misconceptions.
+4. ExitLoop blocks obviously recall-only prompts and checks that the question asks for application, explanation, prediction, justification, or evidence use. The teacher confirms that three to five sentences are enough.
 5. When the teacher creates a session, the server validates the form and creates a complete approved content pack with a unique version ID and approval timestamp.
 6. The teacher opens the session and shares one class code.
-7. The dashboard updates as students join, submit explanations, revise, and finish.
+7. The dashboard updates as students join, write, submit, and finish.
 8. After closing the session, the teacher reviews common patterns, opens supporting responses, records what to clarify next, and exports the session if needed.
 
 ## 4. Student workflow
 
 1. Join with the class code and the name the teacher recognizes.
-2. Read the teacher-approved information and submit an initial explanation plus confidence.
-3. ExitLoop locks the response and routes it to one approved follow-up question.
-4. View the original answer, respond to the targeted follow-up, and revise the explanation.
-5. See a short learning summary based on the initial response. It states the learning goal, identifies ideas already supported, names the one focus of the follow-up, and gives a reusable explanation strategy. It explicitly says the revision was not automatically rechecked or graded.
-6. Complete the teacher-approved, feedback-supported related example without viewing the earlier response.
-7. Rate clarity, pressure, and helpfulness; then finish without a score.
+2. Read the teacher-approved scenario and application question.
+3. Write at least three complete sentences that explain the scientific relationship and use evidence from the question.
+4. Submit once. ExitLoop locks and analyzes the response against the approved content.
+5. View a brief learning summary that shows up to two ideas the response demonstrated and one relationship to keep thinking about. Finish without a score.
 
 ## 5. Approved content pack
 
 Each session stores a standalone snapshot containing:
 
-- activity title, grade/course, scope, and expected time;
-- initial explanation prompt and related example;
+- activity title, grade/course, protected scientific vocabulary, scope, and expected time;
+- one application-based explanation prompt and a minimum of three sentences;
 - target scientific ideas;
 - possible misconceptions;
-- prewritten follow-up questions and their target mappings;
-- complete-response and clarification questions;
+- internal analysis-focus mappings used only to organize classification output;
 - authoring source notes and teacher review checks;
 - approval timestamp, pack ID, and unique version ID.
 
@@ -64,7 +61,7 @@ The snapshot is written to Supabase and copied into the session configuration ev
 
 The authoring model receives teacher-provided material, not student work. It returns structured draft fields only. It must mark unsupported misconception claims as needing teacher or research confirmation. The output remains editable and cannot open a class until the teacher completes the required fields.
 
-### Student-response routing
+### Student-response analysis
 
 The routing model receives redacted response text and the approved content pack. Its output may contain only:
 
@@ -74,13 +71,11 @@ The routing model receives redacted response text and the approved content pack.
 - one exact response quote for every demonstrated idea or possible misconception;
 - confidence and approved reason codes;
 - abstention status;
-- one prompt ID from the approved bank.
+- one internal focus ID connected to an approved idea, misconception, completion state, or fallback state.
 
-Server code validates all identifiers and checks every quoted evidence span against the original response. A positive label is discarded unless its quote is an exact contiguous substring of the submitted text. Missing ideas do not receive evidence quotes because their meaning is absence of support, not an observed misconception. The server then checks that the chosen prompt targets the highest-priority identified pattern. Explicit incompatible claims take priority over omissions. Multiple patterns are recorded, but the student receives only one follow-up question. Low-confidence, unclear, contradictory, or out-of-scope responses receive the approved clarification question.
+Server code validates all identifiers and checks every quoted evidence span against the original response. A positive label is discarded unless its quote is an exact contiguous substring of the submitted text. Missing ideas do not receive evidence quotes because their meaning is absence of support, not an observed misconception. The server validates one primary focus. Explicit incompatible claims take priority over omissions. Multiple patterns may be recorded, but the student sees only a brief summary. Low-confidence, unclear, contradictory, or out-of-scope responses receive neutral wording that asks for teacher review rather than a guessed diagnosis.
 
-The student sees the targeted, teacher-approved question directly. Detailed classification evidence and routing rationale remain in the teacher dashboard so the question itself is the only adaptive support introduced before revision.
-
-After the revision is saved, the student summary converts the stored initial-response decision into task-focused feedback. It shows approved labels only, separates omissions from explicit claims, emphasizes one route, and gives two process checks for the related example. It does not run a second classification or claim that the revision repaired the focus. The design rationale and research boundary are documented in `docs/STUDENT_EXPERIENCE_REDESIGN.md`.
+The student summary converts the stored decision into task-focused feedback. It shows approved labels only, separates omissions from explicit claims, and emphasizes one focus without supplying a correct answer. Detailed evidence and teacher-only review suggestions remain in the authenticated dashboard. The design rationale and research boundary are documented in `docs/STUDENT_EXPERIENCE_REDESIGN.md`.
 
 ## 7. Teacher dashboard
 
@@ -100,7 +95,7 @@ It must not rank students or display an automated mastery score.
 
 - Students use a class code and a session-specific display name; no student account is created.
 - Names are stored in join events, shown only in authenticated teacher views, excluded from exports, and never sent to OpenAI.
-- Responses are locked by stage and stored with server timestamps and the content version shown.
+- Each application response is locked after submission and stored with server timestamps and the exact content version shown.
 - OpenAI requests use `store: false` and an attempt-derived safety identifier.
 - Production uses Supabase with row-level security enabled and public roles revoked. The service-role key remains server-only.
 - Uploaded teacher files are sent for draft generation but not stored by ExitLoop.
@@ -109,7 +104,7 @@ It must not rank students or display an automated mastery score.
 
 - Persistent production state is required; the memory store is development-only.
 - The student draft autosaves and a student can resume in the same browser.
-- Duplicate stage submissions are rejected server-side.
+- Duplicate submissions are rejected server-side.
 - Teacher and student API routes recheck authentication.
 - Inputs are schema validated and length limited.
 - The application targets WCAG 2.2 Level AA. Forms use programmatically connected labels, instructions, fieldsets, legends, error references, and status announcements.
@@ -130,7 +125,7 @@ The built-in trait-inheritance activity remains a worked example and test fixtur
 
 - A teacher can build or generate, edit, validate, approve, and launch an activity.
 - Each launched activity has a unique frozen content version with no inherited demo content.
-- A student can join, complete every stage, resume, and receive only approved questions.
+- A student can join, resume an unfinished draft, submit one response, and receive an answer-neutral summary based only on approved labels.
 - The teacher can see names privately, inspect classifications, close/reopen/delete sessions, record a next action, and export de-identified data.
 - The health endpoint detects missing production persistence, weak secrets, and incomplete AI configuration.
 - Database migrations, lint, typecheck, unit tests, production build, and the deployment load test pass.

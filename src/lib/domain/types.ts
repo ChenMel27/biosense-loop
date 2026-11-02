@@ -5,6 +5,8 @@ export type Condition = "adaptive";
 
 export type SessionStatus = "draft" | "active" | "closed";
 
+export type ActivityFlow = "single_response" | "legacy_learning_loop";
+
 export type AttemptStage =
   | "initial"
   | "revision"
@@ -86,6 +88,34 @@ export interface ClassificationEvidence {
   endIndex: number;
 }
 
+export type TeacherReviewSignalCategory =
+  | "incompatible_with_approved_idea"
+  | "irrelevant_or_off_topic"
+  | "possible_out_of_bank_reasoning";
+
+export type TeacherReviewJudgment = "confirmed" | "dismissed";
+
+/**
+ * A teacher-only suggestion that is kept separate from the approved-bank
+ * classification used for student routing.
+ */
+export interface TeacherReviewSignal {
+  id: string;
+  category: TeacherReviewSignalCategory;
+  /** Exact, contiguous text copied from the submitted response. */
+  quote: string;
+  startIndex: number;
+  endIndex: number;
+  proposedInterpretation: string;
+  rationale: string;
+}
+
+export interface DashboardTeacherReviewSignal extends TeacherReviewSignal {
+  decisionId: string;
+  judgment: TeacherReviewJudgment | null;
+  reviewedAt: string | null;
+}
+
 export interface AiDecision extends ClassificationResult {
   id: string;
   attemptId: string;
@@ -96,6 +126,7 @@ export interface AiDecision extends ClassificationResult {
   latencyMs: number;
   fallbackReason: string | null;
   createdAt: string;
+  teacherReviewSignals: TeacherReviewSignal[];
 }
 
 export interface StudentSurvey {
@@ -158,6 +189,7 @@ export interface DashboardSnapshot {
     }>
   >;
   submissionRows: Array<{
+    attemptId: string;
     participantTag: string;
     displayName: string | null;
     stage: AttemptStage;
@@ -170,6 +202,7 @@ export interface DashboardSnapshot {
     provider: AiDecision["provider"] | null;
     evidenceSpans: ClassificationEvidence[];
     routingTargetId: string | null;
+    teacherReviewSignals: DashboardTeacherReviewSignal[];
   }>;
   recentEvents: StudyEvent[];
   teacherAction: TeacherInstructionalAction | null;
@@ -198,8 +231,14 @@ export interface TeacherContentDraft {
   gradeBand?: string;
   gradeLevel?: GradeLevel;
   course?: Course;
+  essentialVocabulary?: string[];
+  minimumInitialSentences?: number;
   scopeBoundary?: string;
   initialPrompt: string;
+  /** New activities use one application response followed by a learning summary. */
+  activityFlow?: ActivityFlow;
+  /** Optional session flow choice. Older drafts default to the full loop. */
+  includeTransfer?: boolean;
   nearTransferPrompt?: string;
   completionPromptId?: string;
   ideaIds?: string[];

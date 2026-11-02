@@ -12,6 +12,7 @@ import type {
   TeacherInstructionalAction,
   TeacherActivityConfiguration,
   TeacherContentDraft,
+  TeacherReviewJudgment,
   TeacherUsabilityEvent,
   TeacherUsabilitySubmission,
 } from "@/lib/domain/types";
@@ -40,6 +41,13 @@ export interface ResearchStore {
   appendDecision(decision: AiDecision): Promise<void>;
   saveSurvey(survey: StudentSurvey): Promise<void>;
   appendEvent(event: StudyEvent): Promise<void>;
+  saveTeacherReviewJudgment(input: {
+    id: string;
+    sessionId: string;
+    signalId: string;
+    judgment: TeacherReviewJudgment;
+    createdAt: string;
+  }): Promise<StudyEvent | null>;
   saveTeacherAction(action: TeacherInstructionalAction): Promise<void>;
   listSessions(): Promise<StudySession[]>;
   createSession(input: CreateSessionInput): Promise<SessionCreationResult>;

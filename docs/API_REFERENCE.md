@@ -114,13 +114,15 @@ The response may include:
 
 - Current stage and attempt key
 - Activity title and grade band
-- Initial and related-example prompts
-- Selected approved follow-up question
+- `activityFlow` and the minimum number of complete sentences
+- The grade-appropriate application prompt
 - Learning summary derived from the initial AI decision
-- Locked initial and revised responses
+- The locked application response
 - Current server-side draft
 
-The learning summary does not reclassify or grade the revision.
+For a new `single_response` activity, `followUp` is null and the attempt moves from `initial` directly to `complete` after submission. The learning summary reports selected teacher-approved ideas and one answer-neutral focus; it does not grade the response or provide a complete answer.
+
+For a saved `legacy_learning_loop` activity, the response may also include the selected approved follow-up, locked revision, related-example prompt, and legacy flow settings.
 
 ### `PUT /api/student/draft`
 
@@ -137,7 +139,7 @@ Request:
 }
 ```
 
-Valid stages are `initial`, `revision`, and `transfer`. The persistent store accepts the draft only when the supplied stage matches the attempt's current stage.
+The current flow autosaves only the `initial` application response. `revision` and `transfer` remain valid for older `legacy_learning_loop` sessions. The persistent store accepts the draft only when the supplied stage matches the attempt's current stage.
 
 Success response:
 
@@ -150,7 +152,7 @@ Success response:
 
 ### `POST /api/student/submit`
 
-Locks a response and advances the student's server-controlled workflow. One endpoint handles four actions through a discriminated request body.
+Locks a response and advances the student's server-controlled workflow. The current flow uses one `initial` action. The endpoint continues to accept the older revision, transfer, and survey actions only for sessions whose stored content pack uses the legacy flow.
 
 Authentication: Student cookie.
 
@@ -159,15 +161,16 @@ Authentication: Student cookie.
 ```json
 {
   "action": "initial",
-  "responseText": "The student's initial explanation",
-  "confidenceChoice": "somewhat_sure",
+  "responseText": "The student's application explanation in at least three complete sentences.",
   "clientTimestamp": "2026-10-14T18:00:00.000Z"
 }
 ```
 
-The server saves the initial response, obtains and validates an AI routing decision, stores that decision, and advances the attempt from `initial` to `revision`.
+For a `single_response` activity, the server validates the response length and complete-sentence minimum, saves the response, obtains and validates an AI classification, stores the decision, and advances the attempt from `initial` directly to `complete`. Confidence is not requested or stored. The client then retrieves the answer-neutral learning summary through `GET /api/student/state`.
 
-#### Revision
+For a `legacy_learning_loop` activity, `confidenceChoice` remains required and the attempt advances from `initial` to `revision`.
+
+#### Legacy revision
 
 ```json
 {
@@ -177,9 +180,9 @@ The server saves the initial response, obtains and validates an AI routing decis
 }
 ```
 
-The server stores the revision with the displayed follow-up prompt ID and advances the attempt from `revision` to `transfer`.
+The server stores the revision with the displayed follow-up prompt ID. Depending on the saved legacy content pack, the attempt advances to `transfer` or `survey`. This action is rejected for the current single-response flow.
 
-#### Related example
+#### Legacy related example
 
 ```json
 {
@@ -189,9 +192,9 @@ The server stores the revision with the displayed follow-up prompt ID and advanc
 }
 ```
 
-The server stores the feedback-supported near-transfer response and advances the attempt from `transfer` to `survey`.
+For a legacy session with the related example enabled, the server stores the feedback-supported near-transfer response and advances the attempt from `transfer` to `survey`. This action is rejected for the current single-response flow.
 
-#### Experience survey
+#### Legacy experience survey
 
 ```json
 {
@@ -203,9 +206,9 @@ The server stores the feedback-supported near-transfer response and advances the
 }
 ```
 
-The three ratings must be integers from 1 to 5. The server saves the survey and advances the attempt from `survey` to `complete`.
+The three ratings must be integers from 1 to 5. The server saves the survey and advances a legacy attempt from `survey` to `complete`. New single-response activities do not display or collect this survey.
 
-For explanation stages, `responseText` must contain 20–2,000 characters. `confidenceChoice` must be `not_sure`, `somewhat_sure`, or `very_sure`.
+For all explanation actions, `responseText` must contain 20–2,000 characters. New activities also require at least three complete sentences, using the frozen `minimumInitialSentences` value from the content pack. Legacy confidence values must be `not_sure`, `somewhat_sure`, or `very_sure`.
 
 Success response for every action:
 
@@ -262,7 +265,13 @@ Content type: `multipart/form-data`.
 | --- | --- | --- |
 | `lessonFile` | File, optional | PDF, Word, PowerPoint, text, Markdown, RTF, or ODT lesson material |
 | `lessonNotes` | String, optional | Pasted lesson content, limited to 30,000 characters |
-| `teacherContext` | String, optional | Additional directions, limited to 4,000 characters |
+| `gradeLevel` | String, required | Selected K–12 grade used to simplify directions while preserving lesson vocabulary |
+| `course` | String, required | Selected course; currently Biology |
+| `learningObjective` | String, optional | Intended learning objective |
+| `essentialContent` | String, optional | Relationships that must be represented in the draft |
+| `evidenceStudentsShouldUse` | String, optional | Reading, data, diagram, or example students should use |
+| `commonConfusion` | String, optional | Known confusion the teacher wants the draft to consider |
+| `requiredVocabulary` | String, optional | Scientific terms to preserve in student-facing wording |
 
 At least one file or 40 characters of lesson notes is required. Files are limited to 4 MB. ExitLoop sends the material to OpenAI for draft generation but does not save the uploaded file.
 
@@ -297,37 +306,55 @@ Request outline:
 {
   "title": "Photosynthesis ExitLoop",
   "participantCount": 30,
-  "durationMinutes": 15,
+  "durationMinutes": 6,
   "authoringDraft": {
-    "initialPrompt": "Explain your reasoning using the lesson evidence.",
-    "nearTransferPrompt": "Apply the same reasoning to this related case.",
+    "title": "Photosynthesis and plant growth",
+    "gradeLevel": "Grade 7",
+    "course": "Biology",
+    "essentialVocabulary": ["carbon dioxide", "glucose", "light energy"],
+    "minimumInitialSentences": 3,
+    "initialPrompt": "A plant gets plenty of light and water, but there is very little carbon dioxide around its leaves. Predict what will happen to glucose production and growth. Explain the scientific relationship and use one fact from the situation as evidence. Write at least three complete sentences.",
+    "activityFlow": "single_response",
+    "includeTransfer": false,
     "ideaIds": ["carbon_source", "light_energy"],
     "ideaDescriptions": {
       "carbon_source": "The carbon in glucose comes from carbon dioxide.",
       "light_energy": "Light supplies energy for glucose production."
     },
-    "misconceptionIds": [],
-    "misconceptionDescriptions": {},
-    "followUpIds": ["question_carbon", "question_light"],
+    "misconceptionIds": ["matter_from_soil"],
+    "misconceptionDescriptions": {
+      "matter_from_soil": "Most new plant matter comes from soil."
+    },
+    "completionPromptId": "teacher_complete_review",
+    "followUpIds": ["analysis_idea_01", "analysis_idea_02", "analysis_misconception_01", "teacher_complete_review"],
     "followUpPrompts": {
-      "question_carbon": "Where did the carbon atoms in the new plant material originate?",
-      "question_light": "What role did light play in producing glucose?"
+      "analysis_idea_01": "Primary analysis focus: missing or unclear carbon-source relationship.",
+      "analysis_idea_02": "Primary analysis focus: missing or unclear light-energy relationship.",
+      "analysis_misconception_01": "Primary analysis focus: possible incompatible matter-from-soil claim.",
+      "teacher_complete_review": "No approved gap was selected.",
+      "teacher_clarification": "The response needs teacher review before selecting a focus."
     },
     "followUpTargetIds": {
-      "question_carbon": ["carbon_source"],
-      "question_light": ["light_energy"]
+      "analysis_idea_01": ["carbon_source"],
+      "analysis_idea_02": ["light_energy"],
+      "analysis_misconception_01": ["matter_from_soil"],
+      "teacher_complete_review": ["carbon_source", "light_energy"],
+      "teacher_clarification": ["carbon_source", "light_energy", "matter_from_soil"]
     }
   }
 }
 ```
 
+The teacher-facing builder creates the internal `analysis_*`, completion, and clarification records after the teacher reviews the application prompt, target ideas, and possible misconceptions. In the `single_response` flow these records support classification and summary focus selection; their text is not displayed to the student as a follow-up question.
+
 Session constraints:
 
 - `participantCount`: 1–40
-- `durationMinutes`: 8–25
-- Every active target must have valid teacher-reviewed content and routing coverage.
+- `durationMinutes`: 4–15
+- The application prompt must ask students to apply scientific reasoning and use evidence, rather than only define or recall a term.
+- Every active target must have valid teacher-reviewed content and internal analysis coverage.
 
-The success response uses HTTP `201` and includes the created session, join code, and approved configuration.
+The success response uses HTTP `201` and includes the created session. Its session object contains the join code and frozen content-version ID.
 
 ### `PATCH /api/teacher/sessions/{id}`
 
@@ -374,10 +401,30 @@ The snapshot includes:
 - Initial student explanations
 - Demonstrated and missing target ideas
 - Possible alternative-conception labels
-- Verified evidence spans and routing metadata
-- Displayed follow-up questions
+- Verified evidence spans and classification metadata
+- The primary internal feedback focus for a current single-response attempt
+- Verified teacher-only review signals and confirm/dismiss status
 - Class-level counts
 - Saved teacher instructional action
+
+For a legacy session, the snapshot may also contain the follow-up question that was displayed. A selected focus ID in a current session is not evidence that a prompt was shown to the student.
+
+### `POST /api/teacher/sessions/{id}/classification-review`
+
+Records a teacher judgment on a verified teacher-only review signal. Authentication and the full signal-to-decision-to-attempt-to-session chain are checked server-side. The judgment does not change student routing, the active misconception bank, or class-pattern counts.
+
+Authentication: Teacher cookie.
+
+Request:
+
+```json
+{
+  "signalId": "review-signal-event-id",
+  "judgment": "confirmed"
+}
+```
+
+`judgment` must be `confirmed` or `dismissed`.
 
 ### `POST /api/teacher/sessions/{id}/action`
 

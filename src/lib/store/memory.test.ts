@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { traitInheritancePack } from "@/content/trait-inheritance";
+import { createTeacherReviewProposalEvent } from "@/lib/ai/teacher-review";
 import { MemoryResearchStore, resetMemoryStore } from "@/lib/store/memory";
 
 describe("memory research store", () => {
@@ -163,6 +164,7 @@ describe("memory research store", () => {
       latencyMs: 1,
       fallbackReason: null,
       createdAt: new Date().toISOString(),
+      teacherReviewSignals: [],
     });
 
     const activeSnapshot = await store.getDashboardSnapshot(session.id);
@@ -177,6 +179,115 @@ describe("memory research store", () => {
         displayedPromptId: "inheritance_both_parents_probe_01",
       }),
     ]);
+  });
+
+  it("keeps teacher-only suggestions outside routing counts and beyond the recent-event window", async () => {
+    const store = new MemoryResearchStore();
+    const session = (await store.getSessionByJoinCode("GEN7"))!;
+    const attempt = (await store.claimAvailableAttempt(session))!;
+    const responseText = "The beetle changes because it wants curved bristles.";
+    await store.appendResponse({
+      id: randomUUID(),
+      attemptId: attempt.id,
+      stage: "initial",
+      promptId: "inheritance_initial_01",
+      responseText,
+      confidenceChoice: "somewhat_sure",
+      clientTimestamp: null,
+      serverTimestamp: "2026-10-29T12:00:00.000Z",
+      contentVersionId: session.contentVersionId,
+    });
+    const decisionId = randomUUID();
+    await store.appendDecision({
+      id: decisionId,
+      attemptId: attempt.id,
+      provider: "openai",
+      model: "test-router",
+      schemaVersion: "teacher-approved-classifier-v4",
+      demonstratedIdeaIds: [],
+      missingIdeaIds: traitInheritancePack.ideas.map((idea) => idea.id),
+      possibleAlternativeConceptionIds: [],
+      evidenceSpans: [],
+      routingTargetId: null,
+      classificationConfidence: 0.82,
+      recommendedPromptId: traitInheritancePack.fallbackPrompt.id,
+      displayedPromptId: traitInheritancePack.fallbackPrompt.id,
+      abstain: true,
+      reasonCodes: ["insufficient_evidence"],
+      latencyMs: 3,
+      fallbackReason: null,
+      createdAt: "2026-10-29T12:00:01.000Z",
+      teacherReviewSignals: [],
+    });
+    const quote = "wants curved bristles";
+    const startIndex = responseText.indexOf(quote);
+    const proposal = createTeacherReviewProposalEvent({
+      id: randomUUID(),
+      sessionId: session.id,
+      attemptId: attempt.id,
+      decisionId,
+      signal: {
+        id: "normalizer-only-id",
+        category: "possible_out_of_bank_reasoning",
+        quote,
+        startIndex,
+        endIndex: startIndex + quote.length,
+        proposedInterpretation: "The student may be describing need-directed trait change.",
+        rationale: "This reasoning is outside the approved misconception bank.",
+      },
+      createdAt: "2026-10-29T12:00:02.000Z",
+    });
+    await store.appendEvent(proposal);
+    for (let index = 0; index < 25; index += 1) {
+      await store.appendEvent({
+        id: randomUUID(),
+        sessionId: session.id,
+        attemptId: attempt.id,
+        eventType: "unrelated_test_event",
+        payload: { index },
+        createdAt: `2026-10-29T12:01:${String(index).padStart(2, "0")}.000Z`,
+      });
+    }
+
+    const initialSnapshot = await store.getDashboardSnapshot(session.id);
+    expect(initialSnapshot?.recentEvents).toHaveLength(20);
+    expect(initialSnapshot?.recentEvents.some((event) => event.id === proposal.id)).toBe(false);
+    expect(initialSnapshot?.submissionRows[0].teacherReviewSignals).toEqual([
+      expect.objectContaining({ id: proposal.id, judgment: null }),
+    ]);
+    expect(initialSnapshot?.misconceptionCounts).toEqual({});
+    expect(initialSnapshot?.submissionRows[0].routingTargetId).toBeNull();
+
+    await expect(store.saveTeacherReviewJudgment({
+      id: randomUUID(),
+      sessionId: session.id,
+      signalId: proposal.id,
+      judgment: "confirmed",
+      createdAt: "2026-10-29T12:03:00.000Z",
+    })).resolves.toEqual(expect.objectContaining({ eventType: "teacher_review_signal_judged" }));
+    expect(
+      (await store.getDashboardSnapshot(session.id))?.submissionRows[0]
+        .teacherReviewSignals[0].judgment,
+    ).toBe("confirmed");
+
+    await store.saveTeacherReviewJudgment({
+      id: randomUUID(),
+      sessionId: session.id,
+      signalId: proposal.id,
+      judgment: "dismissed",
+      createdAt: "2026-10-29T12:04:00.000Z",
+    });
+    expect(
+      (await store.getDashboardSnapshot(session.id))?.submissionRows[0]
+        .teacherReviewSignals[0].judgment,
+    ).toBe("dismissed");
+    await expect(store.saveTeacherReviewJudgment({
+      id: randomUUID(),
+      sessionId: "different-session",
+      signalId: proposal.id,
+      judgment: "confirmed",
+      createdAt: "2026-10-29T12:05:00.000Z",
+    })).resolves.toBeNull();
   });
 
   it("deletes a session and its related classroom data", async () => {

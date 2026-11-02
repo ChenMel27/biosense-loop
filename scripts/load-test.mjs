@@ -30,9 +30,15 @@ async function runStudent(index) {
     action: "initial",
     responseText:
       "The bristle-shape gene is inherited information located on chromosome 3. The offspring received one b version from each parent, so it has b and b, and the evidence shows b and b beetles grow curved bristles.",
-    confidenceChoice: "somewhat_sure",
     clientTimestamp: new Date().toISOString(),
   });
+
+  const stateAfterInitial = await jsonFetch("/api/student/state", { headers: { cookie } });
+  if (stateAfterInitial.body.activity?.stage === "complete") {
+    return displayName;
+  }
+
+  // Older sessions still use the original revision, transfer, and survey flow.
   await submit({
     action: "revision",
     responseText:
@@ -103,7 +109,7 @@ if (failures.length) {
       {
         ok: true,
         studentsCompleted: results.length,
-        responseSpecificRouting: "30 of 30 students",
+        responsesAnalyzed: "30 of 30 students",
         researchExportRows: 30,
         teacherActionRecorded: true,
         elapsedMs: Date.now() - startedAt,

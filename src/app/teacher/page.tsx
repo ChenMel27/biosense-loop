@@ -25,7 +25,7 @@ export default async function TeacherPage() {
           <div><span className="eyebrow">How it works</span><h2 id="teacher-flow-title">From lesson materials to a class summary</h2></div>
           <ol>
             <li><span>1</span><div><strong>Build</strong><small>Upload lesson materials or use the guided template.</small></div></li>
-            <li><span>2</span><div><strong>Review</strong><small>Approve the ideas, misconceptions, and follow-up questions.</small></div></li>
+            <li><span>2</span><div><strong>Review</strong><small>Approve the application question, ideas, and possible misconceptions.</small></div></li>
             <li><span>3</span><div><strong>Run</strong><small>Share the class code and monitor responses.</small></div></li>
             <li><span>4</span><div><strong>Respond</strong><small>Review patterns and choose what to clarify next.</small></div></li>
           </ol>

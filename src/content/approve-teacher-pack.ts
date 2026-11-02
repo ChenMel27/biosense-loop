@@ -18,13 +18,21 @@ export function approveTeacherContentPack(
   estimatedMinutes: number,
   approvedAt = new Date().toISOString(),
 ): TeacherActivityConfiguration & { contentPack: ContentPack; approvedAt: string } {
-  const activityId = `teacher-${slug(draft.title || "biology-activity")}`;
+  // All newly approved activities use the current short exit-ticket flow.
+  // Legacy flow metadata is honored only when resolving already saved packs.
+  const currentDraft: TeacherContentDraft = {
+    ...draft,
+    activityFlow: "single_response",
+    includeTransfer: false,
+    minimumInitialSentences: Math.max(draft.minimumInitialSentences ?? 3, 3),
+  };
+  const activityId = `teacher-${slug(currentDraft.title || "biology-activity")}`;
   const fingerprint = createHash("sha256")
-    .update(JSON.stringify({ draft, estimatedMinutes, approvedAt }))
+    .update(JSON.stringify({ draft: currentDraft, estimatedMinutes, approvedAt }))
     .digest("hex")
     .slice(0, 12);
   const versionId = `${activityId}-${approvedAt.replace(/\D/g, "").slice(0, 14)}-${fingerprint}-${randomUUID().slice(0, 8)}`;
-  const contentPack = buildApprovedContentPack(draft, {
+  const contentPack = buildApprovedContentPack(currentDraft, {
     id: `${activityId}-${randomUUID().slice(0, 8)}`,
     versionId,
     approvedAt,

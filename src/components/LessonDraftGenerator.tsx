@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 
 import type { EditableLessonDraft } from "@/lib/ai/lesson-draft";
 import { courseOptions, gradeLevelOptions } from "@/lib/domain/curriculum";
+import {
+  isAcceptedLessonFilename,
+  LESSON_FILE_ACCEPT,
+  LESSON_FILE_FORMAT_LABEL,
+  MAX_LESSON_FILE_BYTES,
+} from "@/lib/lesson-files";
 
 interface DraftResponse {
   error?: string;
@@ -55,26 +61,15 @@ function emptyLessonDraft(): EditableLessonDraft {
     scopeBoundary: "Evaluate only the target ideas and misconceptions reviewed for this activity.",
     studentContext: "",
     studentPrompt: "",
-    nearTransferPrompt: "",
-    completionQuestion:
-      "Your explanation addresses the target ideas for this activity. Which details from the case provide the strongest evidence for your explanation? Add that connection if it would make your reasoning clearer.",
+    requiredVocabulary: "",
     targetIdeas: [targetIdea],
     possibleMisconceptions: [misconception],
-    followUpQuestions: [
-      {
-        id: newId("follow_up"),
-        title: "",
-        question: "",
-        targetKind: "target_idea",
-        targetId: targetIdea.id,
-      },
-    ],
-    clarificationQuestion: "",
     sourceNotes: [],
     teacherReviewChecks: [
       "Confirm the science content and age level.",
       "Verify each possible misconception with a source or classroom evidence.",
-      "Make sure every target idea and misconception has a useful follow-up question.",
+      "Confirm that the question requires application, explanation, or evidence instead of simple recall.",
+      "Confirm that students can answer in three to five complete sentences.",
     ],
   };
 }
@@ -88,13 +83,19 @@ export function LessonDraftGenerator({
 }) {
   const [lessonFile, setLessonFile] = useState<File | null>(null);
   const [lessonNotes, setLessonNotes] = useState("");
-  const [teacherContext, setTeacherContext] = useState("");
+  const [gradeLevel, setGradeLevel] = useState<EditableLessonDraft["gradeLevel"]>("");
+  const [course, setCourse] = useState<EditableLessonDraft["course"]>("Biology");
+  const [learningObjective, setLearningObjective] = useState("");
+  const [essentialContent, setEssentialContent] = useState("");
+  const [evidenceStudentsShouldUse, setEvidenceStudentsShouldUse] = useState("");
+  const [commonConfusion, setCommonConfusion] = useState("");
+  const [requiredVocabulary, setRequiredVocabulary] = useState("");
   const [draft, setDraft] = useState<EditableLessonDraft | null>(null);
   const [draftOrigin, setDraftOrigin] = useState<"ai" | "blank">("ai");
   const [model, setModel] = useState("");
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
-  const [reviewStep, setReviewStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [reviewStep, setReviewStep] = useState<1 | 2 | 3 | 4>(1);
   const hasLessonSource = Boolean(lessonFile || lessonNotes.trim().length >= 40);
 
   useEffect(() => {
@@ -102,10 +103,14 @@ export function LessonDraftGenerator({
   }, [draft, onDraftChange]);
 
   useEffect(() => {
-    onReviewReadyChange?.(Boolean(draft && reviewStep === 5));
+    onReviewReadyChange?.(Boolean(draft && reviewStep === 4));
   }, [draft, onReviewReadyChange, reviewStep]);
 
   async function generateDraft() {
+    if (!gradeLevel) {
+      setError("Select the grade for this activity.");
+      return;
+    }
     if (!hasLessonSource) {
       setError("Upload lesson materials or paste at least a few sentences from the lesson.");
       return;
@@ -116,7 +121,13 @@ export function LessonDraftGenerator({
       const form = new FormData();
       if (lessonFile) form.set("lessonFile", lessonFile);
       form.set("lessonNotes", lessonNotes);
-      form.set("teacherContext", teacherContext);
+      form.set("gradeLevel", gradeLevel);
+      form.set("course", course);
+      form.set("learningObjective", learningObjective);
+      form.set("essentialContent", essentialContent);
+      form.set("evidenceStudentsShouldUse", evidenceStudentsShouldUse);
+      form.set("commonConfusion", commonConfusion);
+      form.set("requiredVocabulary", requiredVocabulary);
       const response = await fetch("/api/teacher/lesson-draft", { method: "POST", body: form });
       const result = (await response.json()) as DraftResponse;
       if (!response.ok || !result.draft) {
@@ -145,6 +156,27 @@ export function LessonDraftGenerator({
     setReviewStep(1);
   }
 
+  function chooseLessonFile(file: File | null, input: HTMLInputElement) {
+    if (!file) {
+      setLessonFile(null);
+      return;
+    }
+    if (!isAcceptedLessonFilename(file.name)) {
+      setLessonFile(null);
+      setError(`Use one of these file formats: ${LESSON_FILE_FORMAT_LABEL}.`);
+      input.value = "";
+      return;
+    }
+    if (file.size > MAX_LESSON_FILE_BYTES) {
+      setLessonFile(null);
+      setError("Keep the lesson file under 4 MB.");
+      input.value = "";
+      return;
+    }
+    setLessonFile(file);
+    setError("");
+  }
+
   function isReviewStepComplete(step: number) {
     if (!draft) return false;
     if (step === 1) {
@@ -153,8 +185,7 @@ export function LessonDraftGenerator({
     if (step === 2) {
       return Boolean(
         draft.studentContext.trim().length >= 20 &&
-        draft.studentPrompt.trim().length >= 20 &&
-        draft.nearTransferPrompt.trim().length >= 20,
+        draft.studentPrompt.trim().length >= 20,
       );
     }
     if (step === 3) {
@@ -164,20 +195,7 @@ export function LessonDraftGenerator({
         draft.possibleMisconceptions.every((item) => item.label.trim() && item.description.trim()),
       );
     }
-    if (step === 4) {
-      const targets = new Set([
-        ...draft.targetIdeas.map((item) => item.id),
-        ...draft.possibleMisconceptions.map((item) => item.id),
-      ]);
-      return Boolean(
-        draft.followUpQuestions.length &&
-        draft.followUpQuestions.every((item) => item.title.trim() && item.question.trim() && targets.has(item.targetId)) &&
-        [...targets].every((targetId) => draft.followUpQuestions.some((item) => item.targetId === targetId)) &&
-        draft.completionQuestion.trim() &&
-        draft.clarificationQuestion.trim(),
-      );
-    }
-    return [1, 2, 3, 4].every(isReviewStepComplete);
+    return [1, 2, 3].every(isReviewStepComplete);
   }
 
   return (
@@ -205,22 +223,50 @@ export function LessonDraftGenerator({
               <p>Upload an existing lesson and receive an editable activity draft.</p>
 
               <div className="material-inputs">
+                <div className="draft-input-grid">
+                  <div className="field">
+                    <label htmlFor="lesson-grade">Grade</label>
+                    <select
+                      id="lesson-grade"
+                      value={gradeLevel}
+                      onChange={(event) => setGradeLevel(event.target.value as EditableLessonDraft["gradeLevel"])}
+                      required
+                    >
+                      <option value="">Select a grade</option>
+                      {gradeLevelOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label htmlFor="lesson-course">Course</label>
+                    <select
+                      id="lesson-course"
+                      value={course}
+                      onChange={(event) => setCourse(event.target.value as EditableLessonDraft["course"])}
+                    >
+                      {courseOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <span className="field-note">ExitLoop uses the grade to simplify directions while keeping important scientific vocabulary.</span>
+
                 <div className={`file-dropzone ${lessonFile ? "selected" : ""}`}>
                   <span className="file-upload-icon" aria-hidden="true">↑</span>
                   <span>
                     <label htmlFor="lesson-file">{lessonFile?.name || "Upload a lesson file"}</label>
-                    <small>{lessonFile ? "File ready to use" : "PDF, Word, PowerPoint, or text · Up to 4 MB"}</small>
+                    <small>{lessonFile ? "File ready to use" : "PDF, PowerPoint, Word, or text · Up to 4 MB"}</small>
                   </span>
                   <input
                     className="file-input-native"
                     id="lesson-file"
                     type="file"
-                    accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md,.rtf,.odt"
-                    onChange={(event) => setLessonFile(event.target.files?.[0] ?? null)}
+                    accept={LESSON_FILE_ACCEPT}
+                    onChange={(event) => chooseLessonFile(event.target.files?.[0] ?? null, event.currentTarget)}
                     aria-describedby="lesson-file-help"
                   />
                 </div>
-                <span className="field-note" id="lesson-file-help">Choose one instructional file up to 4 MB. Do not upload student information.</span>
+                <span className="field-note" id="lesson-file-help">
+                  Allowed: {LESSON_FILE_FORMAT_LABEL}. Maximum 4 MB. PowerPoint text is supported; use PDF when diagrams or slide images are essential. Do not upload student information.
+                </span>
 
                 <div className="input-divider"><span>or paste lesson notes</span></div>
                 <div className="field">
@@ -239,16 +285,33 @@ export function LessonDraftGenerator({
                   </span>
                 </div>
 
-                <div className="field teacher-context-field">
-                  <label htmlFor="teacher-context">Class context <span>(optional)</span></label>
-                  <input
-                    id="teacher-context"
-                    value={teacherContext}
-                    onChange={(event) => setTeacherContext(event.target.value)}
-                    placeholder="Example: 10th-grade biology after a photosynthesis lesson"
-                  />
-                  <span className="field-note">Add the course or grade if it is not clear from the material.</span>
-                </div>
+                <details className="advanced-settings">
+                  <summary>Optional details for a more accurate draft</summary>
+                  <div className="authoring-section-body stack-md">
+                    <p className="field-note">Your uploaded file or pasted notes are enough. Adding these details can help ExitLoop create a more accurate, focused assessment.</p>
+                    <div className="field">
+                      <label htmlFor="learning-objective">Learning objective <span>(optional)</span></label>
+                      <textarea id="learning-objective" rows={2} maxLength={4000} value={learningObjective} onChange={(event) => setLearningObjective(event.target.value)} placeholder="What should students understand or be able to explain?" />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="essential-content">Essential content <span>(optional)</span></label>
+                      <textarea id="essential-content" rows={3} maxLength={6000} value={essentialContent} onChange={(event) => setEssentialContent(event.target.value)} placeholder="Which ideas or relationships must the activity include?" />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="student-evidence">Evidence students should use <span>(optional)</span></label>
+                      <textarea id="student-evidence" rows={2} maxLength={4000} value={evidenceStudentsShouldUse} onChange={(event) => setEvidenceStudentsShouldUse(event.target.value)} placeholder="Name the reading, data, diagram, or example students should use." />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="common-confusion">Common confusion <span>(optional)</span></label>
+                      <textarea id="common-confusion" rows={2} maxLength={4000} value={commonConfusion} onChange={(event) => setCommonConfusion(event.target.value)} placeholder="What incorrect idea do students often bring to this lesson?" />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="required-vocabulary">Required vocabulary or terms <span>(optional)</span></label>
+                      <textarea id="required-vocabulary" rows={2} maxLength={2000} value={requiredVocabulary} onChange={(event) => setRequiredVocabulary(event.target.value)} placeholder="Example: chromosome, gene, inherited trait" />
+                      <span className="field-note">ExitLoop will keep these terms and simplify the surrounding wording for the selected grade.</span>
+                    </div>
+                  </div>
+                </details>
 
                 <div className="privacy-note privacy-note-row">
                   <span aria-hidden="true">✓</span>
@@ -283,7 +346,7 @@ export function LessonDraftGenerator({
                   <li>The activity students will complete</li>
                   <li>What students should understand</li>
                   <li>Common incorrect ideas</li>
-                  <li>Questions that help students think again</li>
+                  <li>A final preview before opening the class</li>
                 </ul>
               </div>
               <div className="method-card-actions">
@@ -327,14 +390,13 @@ export function LessonDraftGenerator({
               [1, "Lesson details"],
               [2, "Student activity"],
               [3, "Learning focus"],
-              [4, "Follow-up questions"],
-              [5, "Preview"],
+              [4, "Preview"],
             ].map(([step, label]) => (
               <button
                 className={`${reviewStep === step ? "current" : ""} ${isReviewStepComplete(Number(step)) ? "complete" : ""}`}
                 key={label}
                 type="button"
-                onClick={() => setReviewStep(Number(step) as 1 | 2 | 3 | 4 | 5)}
+                onClick={() => setReviewStep(Number(step) as 1 | 2 | 3 | 4)}
                 aria-current={reviewStep === step ? "step" : undefined}
               >
                 <span>{isReviewStepComplete(Number(step)) ? "✓" : step}</span>
@@ -352,7 +414,7 @@ export function LessonDraftGenerator({
             {reviewStep === 1 ?
             <details className="authoring-section" open>
               <summary className="authoring-section-summary">
-                <span className="section-number">A</span>
+                <span className="section-number">1</span>
                 <span><strong>Lesson details</strong><small>Title, grade, course, and topic</small></span>
                 <span className="section-meta">4 fields</span>
               </summary>
@@ -361,10 +423,17 @@ export function LessonDraftGenerator({
                   <div className="field"><label htmlFor="draft-title">Activity title</label><input id="draft-title" value={draft.lessonTitle} onChange={(event) => updateDraft("lessonTitle", event.target.value)} /></div>
                   <div className="field">
                     <label htmlFor="draft-grade">Grade</label>
-                    <select id="draft-grade" value={draft.gradeLevel} onChange={(event) => updateDraft("gradeLevel", event.target.value as EditableLessonDraft["gradeLevel"])} required>
-                      <option value="">Select a grade</option>
-                      {gradeLevelOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                    </select>
+                    {draftOrigin === "ai" ? (
+                      <>
+                        <input id="draft-grade" value={gradeLevelOptions.find((option) => option.value === draft.gradeLevel)?.label ?? draft.gradeLevel} readOnly />
+                        <span className="field-note">The wording was generated for this grade. To change it, return to the starting materials and create a new draft.</span>
+                      </>
+                    ) : (
+                      <select id="draft-grade" value={draft.gradeLevel} onChange={(event) => updateDraft("gradeLevel", event.target.value as EditableLessonDraft["gradeLevel"])} required>
+                        <option value="">Select a grade</option>
+                        {gradeLevelOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                      </select>
+                    )}
                   </div>
                   <div className="field">
                     <label htmlFor="draft-course">Course</label>
@@ -374,6 +443,11 @@ export function LessonDraftGenerator({
                   </div>
                 </div>
                 <div className="field"><label htmlFor="draft-topic">Biology topic</label><input id="draft-topic" value={draft.topic} onChange={(event) => updateDraft("topic", event.target.value)} /></div>
+                <div className="field">
+                  <label htmlFor="draft-vocabulary">Scientific words students should use <span>(optional)</span></label>
+                  <textarea id="draft-vocabulary" rows={2} value={draft.requiredVocabulary} onChange={(event) => updateDraft("requiredVocabulary", event.target.value)} placeholder="For example: carbon dioxide, glucose, photosynthesis" />
+                  <span className="field-note">Keep the scientific words from the lesson, but make the surrounding directions appropriate for the selected grade.</span>
+                </div>
               </div>
             </details>
             : null}
@@ -381,21 +455,24 @@ export function LessonDraftGenerator({
             {reviewStep === 2 ?
             <details className="authoring-section" open>
               <summary className="authoring-section-summary">
-                <span className="section-number">B</span>
-                <span><strong>What students will see</strong><small>The information and questions shown during the activity</small></span>
-                <span className="section-meta">3 prompts</span>
+                <span className="section-number">2</span>
+                <span><strong>What students will see</strong><small>One short application question based on the lesson</small></span>
+                <span className="section-meta">1 response</span>
               </summary>
               <div className="authoring-section-body stack-md">
-                <div className="field"><label htmlFor="draft-context">Information students will read</label><textarea id="draft-context" rows={5} value={draft.studentContext} placeholder="For example: A plant is placed in sunlight with water and carbon dioxide. Its leaves contain chloroplasts, and the plant produces glucose and oxygen." onChange={(event) => updateDraft("studentContext", event.target.value)} /></div>
-                <div className="field"><label htmlFor="draft-prompt">First explanation question</label><textarea id="draft-prompt" rows={4} value={draft.studentPrompt} placeholder="For example: Explain how the plant uses light, water, and carbon dioxide to produce glucose. Use two details from the information above." onChange={(event) => updateDraft("studentPrompt", event.target.value)} /></div>
-                <div className="field"><label htmlFor="draft-transfer">Related example after revision</label><textarea id="draft-transfer" rows={4} value={draft.nearTransferPrompt} placeholder="For example: A similar plant is kept in darkness. Explain how this change would affect glucose production using the same scientific ideas." onChange={(event) => updateDraft("nearTransferPrompt", event.target.value)} /><span className="field-note">This should use the same scientific reasoning in a new but familiar situation.</span></div>
+                <div className="callout compact neutral">
+                  <strong>Keep it short but thoughtful</strong>
+                  <p>Use a scenario, data, or evidence from the lesson. Ask students to predict, explain why, or apply a scientific relationship. Avoid a question that only asks for a definition or list.</p>
+                </div>
+                <div className="field"><label htmlFor="draft-context">Information students will read</label><textarea id="draft-context" rows={5} value={draft.studentContext} placeholder="For example: A plant gets enough light and water, but there is very little carbon dioxide around its leaves." onChange={(event) => updateDraft("studentContext", event.target.value)} /><span className="field-note">Include only the facts students need to reason through the question.</span></div>
+                <div className="field"><label htmlFor="draft-prompt">Application question</label><textarea id="draft-prompt" rows={4} value={draft.studentPrompt} placeholder="For example: What will happen to the amount of glucose the plant makes and how much it grows? Explain how carbon dioxide is connected to glucose production and plant growth. Use at least one fact from the situation as evidence. Write at least three complete sentences." onChange={(event) => updateDraft("studentPrompt", event.target.value)} /><span className="field-note">Students should be able to answer thoughtfully in three to five complete sentences.</span></div>
               </div>
             </details>
             : null}
 
             {reviewStep === 3 ? <details className="authoring-section" open>
               <summary className="authoring-section-summary">
-                <span className="section-number">2</span>
+                <span className="section-number">3</span>
                 <span><strong>Review the learning focus</strong><small>What students should explain and which incorrect ideas matter</small></span>
                 <span className="section-meta">{draft.targetIdeas.length + draft.possibleMisconceptions.length} items</span>
               </summary>
@@ -446,53 +523,7 @@ export function LessonDraftGenerator({
               </div>
             </details> : null}
 
-            {reviewStep === 4 ? <details className="authoring-section" open>
-              <summary className="authoring-section-summary">
-                <span className="section-number">3</span>
-                <span><strong>Review the follow-up questions</strong><small>Check what ExitLoop may ask after the first response</small></span>
-                <span className="section-meta">{draft.followUpQuestions.length + 2} questions</span>
-              </summary>
-              <div className="authoring-section-body stack-lg">
-                <p className="section-help">Each student receives one question from this list. Check that every question helps the student think again without revealing the answer.</p>
-                <div className="editor-subsection stack-md">
-                  <div className="editor-subsection-heading"><div><span className="subsection-number">A</span><strong>Questions connected to the learning focus</strong></div><p>For each question, choose the missing or incorrect idea it should address.</p></div>
-                {draft.followUpQuestions.map((question, index) => {
-                  const targets = question.targetKind === "target_idea" ? draft.targetIdeas : draft.possibleMisconceptions;
-                  const target = targets.find((item) => item.id === question.targetId);
-                  return (
-                    <details className="compact-draft-item" key={question.id}>
-                      <summary>
-                        <span><strong>{question.title || `Follow-up question ${index + 1}`}</strong><small>{target?.label ? `Used for: ${target.label}` : "Choose when students should receive this question."}</small></span>
-                        <span>Edit</span>
-                      </summary>
-                      <div className="compact-draft-body">
-                        <div className="draft-item-heading"><strong>Follow-up question {index + 1}</strong><button className="text-button danger-text" type="button" onClick={() => updateDraft("followUpQuestions", draft.followUpQuestions.filter((entry) => entry.id !== question.id))}>Remove</button></div>
-                        <div className="field"><label htmlFor={`generated-question-title-${question.id}`}>Short label for the teacher</label><input id={`generated-question-title-${question.id}`} value={question.title} onChange={(event) => updateDraft("followUpQuestions", draft.followUpQuestions.map((entry) => entry.id === question.id ? { ...entry, title: event.target.value } : entry))} /></div>
-                        <div className="field"><label htmlFor={`generated-question-text-${question.id}`}>Question the student will see</label><textarea id={`generated-question-text-${question.id}`} rows={3} value={question.question} onChange={(event) => updateDraft("followUpQuestions", draft.followUpQuestions.map((entry) => entry.id === question.id ? { ...entry, question: event.target.value } : entry))} /></div>
-                        <div className="field"><label htmlFor={`generated-question-target-${question.id}`}>Use this question when</label><select id={`generated-question-target-${question.id}`} value={`${question.targetKind}:${question.targetId}`} onChange={(event) => { const [targetKind, targetId] = event.target.value.split(":") as ["target_idea" | "possible_misconception", string]; updateDraft("followUpQuestions", draft.followUpQuestions.map((entry) => entry.id === question.id ? { ...entry, targetKind, targetId } : entry)); }}><optgroup label="An important idea is missing">{draft.targetIdeas.map((item) => <option key={item.id} value={`target_idea:${item.id}`}>{item.label || "Untitled idea"}</option>)}</optgroup><optgroup label="An incorrect idea appears">{draft.possibleMisconceptions.map((item) => <option key={item.id} value={`possible_misconception:${item.id}`}>{item.label || "Untitled incorrect idea"}</option>)}</optgroup></select></div>
-                      </div>
-                    </details>
-                  );
-                })}
-                  <button className="button secondary add-item-button" type="button" onClick={() => { const firstTarget = draft.targetIdeas[0]; const firstMisconception = draft.possibleMisconceptions[0]; if (!firstTarget && !firstMisconception) return; updateDraft("followUpQuestions", [...draft.followUpQuestions, { id: newId("follow_up"), title: "", question: "", targetKind: firstTarget ? "target_idea" : "possible_misconception", targetId: firstTarget?.id ?? firstMisconception?.id ?? "clarification" }]); }}>Add a follow-up question</button>
-                </div>
-                <div className="editor-subsection stack-md">
-                  <div className="editor-subsection-heading"><div><span className="subsection-number">B</span><strong>Questions for complete or unclear responses</strong></div><p>These two questions make sure every student can continue, even when no specific gap is identified.</p></div>
-                  <div className="prompt-settings-grid">
-                  <div className="draft-item clarification-question">
-                    <div><strong>When the response includes all selected ideas</strong><p className="source-note">Invite the student to strengthen the evidence or reasoning without assigning a grade.</p></div>
-                    <div className="field"><label htmlFor="draft-completion">Question the student will see</label><textarea id="draft-completion" rows={4} value={draft.completionQuestion} onChange={(event) => updateDraft("completionQuestion", event.target.value)} /></div>
-                  </div>
-                  <div className="draft-item clarification-question">
-                    <div><strong>When the response is unclear</strong><p className="source-note">Use for a short, contradictory, or off-topic response.</p></div>
-                    <div className="field"><label htmlFor="draft-clarification">Question the student will see</label><textarea id="draft-clarification" rows={4} value={draft.clarificationQuestion} onChange={(event) => updateDraft("clarificationQuestion", event.target.value)} /></div>
-                  </div>
-                  </div>
-                </div>
-              </div>
-            </details> : null}
-
-            {reviewStep === 5 ? <>
+            {reviewStep === 4 ? <>
             <section className="activity-preview-card">
               <div className="preview-heading">
                 <div>
@@ -506,17 +537,13 @@ export function LessonDraftGenerator({
                 <p>{draft.studentContext || "Add the information students will read."}</p>
               </div>
               <div className="preview-question">
-                <span>First question</span>
-                <p>{draft.studentPrompt || "Add the first explanation question."}</p>
-              </div>
-              <div className="preview-question secondary-preview">
-                <span>Related example after revision</span>
-                <p>{draft.nearTransferPrompt || "Add the related example."}</p>
+                <span>Application question</span>
+                <p>{draft.studentPrompt || "Add the application question."}</p>
               </div>
               <div className="preview-summary-grid">
                 <div><strong>{draft.targetIdeas.length}</strong><span>ideas to notice</span></div>
                 <div><strong>{draft.possibleMisconceptions.length}</strong><span>incorrect ideas</span></div>
-                <div><strong>{draft.followUpQuestions.length + 2}</strong><span>reviewed questions</span></div>
+                <div><strong>1</strong><span>application response</span></div>
               </div>
             </section>
 
@@ -535,12 +562,12 @@ export function LessonDraftGenerator({
           </div>
 
           <div className="draft-footer-actions">
-            <span>{reviewStep === 5 ? "Your draft is ready for one final check." : `Step ${reviewStep} of 5`}</span>
+            <span>{reviewStep === 4 ? "Your draft is ready for one final check." : `Step ${reviewStep} of 4`}</span>
             <div className="button-row">
-              {reviewStep > 1 ? <button className="button secondary" type="button" onClick={() => setReviewStep((reviewStep - 1) as 1 | 2 | 3 | 4 | 5)}>Back</button> : null}
-              {reviewStep < 5 ? (
-                <button className="button primary" type="button" onClick={() => setReviewStep((reviewStep + 1) as 1 | 2 | 3 | 4 | 5)}>
-                  {reviewStep === 1 ? "Review student questions" : reviewStep === 2 ? "Review learning focus" : reviewStep === 3 ? "Review follow-up questions" : "Preview activity"}
+              {reviewStep > 1 ? <button className="button secondary" type="button" onClick={() => setReviewStep((reviewStep - 1) as 1 | 2 | 3 | 4)}>Back</button> : null}
+              {reviewStep < 4 ? (
+                <button className="button primary" type="button" onClick={() => setReviewStep((reviewStep + 1) as 1 | 2 | 3 | 4)}>
+                  {reviewStep === 1 ? "Review student question" : reviewStep === 2 ? "Review learning focus" : "Preview activity"}
                 </button>
               ) : <>
                 <button className="button secondary" type="button" onClick={() => downloadDraft(draft)}>Download backup</button>

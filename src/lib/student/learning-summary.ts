@@ -17,6 +17,23 @@ export interface StudentLearningSummary {
   uncertain: boolean;
 }
 
+export function buildRevisionInstruction(focusKind?: LearningFocusKind | null) {
+  const keepWhatFits =
+    "Keep the parts of your first answer that still fit. You do not need to start over.";
+
+  switch (focusKind) {
+    case "missing_idea":
+      return `Add one sentence that explains the scientific connection in the helping question. ${keepWhatFits}`;
+    case "claim_to_reconsider":
+      return `Edit one sentence so the scientific connection matches the evidence. ${keepWhatFits}`;
+    case "evidence_check":
+      return `Edit or add one sentence that connects your evidence to your conclusion. ${keepWhatFits}`;
+    case "clarify_reasoning":
+    default:
+      return `Edit or add one sentence to make the scientific connection easier to follow. ${keepWhatFits}`;
+  }
+}
+
 export function buildStudentLearningSummary(
   pack: ContentPack,
   decision: AiDecision,

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { getFollowUpPrompt, traitInheritancePack } from "@/content/trait-inheritance";
+import {
+  getFollowUpPrompt,
+  legacyTraitInheritancePack,
+  traitInheritancePack,
+} from "@/content/trait-inheritance";
 
 const adaptivePromptIds = [
   "inheritance_gene_trait_probe_01",
@@ -22,7 +26,16 @@ const alternativeConceptionIds = [
   "acquired_trait_is_inherited",
 ];
 
-describe("trait-inheritance frozen question bank", () => {
+describe("trait-inheritance approved analysis bank", () => {
+  it("uses the shorter single-response flow for new sessions and preserves the legacy loop", () => {
+    expect(traitInheritancePack.activityFlow).toBe("single_response");
+    expect(traitInheritancePack.minimumInitialSentences).toBe(3);
+    expect(traitInheritancePack.estimatedMinutes).toBe(6);
+    expect(legacyTraitInheritancePack.activityFlow).toBe("legacy_learning_loop");
+    expect(legacyTraitInheritancePack.includeTransfer).toBe(true);
+    expect(legacyTraitInheritancePack.estimatedMinutes).toBe(12);
+  });
+
   it("contains exactly the approved adaptive prompt identifiers", () => {
     expect(traitInheritancePack.followUps.map((prompt) => prompt.id)).toEqual(
       adaptivePromptIds,
@@ -36,7 +49,7 @@ describe("trait-inheritance frozen question bank", () => {
     ).toEqual(alternativeConceptionIds);
   });
 
-  it("maps every student-facing prompt to declared research sources", () => {
+  it("maps every approved legacy prompt to declared research sources", () => {
     const sourceIds = new Set(
       traitInheritancePack.researchSources.map((source) => source.id),
     );
@@ -54,7 +67,7 @@ describe("trait-inheritance frozen question bank", () => {
     }
   });
 
-  it("uses a non-grading completion check for fully evidenced responses", () => {
+  it("retains a non-grading completion check for legacy sessions", () => {
     const prompt = getFollowUpPrompt("inheritance_complete_check_01");
     expect(prompt?.text).toContain("already includes the key scientific ideas");
     expect(prompt?.text).toContain("continue to the next example");

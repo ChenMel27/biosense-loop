@@ -78,7 +78,7 @@ export function DeleteSessionButton({
             <h2 id={`delete-session-title-${sessionId}`}>Delete this session?</h2>
             <p id={`delete-session-description-${sessionId}`}>
               <strong>{sessionTitle}</strong> and all of its student submissions,
-              responses, AI results, surveys, and teacher notes will be permanently deleted.
+              responses, AI results, optional legacy survey data, and teacher notes will be permanently deleted.
             </p>
             {error ? <p className="form-error" role="alert">{error}</p> : null}
             <div className="button-row dialog-actions">
